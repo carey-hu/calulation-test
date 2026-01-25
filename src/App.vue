@@ -314,7 +314,8 @@ const GAME_MODES = {
   'tripleMult': { name: '三乘一', title: '三乘一完成！', hintNote: '计算准确积', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*8)+2; p.push({dividend:a,divisor:b,ans:a*b,symbol:'×'});} return p;} },
   'tripleDiv': { name: '三除一', title: '三除一完成！', hintNote: '若为小数，填相邻整数均对', check: (v, t) => { if(Number.isInteger(t)){ return {ok:v===t,display:t}; }else{ const f=Math.floor(t),c=Math.ceil(t); return {ok:(v===f||v===c),display:`${f}或${c} (${t.toFixed(2)})`}; } }, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*8)+2; p.push({dividend:a,divisor:b,ans:a/b,symbol:'÷'});} return p;} },
   'divSpecA': { name: '反向放缩', title: '反向放缩完成！', hintNote: '除数111-199 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*(199-111+1))+111;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} },
-  'divSpecB': { name: '平移法', title: '平移法完成！', hintNote: '商90-111 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; let c=0; while(c<n){ const dr=Math.floor(Math.random()*900)+100;const tq=Math.floor(Math.random()*(111-90+1))+90;const dd=dr*tq+Math.floor(Math.random()*dr); if(dd>=10000&&dd<=99999){ p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'}); c++;} } return p;} }
+  'divSpecB': { name: '平移法', title: '平移法完成！', hintNote: '商90-111 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; let c=0; while(c<n){ const dr=Math.floor(Math.random()*900)+100;const tq=Math.floor(Math.random()*(111-90+1))+90;const dd=dr*tq+Math.floor(Math.random()*dr); if(dd>=10000&&dd<=99999){ p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'}); c++;} } return p;} },
+  'divSpecC': { name: '任意五除三', title: '任意五除三完成！', hintNote: '五位数除以三位数 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*900)+100;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} }
 };
 
 const MODE_GROUPS = {
@@ -323,7 +324,7 @@ const MODE_GROUPS = {
   single: { label: '一位数专项 (仅填尾数)', modes: ['plus', 'minus'] },
   double: { label: '两位数专项 (完整答案)', modes: ['doublePlus', 'doubleMinus', 'fourSum'] },
   triple: { label: '三位数专项 (完整答案)', modes: ['triplePlus', 'tripleMinus', 'tripleAnyPlus', 'tripleAnyMinus', 'tripleMix', 'tripleMult', 'tripleDiv'] },
-  spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB'] }
+  spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB', 'divSpecC'] }
 };
 
 export default {
