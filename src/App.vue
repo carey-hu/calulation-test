@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <LiquidBackground />
-    <ToastMessage :show="toast.show" :message="toast.message" />
+    <ToastMessage :show="toast.show.value" :message="toast.message.value" />
 
     <HomeView 
       v-if="view === 'home'"
@@ -181,6 +181,7 @@ function finishGame() {
 
 function goHome() {
   game.stopTimer()
+  toast.hideToast()
   view.value = 'home'
 }
 
