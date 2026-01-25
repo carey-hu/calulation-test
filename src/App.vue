@@ -722,13 +722,13 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .btnDanger { width: 100%; height: 48px; line-height: 48px; border-radius: 16px; background: rgba(255, 59, 48, 0.1); color: #ff3b30; font-size: 20px; font-weight: 700; border: 1px solid rgba(255, 59, 48, 0.2); }
 .btnDanger:active { background: rgba(255, 59, 48, 0.2); }
 .main-action-btn { font-size: 20px !important; height: 54px !important; line-height: 54px !important; }
-.gameRoot { min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 0; }
+.gameRoot { height: 100vh; display: flex; flex-direction: column; padding-bottom: 0; overflow: hidden; }
 .safe-top { padding-top: max(44px, env(safe-area-inset-top)); padding-bottom: 12px; height: auto; box-sizing: content-box; display: flex; align-items: center; gap: 12px; margin-bottom: 5px; flex-shrink: 0; }
 .safe-header { padding-top: max(44px, env(safe-area-inset-top)); margin-bottom: 20px; }
 .btnBack { width: 80px; height: 44px; line-height: 44px; border-radius: 14px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); font-weight: 700; font-size: 16px; margin: 0; color: #1c1c1e; backdrop-filter: blur(10px); }
 .topStats { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: #333; }
 .glass-pill { background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.03); backdrop-filter: blur(10px); }
-.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; overflow-y: auto; }
+.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .qCard { text-align: center; padding: 30px 20px; }
 .qText { font-size: 64px; font-weight: 800; margin-top: 0; color: #1c1c1e; letter-spacing: -2px; }
 .qNote { margin-top: 8px; font-size: 16px; color: #8e8e93; font-weight: 500; }
@@ -850,194 +850,96 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 }
 
 /* ============================================ */
-/* 响应式适配 - 适配不同尺寸的手机设备 */
+/* 响应式适配 - 整体缩放策略 */
 /* ============================================ */
 
-/* 小屏幕手机适配 (屏幕高度 < 700px，如iPhone SE, 小安卓机) */
-@media screen and (max-height: 700px) {
-  .title { font-size: 28px; }
-  .subtitle { font-size: 14px; }
-  
-  .qText { font-size: 52px; }
-  .qText-small { font-size: 44px !important; }
-  .ansBox { font-size: 38px; padding: 12px; margin-top: 16px; }
-  .qNote { font-size: 15px; }
-  .hint { font-size: 14px; }
-  
-  .k { height: 60px; line-height: 60px; font-size: 26px; }
-  .kFn { height: 55px; line-height: 55px; font-size: 18px; }
-  .glass-key-confirm { font-size: 24px; }
-  
-  .qCard { padding: 20px 16px; }
-  .card { padding: 14px; }
-  .homeWrap { padding-top: max(50px, env(safe-area-inset-top)); padding-bottom: 30px; }
-  
-  /* 优化游戏界面布局 */
-  .gameMain { justify-content: flex-start; padding-top: 20px; }
+/* 竖屏模式 - 根据屏幕高度整体缩放 */
+/* 小屏手机 (高度 < 700px) - 缩放 90% */
+@media screen and (orientation: portrait) and (max-height: 700px) {
+  .page { zoom: 0.9; }
 }
 
-/* 超小屏幕适配 (屏幕高度 < 650px，如iPhone SE 一代, 小安卓机) */
-@media screen and (max-height: 650px) {
-  .title { font-size: 26px; margin-bottom: 4px; }
-  .subtitle { font-size: 13px; }
-  .header-area { margin-bottom: 16px; }
-  
-  .qText { font-size: 46px; }
-  .qText-small { font-size: 38px !important; }
-  .ansBox { font-size: 32px; padding: 10px; margin-top: 14px; }
-  .qNote { font-size: 14px; margin-top: 6px; }
-  .hint { font-size: 13px; margin-top: 10px; }
-  
-  .k { height: 54px; line-height: 54px; font-size: 24px; }
-  .kFn { height: 48px; line-height: 48px; font-size: 17px; }
-  .fnRow { margin-bottom: 7px; gap: 7px; }
-  .grid { gap: 4px; }
-  
-  .qCard { padding: 16px 14px; }
-  .card { padding: 12px; }
-  .wrap { padding: 16px 14px 20px; }
-  .homeWrap { padding-bottom: 24px; }
-  
-  .btnPrimary, .btnHistory, .btnGhost, .btnDanger { height: 44px; line-height: 44px; font-size: 18px; }
-  .main-action-btn { font-size: 18px !important; height: 48px !important; line-height: 48px !important; }
-  
-  .modeItem { padding: 12px 4px; }
-  .modeTitle { font-size: 15px; }
-  .rowLabel { font-size: 12px; margin: 14px 0 6px 6px; }
-  
-  /* 优化游戏界面布局 */
-  .gameMain { justify-content: flex-start; padding-top: 10px; }
-  .safe-top { padding-bottom: 8px; margin-bottom: 3px; }
+/* 超小屏手机 (高度 < 650px) - 缩放 85% */
+@media screen and (orientation: portrait) and (max-height: 650px) {
+  .page { zoom: 0.85; }
 }
 
-/* 极小屏幕适配 (屏幕高度 < 600px，如极小的安卓机) */
-@media screen and (max-height: 600px) {
-  .title { font-size: 24px; }
-  .subtitle { font-size: 12px; }
-  .header-area { margin-bottom: 12px; }
-  
-  .qText { font-size: 40px; }
-  .qText-small { font-size: 32px !important; }
-  .ansBox { font-size: 28px; padding: 8px; margin-top: 10px; }
-  .qNote { font-size: 12px; }
-  .hint { font-size: 12px; margin-top: 8px; }
-  
-  .k { height: 48px; line-height: 48px; font-size: 22px; }
-  .kFn { height: 44px; line-height: 44px; font-size: 16px; }
-  .fnRow { margin-bottom: 6px; gap: 6px; }
-  .grid { gap: 3px; }
-  
-  .qCard { padding: 12px 10px; }
-  .card { padding: 10px; }
-  .wrap { padding: 14px 12px 16px; }
-  
-  .btnPrimary, .btnHistory, .btnGhost, .btnDanger { height: 40px; line-height: 40px; font-size: 16px; }
-  .main-action-btn { font-size: 16px !important; height: 44px !important; line-height: 44px !important; }
-  
-  .modeItem { padding: 10px 3px; }
-  .modeTitle { font-size: 14px; }
-  .rowLabel { font-size: 11px; margin: 10px 0 5px 4px; }
-  .homeWrap { padding-top: max(40px, env(safe-area-inset-top)); padding-bottom: 20px; }
-  
-  /* 优化游戏界面布局 */
-  .gameMain { justify-content: flex-start; padding-top: 5px; }
-  .safe-top { padding-top: max(36px, env(safe-area-inset-top)); padding-bottom: 6px; margin-bottom: 2px; }
-  .btnBack { height: 38px; line-height: 38px; font-size: 15px; width: 70px; }
-  .topStats { font-size: 14px; }
-  .glass-pill { padding: 5px 12px; font-size: 14px; }
+/* 极小屏手机 (高度 < 600px) - 缩放 78% */
+@media screen and (orientation: portrait) and (max-height: 600px) {
+  .page { zoom: 0.78; }
 }
 
-/* 窄屏幕适配 (屏幕宽度 < 360px，如老款小屏安卓机) */
-@media screen and (max-width: 360px) {
-  .qText { font-size: 46px; }
-  .qText-small { font-size: 38px !important; }
-  .ansBox { font-size: 32px; }
-  
-  .k { font-size: 22px; }
-  .kFn { font-size: 16px; }
-  
-  .title { font-size: 24px; }
-  .modeItem { padding: 10px 2px; }
-  .modeTitle { font-size: 14px; }
+/* 超极小屏 (高度 < 568px，如iPhone SE) - 缩放 72% */
+@media screen and (orientation: portrait) and (max-height: 568px) {
+  .page { zoom: 0.72; }
 }
 
-/* 超窄屏幕适配 (屏幕宽度 < 320px，如iPhone SE一代) */
-@media screen and (max-width: 320px) {
-  .qText { font-size: 42px; }
-  .qText-small { font-size: 34px !important; }
-  .ansBox { font-size: 28px; }
+/* 横屏模式 - 左右布局 */
+@media screen and (orientation: landscape) {
+  .gameRoot {
+    flex-direction: row !important;
+    height: 100vh;
+    padding: 0 !important;
+  }
   
-  .k { font-size: 20px; }
-  .kFn { font-size: 15px; }
+  .topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
   
-  .title { font-size: 22px; }
-  .subtitle { font-size: 12px; }
-  .modeTitle { font-size: 13px; }
+  .gameMain {
+    flex: 1;
+    padding-top: max(70px, calc(env(safe-area-inset-top) + 20px)) !important;
+    padding-left: 16px;
+    padding-right: 8px;
+    overflow-y: auto;
+  }
+  
+  .keypad {
+    width: 45%;
+    max-width: 380px;
+    margin: 0 !important;
+    margin-right: 16px !important;
+    margin-top: max(70px, calc(env(safe-area-inset-top) + 20px)) !important;
+    margin-bottom: calc(6px + env(safe-area-inset-bottom)) !important;
+    align-self: flex-start;
+    flex-shrink: 0;
+  }
+  
+  .qCard {
+    max-width: 600px;
+  }
 }
 
-/* 超宽屏幕优化 (如平板或横屏模式) */
-@media screen and (min-width: 600px) {
+/* 横屏高度适配 - 整体缩放 */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .page { zoom: 0.85; }
+}
+
+@media screen and (orientation: landscape) and (max-height: 450px) {
+  .page { zoom: 0.75; }
+}
+
+@media screen and (orientation: landscape) and (max-height: 400px) {
+  .page { zoom: 0.68; }
+}
+
+@media screen and (orientation: landscape) and (max-height: 350px) {
+  .page { zoom: 0.60; }
+}
+
+/* 超宽屏幕优化 */
+@media screen and (min-width: 600px) and (orientation: portrait) {
   .page { max-width: 600px; }
 }
 
-/* 超高屏幕优化 (如长条形手机，屏幕比例很高) */
-@media screen and (min-height: 900px) {
-  .gameMain { justify-content: flex-start; padding-top: 60px; }
-  .homeWrap { padding-top: max(80px, env(safe-area-inset-top)); }
-}
 
-/* 横屏模式特殊处理 */
-@media screen and (orientation: landscape) and (max-height: 500px) {
-  .title { font-size: 20px; }
-  .subtitle { font-size: 11px; }
-  .header-area { margin-bottom: 8px; }
-  
-  .qText { font-size: 36px; }
-  .qText-small { font-size: 28px !important; }
-  .ansBox { font-size: 24px; padding: 6px; margin-top: 8px; }
-  .qNote { font-size: 11px; margin-top: 4px; }
-  .hint { font-size: 11px; margin-top: 6px; }
-  .qCard { padding: 10px 8px; }
-  
-  .k { height: 44px; line-height: 44px; font-size: 20px; }
-  .kFn { height: 40px; line-height: 40px; font-size: 15px; }
-  .fnRow { margin-bottom: 5px; gap: 5px; }
-  .grid { gap: 3px; }
-  
-  .card { padding: 8px; }
-  .wrap { padding: 10px 12px 12px; }
-  .homeWrap { padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: 12px; }
-  .safe-top { padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: 5px; margin-bottom: 2px; }
-  
-  /* 横屏游戏界面布局优化 */
-  .gameMain { justify-content: flex-start; padding-top: 0; }
-  .btnBack { height: 34px; line-height: 34px; font-size: 14px; width: 65px; }
-  .topStats { font-size: 13px; }
-  .glass-pill { padding: 4px 10px; font-size: 13px; }
-  .keypad { margin-bottom: calc(4px + env(safe-area-inset-bottom)); }
-}
 
-/* 极端横屏优化 (高度 < 400px) */
-@media screen and (orientation: landscape) and (max-height: 400px) {
-  .qText { font-size: 32px; }
-  .qText-small { font-size: 24px !important; }
-  .ansBox { font-size: 20px; padding: 5px; margin-top: 6px; }
-  .qNote { font-size: 10px; margin-top: 3px; }
-  .hint { font-size: 10px; margin-top: 5px; }
-  .qCard { padding: 8px 6px; }
-  
-  .k { height: 40px; line-height: 40px; font-size: 18px; }
-  .kFn { height: 36px; line-height: 36px; font-size: 14px; }
-  .fnRow { margin-bottom: 4px; gap: 4px; }
-  .grid { gap: 2px; }
-  
-  .safe-top { padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: 4px; margin-bottom: 1px; }
-  .btnBack { height: 30px; line-height: 30px; font-size: 13px; width: 60px; }
-  .topStats { font-size: 12px; }
-  .glass-pill { padding: 3px 8px; font-size: 12px; }
-  .keypad { margin-bottom: calc(3px + env(safe-area-inset-bottom)); }
-  .card { padding: 6px; }
-}
 
 </style>
 
