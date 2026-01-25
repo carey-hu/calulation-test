@@ -728,8 +728,8 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .btnBack { width: 80px; height: 44px; line-height: 44px; border-radius: 14px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); font-weight: 700; font-size: 16px; margin: 0; color: #1c1c1e; backdrop-filter: blur(10px); }
 .topStats { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: #333; }
 .glass-pill { background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.03); backdrop-filter: blur(10px); }
-.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.qCard { text-align: center; padding: 30px 20px; }
+.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
+.qCard { text-align: center; padding: 30px 20px; margin-bottom: 20px; }
 .qText { font-size: 64px; font-weight: 800; margin-top: 0; color: #1c1c1e; letter-spacing: -2px; }
 .qNote { margin-top: 8px; font-size: 16px; color: #8e8e93; font-weight: 500; }
 .ansBox { margin-top: 20px; padding: 15px; border-radius: 20px; background: rgba(255,255,255,0.5); font-size: 44px; font-weight: 800; min-height: 44px; color: #007aff; box-shadow: inset 0 2px 6px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03); }
@@ -850,93 +850,56 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 }
 
 /* ============================================ */
-/* 响应式适配 - 整体缩放策略 */
+/* 响应式适配 - 纯缩放方案（不改变布局） */
 /* ============================================ */
 
-/* 竖屏模式 - 根据屏幕高度整体缩放 */
-/* 小屏手机 (高度 < 700px) - 缩放 90% */
+/* 竖屏模式 - 只做整体缩放 */
 @media screen and (orientation: portrait) and (max-height: 700px) {
   .page { zoom: 0.9; }
 }
 
-/* 超小屏手机 (高度 < 650px) - 缩放 85% */
 @media screen and (orientation: portrait) and (max-height: 650px) {
   .page { zoom: 0.85; }
 }
 
-/* 极小屏手机 (高度 < 600px) - 缩放 78% */
 @media screen and (orientation: portrait) and (max-height: 600px) {
   .page { zoom: 0.78; }
 }
 
-/* 超极小屏 (高度 < 568px，如iPhone SE) - 缩放 72% */
 @media screen and (orientation: portrait) and (max-height: 568px) {
   .page { zoom: 0.72; }
 }
 
-/* 横屏模式 - 左右布局 */
-@media screen and (orientation: landscape) {
-  .gameRoot {
-    flex-direction: row !important;
-    height: 100vh;
-    padding: 0 !important;
-  }
-  
-  .topbar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  
-  .gameMain {
-    flex: 1;
-    padding-top: max(70px, calc(env(safe-area-inset-top) + 20px)) !important;
-    padding-left: 16px;
-    padding-right: 8px;
-    overflow-y: auto;
-  }
-  
-  .keypad {
-    width: 45%;
-    max-width: 380px;
-    margin: 0 !important;
-    margin-right: 16px !important;
-    margin-top: max(70px, calc(env(safe-area-inset-top) + 20px)) !important;
-    margin-bottom: calc(6px + env(safe-area-inset-bottom)) !important;
-    align-self: flex-start;
-    flex-shrink: 0;
-  }
-  
-  .qCard {
-    max-width: 600px;
-  }
+@media screen and (orientation: portrait) and (max-height: 530px) {
+  .page { zoom: 0.66; }
 }
 
-/* 横屏高度适配 - 整体缩放 */
+/* 横屏模式 - 也只做缩放，不改变布局 */
 @media screen and (orientation: landscape) and (max-height: 500px) {
-  .page { zoom: 0.85; }
+  .page { zoom: 0.7; }
 }
 
 @media screen and (orientation: landscape) and (max-height: 450px) {
-  .page { zoom: 0.75; }
+  .page { zoom: 0.65; }
 }
 
 @media screen and (orientation: landscape) and (max-height: 400px) {
-  .page { zoom: 0.68; }
+  .page { zoom: 0.58; }
 }
 
 @media screen and (orientation: landscape) and (max-height: 350px) {
-  .page { zoom: 0.60; }
+  .page { zoom: 0.5; }
+}
+
+@media screen and (orientation: landscape) and (max-height: 300px) {
+  .page { zoom: 0.45; }
 }
 
 /* 超宽屏幕优化 */
 @media screen and (min-width: 600px) and (orientation: portrait) {
   .page { max-width: 600px; }
 }
+
 
 
 
