@@ -848,5 +848,145 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
+
+/* ============================================ */
+/* 响应式适配 - 适配不同尺寸的手机设备 */
+/* ============================================ */
+
+/* 小屏幕手机适配 (屏幕高度 < 700px，如iPhone SE, 小安卓机) */
+@media screen and (max-height: 700px) {
+  .title { font-size: 28px; }
+  .subtitle { font-size: 14px; }
+  
+  .qText { font-size: 52px; }
+  .qText-small { font-size: 44px !important; }
+  .ansBox { font-size: 38px; padding: 12px; }
+  
+  .k { height: 60px; line-height: 60px; font-size: 26px; }
+  .kFn { height: 55px; line-height: 55px; font-size: 18px; }
+  .glass-key-confirm { font-size: 24px; }
+  
+  .qCard { padding: 20px 16px; }
+  .card { padding: 14px; }
+  .homeWrap { padding-top: max(50px, env(safe-area-inset-top)); padding-bottom: 30px; }
+}
+
+/* 超小屏幕适配 (屏幕高度 < 650px，如iPhone SE 一代, 小安卓机) */
+@media screen and (max-height: 650px) {
+  .title { font-size: 26px; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; }
+  .header-area { margin-bottom: 16px; }
+  
+  .qText { font-size: 48px; }
+  .qText-small { font-size: 40px !important; }
+  .ansBox { font-size: 34px; padding: 10px; margin-top: 16px; }
+  .qNote { font-size: 14px; margin-top: 6px; }
+  .hint { font-size: 14px; margin-top: 12px; }
+  
+  .k { height: 55px; line-height: 55px; font-size: 24px; }
+  .kFn { height: 50px; line-height: 50px; font-size: 17px; }
+  .fnRow { margin-bottom: 8px; gap: 8px; }
+  .grid { gap: 4px; }
+  
+  .qCard { padding: 16px 14px; }
+  .card { padding: 12px; }
+  .wrap { padding: 16px 14px 20px; }
+  .homeWrap { padding-bottom: 24px; }
+  
+  .btnPrimary, .btnHistory, .btnGhost, .btnDanger { height: 44px; line-height: 44px; font-size: 18px; }
+  .main-action-btn { font-size: 18px !important; height: 48px !important; line-height: 48px !important; }
+  
+  .modeItem { padding: 12px 4px; }
+  .modeTitle { font-size: 15px; }
+  .rowLabel { font-size: 12px; margin: 14px 0 6px 6px; }
+}
+
+/* 极小屏幕适配 (屏幕高度 < 600px，如极小的安卓机) */
+@media screen and (max-height: 600px) {
+  .title { font-size: 24px; }
+  .subtitle { font-size: 12px; }
+  .header-area { margin-bottom: 12px; }
+  
+  .qText { font-size: 44px; }
+  .qText-small { font-size: 36px !important; }
+  .ansBox { font-size: 30px; padding: 8px; margin-top: 12px; }
+  .qNote { font-size: 13px; }
+  .hint { font-size: 13px; margin-top: 10px; }
+  
+  .k { height: 50px; line-height: 50px; font-size: 22px; }
+  .kFn { height: 46px; line-height: 46px; font-size: 16px; }
+  .fnRow { margin-bottom: 6px; gap: 6px; }
+  .grid { gap: 3px; }
+  
+  .qCard { padding: 14px 12px; }
+  .card { padding: 10px; }
+  .wrap { padding: 14px 12px 18px; }
+  
+  .btnPrimary, .btnHistory, .btnGhost, .btnDanger { height: 40px; line-height: 40px; font-size: 16px; }
+  .main-action-btn { font-size: 16px !important; height: 44px !important; line-height: 44px !important; }
+  
+  .modeItem { padding: 10px 3px; }
+  .modeTitle { font-size: 14px; }
+  .rowLabel { font-size: 11px; margin: 12px 0 5px 4px; }
+  .homeWrap { padding-top: max(40px, env(safe-area-inset-top)); padding-bottom: 20px; }
+}
+
+/* 窄屏幕适配 (屏幕宽度 < 360px，如老款小屏安卓机) */
+@media screen and (max-width: 360px) {
+  .qText { font-size: 46px; }
+  .qText-small { font-size: 38px !important; }
+  .ansBox { font-size: 32px; }
+  
+  .k { font-size: 22px; }
+  .kFn { font-size: 16px; }
+  
+  .title { font-size: 24px; }
+  .modeItem { padding: 10px 2px; }
+  .modeTitle { font-size: 14px; }
+}
+
+/* 超窄屏幕适配 (屏幕宽度 < 320px，如iPhone SE一代) */
+@media screen and (max-width: 320px) {
+  .qText { font-size: 42px; }
+  .qText-small { font-size: 34px !important; }
+  .ansBox { font-size: 28px; }
+  
+  .k { font-size: 20px; }
+  .kFn { font-size: 15px; }
+  
+  .title { font-size: 22px; }
+  .subtitle { font-size: 12px; }
+  .modeTitle { font-size: 13px; }
+}
+
+/* 超宽屏幕优化 (如平板或横屏模式) */
+@media screen and (min-width: 600px) {
+  .page { max-width: 600px; }
+}
+
+/* 超高屏幕优化 (如长条形手机，屏幕比例很高) */
+@media screen and (min-height: 900px) {
+  .gameMain { justify-content: flex-start; padding-top: 60px; }
+  .homeWrap { padding-top: max(80px, env(safe-area-inset-top)); }
+}
+
+/* 横屏模式特殊处理 */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .title { font-size: 22px; }
+  .subtitle { font-size: 12px; }
+  .header-area { margin-bottom: 10px; }
+  
+  .qText { font-size: 40px; }
+  .qText-small { font-size: 32px !important; }
+  .ansBox { font-size: 28px; padding: 8px; }
+  .qCard { padding: 12px 10px; }
+  
+  .k { height: 48px; line-height: 48px; font-size: 20px; }
+  .kFn { height: 44px; line-height: 44px; font-size: 15px; }
+  
+  .homeWrap { padding-top: max(30px, env(safe-area-inset-top)); padding-bottom: 16px; }
+  .safe-top { padding-top: max(30px, env(safe-area-inset-top)); padding-bottom: 8px; }
+}
+
 </style>
 
