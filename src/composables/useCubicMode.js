@@ -1,292 +1,347 @@
-import { ref, reactive } from 'vue'
+/**
+ * 3D 积木模块
+ * 使用 Three.js 实现立体拼合训练
+ */
+
+import { ref, reactive, onUnmounted } from 'vue'
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 export function useCubicMode() {
-  const colors = ['#007aff', '#ff9500', '#1c1c1e', '#ffffff']
-  const selectedColor = ref('#007aff')
+  // ============================================================
+  // 状态
+  // ============================================================
+  
   const isDeleteMode = ref(false)
   const isSliceMode = ref(false)
-  const currentView = ref('iso')
-
+  const selectedColor = ref('#007aff')
+  const colors = ['#007aff', '#ff9500', '#333333', '#ffffff']
+  
   const sliceConfig = reactive({
+    constant: 5,
     x: 0,
-    y: 1,
-    z: 0,
-    constant: 5
+    y: -1,
+    z: 0
   })
-
-  let scene = null
-  let camera = null
-  let renderer = null
-  let raycaster = null
-  let mouse = null
-  let ground = null
-  let cubes = []
-  let clippingPlane = null
-  let animationId = null
-
-  function initThree() {
-    const container = document.getElementById('three-container')
-    if (!container) return
-
-    // 清理旧的
-    cleanup()
-
-    const w = container.clientWidth
-    const h = container.clientHeight
-
+  
+  // Three.js 对象
+  const threeApp = reactive({
+    scene: null,
+    camera: null,
+    renderer: null,
+    controls: null,
+    raycaster: null,
+    objects: [],
+    animationId: null,
+    clippingPlane: null,
+    planeHelper: null,
+    groundPlane: null
+  })
+  
+  // ============================================================
+  // 方法
+  // ============================================================
+  
+  function initThree(containerId = 'three-container') {
+    const container = document.getElementById(containerId)
+    if (!container) return false
+    
+    const width = container.clientWidth
+    const height = container.clientHeight
+    
     // 场景
-    scene = new THREE.Scene()
-    scene.background = new THREE.Color(0xf5f5f7)
-
+    const scene = new THREE.Scene()
+    scene.background = new THREE.Color('#f2f2f7')
+    scene.fog = new THREE.Fog('#f2f2f7', 20, 50)
+    
     // 正交相机
-    const aspect = w / h
-    const d = 10
-    camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 1000)
-    camera.position.set(15, 15, 15)
-    camera.lookAt(0, 0, 0)
-
+    const aspect = width / height
+    const d = 18
+    const camera = new THREE.OrthographicCamera(
+      -d * aspect, d * aspect,
+      d, -d,
+      1, 1000
+    )
+    
+    // 初始视角位置
+    const targetY = 6
+    camera.position.set(12, 12 + targetY, 12)
+    camera.lookAt(0, targetY, 0)
+    
     // 渲染器
-    renderer = new THREE.WebGLRenderer({ antialias: true })
-    renderer.setSize(w, h)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.localClippingEnabled = true
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    renderer.setSize(width, height)
+    renderer.setPixelRatio(window.devicePixelRatio)
+    renderer.localClippingEnabled = false
     container.appendChild(renderer.domElement)
-
-    // 光照
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7)
+    
+    // 裁剪平面
+    const clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 5)
+    const planeHelper = new THREE.PlaneHelper(clippingPlane, 20, 0xff0000)
+    planeHelper.visible = false
+    scene.add(planeHelper)
+    
+    // 灯光
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
     scene.add(ambientLight)
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
-    directionalLight.position.set(10, 20, 10)
-    scene.add(directionalLight)
-
-    // 地面
-    const groundGeo = new THREE.PlaneGeometry(20, 20)
-    const groundMat = new THREE.MeshStandardMaterial({
-      color: 0xe0e0e0,
-      side: THREE.DoubleSide
-    })
-    ground = new THREE.Mesh(groundGeo, groundMat)
-    ground.rotation.x = -Math.PI / 2
-    ground.position.y = -0.01
-    ground.name = 'ground'
-    scene.add(ground)
-
-    // 网格辅助线
-    const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xdddddd)
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.7)
+    dirLight.position.set(10, 20, 10)
+    scene.add(dirLight)
+    
+    // 辅助网格
+    const gridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xdddddd)
     scene.add(gridHelper)
-
-    // 切面
-    clippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 5)
-
-    // 射线
-    raycaster = new THREE.Raycaster()
-    mouse = new THREE.Vector2()
-
-    // 事件
-    container.addEventListener('pointerdown', onPointerDown)
-    window.addEventListener('resize', onResize)
-
-    // 渲染循环
-    function animate() {
-      animationId = requestAnimationFrame(animate)
-      renderer.render(scene, camera)
-    }
+    
+    // 地面
+    const planeGeometry = new THREE.PlaneGeometry(20, 20)
+    planeGeometry.rotateX(-Math.PI / 2)
+    const planeMaterial = new THREE.MeshBasicMaterial({ 
+      visible: true, 
+      transparent: true, 
+      opacity: 0 
+    })
+    const groundPlane = new THREE.Mesh(planeGeometry, planeMaterial)
+    groundPlane.name = 'ground'
+    scene.add(groundPlane)
+    
+    // 控制器
+    const controls = new OrbitControls(camera, renderer.domElement)
+    controls.enableDamping = true
+    controls.dampingFactor = 0.05
+    controls.target.set(0, targetY, 0)
+    controls.update()
+    
+    // 交互事件
+    const raycaster = new THREE.Raycaster()
+    const pointer = new THREE.Vector2()
+    let downTime = 0
+    
+    renderer.domElement.addEventListener('pointerdown', () => {
+      downTime = Date.now()
+    })
+    
+    renderer.domElement.addEventListener('pointerup', (event) => {
+      if (Date.now() - downTime < 200) {
+        const rect = renderer.domElement.getBoundingClientRect()
+        pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+        pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+        handleClick(raycaster, pointer, scene, camera)
+      }
+    })
+    
+    // 保存引用
+    threeApp.scene = scene
+    threeApp.camera = camera
+    threeApp.renderer = renderer
+    threeApp.controls = controls
+    threeApp.raycaster = raycaster
+    threeApp.clippingPlane = clippingPlane
+    threeApp.planeHelper = planeHelper
+    threeApp.groundPlane = groundPlane
+    threeApp.objects = [groundPlane]
+    
+    // 开始动画循环
     animate()
+    
+    return true
   }
-
-  function onPointerDown(event) {
-    const container = document.getElementById('three-container')
-    if (!container || !renderer) return
-
-    const rect = container.getBoundingClientRect()
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
-
-    raycaster.setFromCamera(mouse, camera)
-
-    // 检测交叉
-    const allObjects = [ground, ...cubes]
-    const intersects = raycaster.intersectObjects(allObjects)
-
+  
+  function animate() {
+    const { scene, camera, renderer, controls } = threeApp
+    if (!renderer) return
+    
+    threeApp.animationId = requestAnimationFrame(animate)
+    controls.update()
+    renderer.render(scene, camera)
+  }
+  
+  function handleClick(raycaster, pointer, scene, camera) {
+    raycaster.setFromCamera(pointer, camera)
+    const intersects = raycaster.intersectObjects(threeApp.objects, false)
+    
     if (intersects.length > 0) {
-      const hit = intersects[0]
-      const obj = hit.object
-
+      const intersect = intersects[0]
+      
       if (isDeleteMode.value) {
         // 删除模式
-        if (obj.name === 'cube') {
-          scene.remove(obj)
-          cubes = cubes.filter(c => c !== obj)
+        if (intersect.object.name !== 'ground') {
+          scene.remove(intersect.object)
+          const idx = threeApp.objects.indexOf(intersect.object)
+          if (idx > -1) threeApp.objects.splice(idx, 1)
+          intersect.object.geometry.dispose()
+          intersect.object.material.dispose()
         }
       } else {
         // 放置模式
-        let pos = new THREE.Vector3()
-
-        if (obj.name === 'ground') {
-          // 点击地面
-          pos.copy(hit.point)
-          pos.x = Math.floor(pos.x) + 0.5
-          pos.z = Math.floor(pos.z) + 0.5
-          pos.y = 0.5
-        } else if (obj.name === 'cube') {
-          // 点击方块，在其上方放置
-          pos.copy(hit.point)
-          pos.add(hit.face.normal.multiplyScalar(0.5))
-          pos.x = Math.floor(pos.x) + 0.5
-          pos.y = Math.floor(pos.y) + 0.5
-          pos.z = Math.floor(pos.z) + 0.5
-        }
-
-        // 检查是否已有方块
-        const exists = cubes.some(c =>
-          Math.abs(c.position.x - pos.x) < 0.1 &&
-          Math.abs(c.position.y - pos.y) < 0.1 &&
-          Math.abs(c.position.z - pos.z) < 0.1
-        )
-
-        if (!exists && pos.y > 0) {
-          addCube(pos.x, pos.y, pos.z, selectedColor.value)
-        }
+        const voxelPos = new THREE.Vector3()
+          .copy(intersect.point)
+          .addScaledVector(intersect.face.normal, 0.5)
+        voxelPos.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5)
+        
+        if (voxelPos.y < 0) return
+        addCubeAt(voxelPos)
       }
     }
   }
-
-  function addCube(x, y, z, color) {
-    const geo = new THREE.BoxGeometry(0.95, 0.95, 0.95)
-    const mat = new THREE.MeshStandardMaterial({
-      color: color,
-      clippingPlanes: isSliceMode.value ? [clippingPlane] : []
+  
+  function addCubeAt(position) {
+    const { scene, clippingPlane, objects } = threeApp
+    
+    const geometry = new THREE.BoxGeometry(1, 1, 1)
+    const material = new THREE.MeshLambertMaterial({
+      color: selectedColor.value,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
+      clippingPlanes: [clippingPlane]
     })
-    const cube = new THREE.Mesh(geo, mat)
-    cube.position.set(x, y, z)
-    cube.name = 'cube'
+    
+    const cube = new THREE.Mesh(geometry, material)
+    cube.position.copy(position)
+    
+    // 边线
+    const isDarkBlock = selectedColor.value === '#333333'
+    const edgeColor = isDarkBlock ? 0xffffff : 0x000000
+    
+    const edges = new THREE.EdgesGeometry(geometry)
+    const lineMaterial = new THREE.LineBasicMaterial({
+      color: edgeColor,
+      clippingPlanes: [clippingPlane]
+    })
+    const line = new THREE.LineSegments(edges, lineMaterial)
+    cube.add(line)
+    
     scene.add(cube)
-    cubes.push(cube)
+    objects.push(cube)
   }
-
-  function onResize() {
-    const container = document.getElementById('three-container')
-    if (!container || !camera || !renderer) return
-
-    const w = container.clientWidth
-    const h = container.clientHeight
-    const aspect = w / h
-    const d = 10
-
-    camera.left = -d * aspect
-    camera.right = d * aspect
-    camera.top = d
-    camera.bottom = -d
-    camera.updateProjectionMatrix()
-
-    renderer.setSize(w, h)
-  }
-
-  function switchColor(c) {
-    selectedColor.value = c
+  
+  function switchColor(color) {
+    selectedColor.value = color
     isDeleteMode.value = false
   }
-
+  
   function toggleDeleteMode() {
     isDeleteMode.value = !isDeleteMode.value
+    if (isDeleteMode.value) {
+      isSliceMode.value = false
+    }
   }
-
+  
   function toggleSliceMode() {
     isSliceMode.value = !isSliceMode.value
-    updateCubeClipping()
-  }
-
-  function updateCubeClipping() {
-    cubes.forEach(cube => {
-      cube.material.clippingPlanes = isSliceMode.value ? [clippingPlane] : []
-      cube.material.needsUpdate = true
-    })
-  }
-
-  function updateSlicePlane() {
-    if (clippingPlane) {
-      clippingPlane.normal.set(sliceConfig.x, sliceConfig.y, sliceConfig.z).normalize()
-      clippingPlane.constant = -sliceConfig.constant
+    if (isSliceMode.value) {
+      isDeleteMode.value = false
+      if (threeApp.planeHelper) threeApp.planeHelper.visible = true
+      threeApp.renderer.localClippingEnabled = true
+    } else {
+      if (threeApp.planeHelper) threeApp.planeHelper.visible = false
+      threeApp.renderer.localClippingEnabled = false
     }
   }
-
+  
+  function updateSlicePlane() {
+    if (!threeApp.clippingPlane) return
+    
+    const { x, y, z, constant } = sliceConfig
+    const normal = new THREE.Vector3(x, y, z).normalize()
+    if (normal.length() === 0) normal.set(0, -1, 0)
+    
+    threeApp.clippingPlane.normal.copy(normal)
+    threeApp.clippingPlane.constant = constant
+  }
+  
   function resetSlice() {
-    sliceConfig.x = 0
-    sliceConfig.y = 1
-    sliceConfig.z = 0
     sliceConfig.constant = 5
+    sliceConfig.x = 0
+    sliceConfig.y = -1
+    sliceConfig.z = 0
     updateSlicePlane()
   }
-
-  function clearCubes() {
-    cubes.forEach(cube => scene.remove(cube))
-    cubes = []
-  }
-
-  function setCameraView(view) {
-    currentView.value = view
-    if (!camera) return
-
-    const d = 20
+  
+  function setCameraView(type) {
+    const { camera, controls } = threeApp
+    if (!camera || !controls) return
+    
+    const dist = 20
+    const targetY = 6
+    
+    controls.target.set(0, targetY, 0)
+    
     const positions = {
-      front: [0, 5, d],
-      back: [0, 5, -d],
-      left: [-d, 5, 0],
-      right: [d, 5, 0],
-      top: [0, d, 0.01],
-      iso: [15, 15, 15]
+      front: [0, targetY, dist],
+      back: [0, targetY, -dist],
+      left: [-dist, targetY, 0],
+      right: [dist, targetY, 0],
+      top: [0, dist + targetY, 0],
+      iso: [12, 12 + targetY, 12]
     }
-
-    const pos = positions[view] || positions.iso
-    camera.position.set(...pos)
-    camera.lookAt(0, 0, 0)
+    
+    const pos = positions[type]
+    if (pos) {
+      camera.position.set(...pos)
+      camera.lookAt(0, targetY, 0)
+      controls.update()
+    }
   }
-
+  
+  function clearCubes() {
+    const { scene, objects } = threeApp
+    
+    for (let i = objects.length - 1; i >= 0; i--) {
+      const obj = objects[i]
+      if (obj.name !== 'ground') {
+        scene.remove(obj)
+        obj.geometry.dispose()
+        obj.material.dispose()
+        objects.splice(i, 1)
+      }
+    }
+  }
+  
   function cleanup() {
-    const container = document.getElementById('three-container')
-
-    if (animationId) {
-      cancelAnimationFrame(animationId)
-      animationId = null
+    if (threeApp.animationId) {
+      cancelAnimationFrame(threeApp.animationId)
     }
-
-    if (container) {
-      container.removeEventListener('pointerdown', onPointerDown)
+    
+    if (threeApp.renderer) {
+      threeApp.renderer.dispose()
+      const container = document.getElementById('three-container')
+      if (container) container.innerHTML = ''
     }
-    window.removeEventListener('resize', onResize)
-
-    if (renderer && container) {
-      container.removeChild(renderer.domElement)
-      renderer.dispose()
-    }
-
-    cubes = []
-    scene = null
-    camera = null
-    renderer = null
-    raycaster = null
-    mouse = null
-    ground = null
-    clippingPlane = null
+    
+    // 重置状态
+    threeApp.scene = null
+    threeApp.camera = null
+    threeApp.renderer = null
+    threeApp.controls = null
+    threeApp.objects = []
+    threeApp.animationId = null
+    
+    isSliceMode.value = false
+    isDeleteMode.value = false
   }
-
+  
+  // ============================================================
+  // 返回
+  // ============================================================
+  
   return {
-    colors,
-    selectedColor,
+    // 状态
     isDeleteMode,
     isSliceMode,
+    selectedColor,
+    colors,
     sliceConfig,
-    currentView,
+    
+    // 方法
     initThree,
     switchColor,
     toggleDeleteMode,
     toggleSliceMode,
     updateSlicePlane,
     resetSlice,
-    clearCubes,
     setCameraView,
+    clearCubes,
     cleanup
   }
 }

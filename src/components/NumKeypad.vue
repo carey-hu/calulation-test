@@ -1,22 +1,34 @@
 <template>
-  <div class="keypad">
+  <div class="keypad card glass-panel">
+    <!-- 功能行 -->
     <div class="fn-row">
-      <button class="fn-btn fn-green" @click="$emit('left')">{{ leftText }}</button>
-      <button class="fn-btn fn-orange" @click="$emit('clear')">清空</button>
-      <button class="fn-btn fn-red" @click="$emit('backspace')">退格</button>
+      <button class="k-fn style-skip" @click="$emit('left')">{{ leftText }}</button>
+      <button class="k-fn style-clear" @click="$emit('clear')">清空</button>
+      <button class="k-fn style-del" @click="$emit('backspace')">退格</button>
     </div>
     
-    <div class="num-grid">
-      <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" class="num-btn" @click="$emit('digit', n)">{{ n }}</button>
-      <button class="num-btn" @click="$emit('digit', 0)">0</button>
-      <button class="num-btn confirm" @click="$emit('confirm')">确认</button>
+    <!-- 数字键盘 -->
+    <div class="grid">
+      <button 
+        v-for="num in [1,2,3,4,5,6,7,8,9]" 
+        :key="num" 
+        class="k glass-key" 
+        @click="$emit('digit', num)"
+      >
+        {{ num }}
+      </button>
+      <button class="k wide glass-key" @click="$emit('digit', 0)">0</button>
+      <button class="k confirm wide2 glass-key-confirm" @click="$emit('confirm')">确认</button>
     </div>
   </div>
 </template>
 
 <script setup>
 defineProps({
-  leftText: { type: String, default: '跳过' }
+  leftText: {
+    type: String,
+    default: '跳过'
+  }
 })
 
 defineEmits(['digit', 'clear', 'backspace', 'left', 'confirm'])
@@ -24,84 +36,84 @@ defineEmits(['digit', 'clear', 'backspace', 'left', 'confirm'])
 
 <style scoped>
 .keypad {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
   border-radius: 28px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  margin-bottom: calc(12px + env(safe-area-inset-bottom));
+  overflow: hidden;
+  clip-path: inset(0 0 0 0 round 28px);
+  margin-bottom: calc(6px + env(safe-area-inset-bottom));
+  padding: 12px;
 }
 
 .fn-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 9px;
+  margin-bottom: 9px;
 }
 
-.fn-btn {
+.k-fn {
   flex: 1;
-  height: 50px;
+  height: 65px;
+  line-height: 65px;
   border-radius: 14px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 900;
+  margin: 0;
   color: #fff;
-  transition: all 0.15s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
 }
 
-.fn-btn:active {
-  transform: scale(0.96);
-  filter: brightness(0.9);
+.style-skip {
+  background: #34c759;
+  border-color: #248a3d;
 }
 
-.fn-green {
-  background: linear-gradient(135deg, #34c759 0%, #28a745 100%);
-  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.4);
+.style-clear {
+  background: #ff9500;
+  border-color: #e08600;
 }
 
-.fn-orange {
-  background: linear-gradient(135deg, #ff9f0a 0%, #ff8c00 100%);
-  box-shadow: 0 4px 12px rgba(255, 159, 10, 0.4);
+.style-del {
+  background: #ff3b30;
+  border-color: #d63329;
 }
 
-.fn-red {
-  background: linear-gradient(135deg, #ff453a 0%, #dc3545 100%);
-  box-shadow: 0 4px 12px rgba(255, 69, 58, 0.4);
-}
-
-.num-grid {
+.grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 5px;
 }
 
-.num-btn {
-  height: 68px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+.k {
+  width: 100%;
+  height: 70px;
+  line-height: 70px;
+  border-radius: 14px;
   font-size: 30px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.8);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  transition: all 0.15s ease;
+  font-weight: 900;
+  margin: 0;
+  color: #000;
 }
 
-.num-btn:active {
-  transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.9);
+.k.wide {
+  grid-column: 1 / 2;
 }
 
-.confirm {
+.k.wide2 {
   grid-column: 2 / 4;
-  background: linear-gradient(135deg, #34c759 0%, #28a745 100%);
-  color: #fff;
-  font-size: 24px;
-  border: none;
-  box-shadow: 0 4px 16px rgba(52, 199, 89, 0.4);
 }
 
-.confirm:active {
-  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+.glass-key-confirm {
+  background: #34c759;
+  color: #fff;
+  border: none;
+  font-size: 28px;
+  box-shadow: 0 4px 0 #248a3d;
+  border-radius: 11px;
+}
+
+.glass-key-confirm:active {
+  background: #28a745;
+  box-shadow: none;
+  transform: translateY(4px);
 }
 </style>

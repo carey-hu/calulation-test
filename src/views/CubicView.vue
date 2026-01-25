@@ -1,62 +1,107 @@
 <template>
-  <div class="cubic-page">
-    <div id="three-container"></div>
+  <div class="wrap full-height" style="padding:0; overflow:hidden;">
+    <div id="three-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
 
-    <div class="ui-layer">
-      <div class="toolbar">
-        <button class="tool-btn back" @click="$emit('quit')">← BACK</button>
+    <div class="cubic-ui safe-top">
+      <!-- 工具栏 -->
+      <div class="glass-panel toolbar">
+        <button class="btn-back glass-btn small-btn" @click="$emit('quit')">🔙</button>
         <div class="divider"></div>
         
-        <div class="colors">
+        <!-- 颜色选择 -->
+        <div style="display:flex; gap:8px;">
           <div 
             v-for="c in colors" 
             :key="c" 
+            :style="{backgroundColor: c, border: c === '#ffffff' ? '1px solid #ccc' : 'none'}"
             :class="['color-dot', selectedColor === c && !isDeleteMode ? 'active' : '']"
-            :style="{ backgroundColor: c, borderColor: c === '#ffffff' ? '#ccc' : c }"
             @click="$emit('switchColor', c)"
           ></div>
         </div>
 
         <div class="divider"></div>
 
-        <button :class="['tool-btn', isDeleteMode ? 'active' : '']" @click="$emit('toggleDelete')">🗑️</button>
-        <button :class="['tool-btn', isSliceMode ? 'active' : '']" @click="$emit('toggleSlice')">🔪</button>
-        <button class="tool-btn" @click="$emit('clear')">🔄</button>
+        <!-- 功能按钮 -->
+        <button :class="['btn-icon', isDeleteMode ? 'active' : '']" @click="$emit('toggleDelete')">🗑️</button>
+        <button :class="['btn-icon', isSliceMode ? 'active' : '']" @click="$emit('toggleSlice')">🔪</button>
+        <button class="btn-icon" @click="$emit('clear')">🔄</button>
       </div>
 
-      <div class="view-bar">
-        <button v-for="v in views" :key="v.key" :class="['view-btn', localView === v.key ? 'active' : '']" @click="handleView(v.key)">{{ v.label }}</button>
+      <!-- 视图选择器 -->
+      <div class="view-selector glass-panel">
+        <button class="view-btn" @click="$emit('setView', 'front')">正</button>
+        <button class="view-btn" @click="$emit('setView', 'back')">后</button>
+        <button class="view-btn" @click="$emit('setView', 'left')">左</button>
+        <button class="view-btn" @click="$emit('setView', 'right')">右</button>
+        <button class="view-btn" @click="$emit('setView', 'top')">俯</button>
+        <button class="view-btn active-view" @click="$emit('setView', 'iso')">轴</button>
       </div>
 
-      <div v-if="isSliceMode" class="slice-panel">
+      <!-- 切面控制面板 -->
+      <div v-if="isSliceMode" class="glass-panel slice-panel">
         <div class="slice-row">
-          <span>位置</span>
-          <input type="range" min="-10" max="15" step="0.5" :value="sliceConfig.constant" @input="updateSlice('constant', $event)">
+          <span class="slice-label">位置</span>
+          <input 
+            type="range" 
+            min="-10" 
+            max="15" 
+            step="0.1" 
+            :value="sliceConfig.constant"
+            @input="$emit('updateSlice', { ...sliceConfig, constant: parseFloat($event.target.value) })"
+            class="slice-slider"
+          >
         </div>
         <div class="slice-row">
-          <span>X轴</span>
-          <input type="range" min="-1" max="1" step="0.1" :value="sliceConfig.x" @input="updateSlice('x', $event)">
+          <span class="slice-label">X轴倾斜</span>
+          <input 
+            type="range" 
+            min="-1" 
+            max="1" 
+            step="0.1" 
+            :value="sliceConfig.x"
+            @input="$emit('updateSlice', { ...sliceConfig, x: parseFloat($event.target.value) })"
+            class="slice-slider"
+          >
         </div>
         <div class="slice-row">
-          <span>Y轴</span>
-          <input type="range" min="-1" max="1" step="0.1" :value="sliceConfig.y" @input="updateSlice('y', $event)">
+          <span class="slice-label">Y轴倾斜</span>
+          <input 
+            type="range" 
+            min="-1" 
+            max="1" 
+            step="0.1" 
+            :value="sliceConfig.y"
+            @input="$emit('updateSlice', { ...sliceConfig, y: parseFloat($event.target.value) })"
+            class="slice-slider"
+          >
         </div>
         <div class="slice-row">
-          <span>Z轴</span>
-          <input type="range" min="-1" max="1" step="0.1" :value="sliceConfig.z" @input="updateSlice('z', $event)">
+          <span class="slice-label">Z轴倾斜</span>
+          <input 
+            type="range" 
+            min="-1" 
+            max="1" 
+            step="0.1" 
+            :value="sliceConfig.z"
+            @input="$emit('updateSlice', { ...sliceConfig, z: parseFloat($event.target.value) })"
+            class="slice-slider"
+          >
         </div>
-        <button class="reset-btn" @click="$emit('resetSlice')">重置切面</button>
+        <div style="text-align:center; margin-top:5px;">
+          <button class="btn-ghost small-btn" style="height:28px; line-height:28px; font-size:12px;" @click="$emit('resetSlice')">
+            重置切面
+          </button>
+        </div>
       </div>
 
-      <div v-else class="tip">点击地面放置，点击方块叠加</div>
+      <!-- 提示 -->
+      <div class="tip-toast" v-if="!isSliceMode">点击地面放置，点击方块叠加</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-const props = defineProps({
+defineProps({
   colors: Array,
   selectedColor: String,
   isDeleteMode: Boolean,
@@ -64,209 +109,182 @@ const props = defineProps({
   sliceConfig: Object
 })
 
-const emit = defineEmits(['quit', 'switchColor', 'toggleDelete', 'toggleSlice', 'clear', 'setView', 'updateSlice', 'resetSlice'])
-
-const views = [
-  { key: 'front', label: '正' },
-  { key: 'back', label: '后' },
-  { key: 'left', label: '左' },
-  { key: 'right', label: '右' },
-  { key: 'top', label: '俯' },
-  { key: 'iso', label: '轴' }
-]
-
-const localView = ref('iso')
-
-function handleView(key) {
-  localView.value = key
-  emit('setView', key)
-}
-
-function updateSlice(key, event) {
-  const newConfig = { ...props.sliceConfig }
-  newConfig[key] = parseFloat(event.target.value)
-  emit('updateSlice', newConfig)
-}
+defineEmits(['quit', 'switchColor', 'toggleDelete', 'toggleSlice', 'clear', 'setView', 'updateSlice', 'resetSlice'])
 </script>
 
 <style scoped>
-.cubic-page {
+.wrap {
   position: relative;
-  width: 100%;
+  z-index: 1;
+}
+
+.full-height {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
-  overflow: hidden;
 }
 
-#three-container {
-  width: 100%;
-  height: 100%;
-  background: #f5f5f7;
-}
-
-.ui-layer {
+.cubic-ui {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  padding: 10px;
-  padding-top: max(54px, calc(env(safe-area-inset-top) + 10px));
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+  padding-top: max(60px, calc(env(safe-area-inset-top) + 10px));
+  box-sizing: border-box;
   pointer-events: none;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
 }
 
-.ui-layer > * { pointer-events: auto; }
+.cubic-ui > * {
+  pointer-events: auto;
+}
 
 .toolbar {
+  padding: 8px 12px;
   display: flex;
+  gap: 8px;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  max-width: 95%;
 }
 
-.tool-btn {
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.05);
+.small-btn {
+  width: auto !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  padding: 0 16px !important;
+  font-size: 14px !important;
+}
+
+.btn-icon {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 8px 12px;
   font-size: 14px;
   font-weight: 600;
   color: #333;
-  transition: all 0.15s;
+  transition: all 0.2s;
 }
 
-.tool-btn.back {
-  color: #af52de;
-  font-size: 13px;
-}
-
-.tool-btn.active {
+.btn-icon.active {
   background: #007aff;
-  color: #fff;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);
 }
-
-.tool-btn:active { transform: scale(0.95); }
 
 .divider {
   width: 1px;
-  height: 24px;
+  height: 20px;
   background: rgba(0, 0, 0, 0.1);
-}
-
-.colors {
-  display: flex;
-  gap: 8px;
+  margin: 0 5px;
 }
 
 .color-dot {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.color-dot:active { transform: scale(0.9); }
+.color-dot:active {
+  transform: scale(0.9);
+}
 
 .color-dot.active {
-  transform: scale(1.2);
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.4);
+  transform: scale(1.1);
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1), inset 0 0 0 2px rgba(255, 255, 255, 0.8);
 }
 
-.view-bar {
+.view-selector {
+  margin-top: 8px;
+  padding: 6px;
   display: flex;
   gap: 6px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .view-btn {
-  padding: 8px 14px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.05);
-  font-size: 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: #666;
-  transition: all 0.15s;
+  color: #333;
 }
 
-.view-btn.active {
+.view-btn:active,
+.view-btn.active-view {
   background: #007aff;
-  color: #fff;
+  color: white;
 }
-
-.view-btn:active { transform: scale(0.95); }
 
 .slice-panel {
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  margin-top: 8px;
+  padding: 12px;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 90%;
-  max-width: 280px;
+  max-width: 300px;
 }
 
 .slice-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #666;
+  color: #333;
 }
 
-.slice-row span { width: 40px; text-align: right; }
+.slice-label {
+  width: 50px;
+  text-align: right;
+}
 
-.slice-row input {
+.slice-slider {
   flex: 1;
-  height: 4px;
   -webkit-appearance: none;
+  height: 4px;
   background: rgba(0, 0, 0, 0.1);
   border-radius: 2px;
+  outline: none;
 }
 
-.slice-row input::-webkit-slider-thumb {
+.slice-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
   border-radius: 50%;
   background: #007aff;
+  cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.reset-btn {
-  width: 100%;
-  height: 32px;
-  margin-top: 6px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.05);
-  font-size: 13px;
-  font-weight: 600;
-  color: #666;
-}
-
-.tip {
-  padding: 8px 16px;
+.tip-toast {
+  margin-top: 10px;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
+  color: white;
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 13px;
-  color: #fff;
+  font-size: 12px;
+  backdrop-filter: blur(4px);
 }
 </style>

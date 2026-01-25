@@ -9,11 +9,11 @@
   },
   "dependencies": {
     "vue": "^3.3.4",
-    "echarts": "^5.4.3",
-    "three": "^0.160.0"
+    "echarts": "^5.4.3"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.2.3",
-    "vite": "^4.3.9"
+    "vite": "^4.3.9",
+    "three": "^0.160.0"
   }
 }

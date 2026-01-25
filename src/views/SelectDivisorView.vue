@@ -1,99 +1,105 @@
 <template>
-  <div class="page">
-    <div class="header">
-      <h1 class="title">选择除数</h1>
-      <p class="subtitle">点击下方数字开始练习商首位</p>
+  <div class="wrap home-wrap">
+    <div class="header-area">
+      <div class="title">选择除数</div>
+      <div class="subtitle">点击下方数字开始练习商首位</div>
     </div>
     
-    <div class="card">
+    <div class="card glass-panel">
       <div class="grid">
-        <button v-for="d in divisorList" :key="d" class="num-btn" @click="$emit('select', d)">{{ d }}</button>
+        <button 
+          v-for="item in divisorList" 
+          :key="item" 
+          class="k glass-key"
+          @click="$emit('select', item)"
+        >
+          {{ item }}
+        </button>
       </div>
       
-      <button class="back-btn" @click="$emit('back')">返回主页</button>
+      <button 
+        class="btn-ghost glass-btn main-action-btn" 
+        style="margin-top: 20px;" 
+        @click="$emit('back')"
+      >
+        返回主页
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-defineProps({ divisorList: Array })
+defineProps({
+  divisorList: {
+    type: Array,
+    required: true
+  }
+})
+
 defineEmits(['select', 'back'])
 </script>
 
 <style scoped>
-.page {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px 16px 30px;
-  padding-top: max(60px, env(safe-area-inset-top));
-  overflow-y: auto;
+.wrap {
+  padding: 20px 16px 24px;
+  box-sizing: border-box;
   position: relative;
   z-index: 1;
 }
 
-.header {
-  text-align: center;
+.home-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: max(60px, env(safe-area-inset-top));
+  padding-bottom: 40px;
+}
+
+.header-area {
   margin-bottom: 20px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .title {
   font-size: 32px;
-  font-weight: 700;
-  color: rgba(0, 0, 0, 0.85);
+  font-weight: 800;
+  color: #1c1c1e;
+  letter-spacing: -1px;
 }
 
 .subtitle {
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.5);
+  color: #8e8e93;
   margin-top: 6px;
+  font-weight: 500;
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  padding: 20px 16px;
+  padding: 18px 16px 20px;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
-.num-btn {
-  height: 56px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  font-size: 22px;
-  font-weight: 700;
-  color: rgba(0, 0, 0, 0.8);
-  transition: all 0.15s ease;
-}
-
-.num-btn:active {
-  transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.back-btn {
-  width: 100%;
+.k {
+  font-size: 20px;
   height: 50px;
-  margin-top: 20px;
+  line-height: 50px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  color: #007aff;
-  font-size: 17px;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-weight: 900;
+  color: #000;
 }
 
-.back-btn:active {
-  transform: scale(0.98);
+.main-action-btn {
+  font-size: 20px !important;
+  height: 54px !important;
+  line-height: 54px !important;
 }
 </style>
