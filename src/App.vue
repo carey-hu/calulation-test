@@ -722,19 +722,19 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .btnDanger { width: 100%; height: 48px; line-height: 48px; border-radius: 16px; background: rgba(255, 59, 48, 0.1); color: #ff3b30; font-size: 20px; font-weight: 700; border: 1px solid rgba(255, 59, 48, 0.2); }
 .btnDanger:active { background: rgba(255, 59, 48, 0.2); }
 .main-action-btn { font-size: 20px !important; height: 54px !important; line-height: 54px !important; }
-.gameRoot { height: 100vh; display: flex; flex-direction: column; padding-bottom: 0; overflow: hidden; }
-.safe-top { padding-top: max(44px, env(safe-area-inset-top)); padding-bottom: 12px; height: auto; box-sizing: content-box; display: flex; align-items: center; gap: 12px; margin-bottom: 5px; flex-shrink: 0; }
+.gameRoot { min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 0; }
+.safe-top { padding-top: max(44px, env(safe-area-inset-top)); padding-bottom: 12px; height: auto; box-sizing: content-box; display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
 .safe-header { padding-top: max(44px, env(safe-area-inset-top)); margin-bottom: 20px; }
 .btnBack { width: 80px; height: 44px; line-height: 44px; border-radius: 14px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); font-weight: 700; font-size: 16px; margin: 0; color: #1c1c1e; backdrop-filter: blur(10px); }
 .topStats { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: #333; }
 .glass-pill { background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.03); backdrop-filter: blur(10px); }
-.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
-.qCard { text-align: center; padding: 30px 20px; margin-bottom: 20px; }
+.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.qCard { text-align: center; padding: 30px 20px; }
 .qText { font-size: 64px; font-weight: 800; margin-top: 0; color: #1c1c1e; letter-spacing: -2px; }
 .qNote { margin-top: 8px; font-size: 16px; color: #8e8e93; font-weight: 500; }
 .ansBox { margin-top: 20px; padding: 15px; border-radius: 20px; background: rgba(255,255,255,0.5); font-size: 44px; font-weight: 800; min-height: 44px; color: #007aff; box-shadow: inset 0 2px 6px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03); }
 .hint { margin-top: 15px; color: #8e8e93; font-size: 15px; font-weight: 600; }
-.keypad { border-radius: 28px; overflow: hidden; clip-path: inset(0 0 0 0 round 28px); margin-bottom: calc( 6px + env(safe-area-inset-bottom)); flex-shrink: 0; }
+.keypad { border-radius: 28px; overflow: hidden; clip-path: inset(0 0 0 0 round 28px); margin-bottom: calc( 6px + env(safe-area-inset-bottom)); }
 .fnRow { display: flex; gap: 9px; margin-bottom: 9px; }
 .kFn { flex: 1; height: 65px; line-height: 65px; border-radius: 14px; font-size: 20px; font-weight: 900; margin: 0; color: #fff; border: 1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
 .style-skip { background: #34c759; border-color: #248a3d; } 
@@ -848,61 +848,5 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-
-/* ============================================ */
-/* 响应式适配 - 纯缩放方案（不改变布局） */
-/* ============================================ */
-
-/* 竖屏模式 - 只做整体缩放 */
-@media screen and (orientation: portrait) and (max-height: 700px) {
-  .page { zoom: 0.9; }
-}
-
-@media screen and (orientation: portrait) and (max-height: 650px) {
-  .page { zoom: 0.85; }
-}
-
-@media screen and (orientation: portrait) and (max-height: 600px) {
-  .page { zoom: 0.78; }
-}
-
-@media screen and (orientation: portrait) and (max-height: 568px) {
-  .page { zoom: 0.72; }
-}
-
-@media screen and (orientation: portrait) and (max-height: 530px) {
-  .page { zoom: 0.66; }
-}
-
-/* 横屏模式 - 也只做缩放，不改变布局 */
-@media screen and (orientation: landscape) and (max-height: 500px) {
-  .page { zoom: 0.7; }
-}
-
-@media screen and (orientation: landscape) and (max-height: 450px) {
-  .page { zoom: 0.65; }
-}
-
-@media screen and (orientation: landscape) and (max-height: 400px) {
-  .page { zoom: 0.58; }
-}
-
-@media screen and (orientation: landscape) and (max-height: 350px) {
-  .page { zoom: 0.5; }
-}
-
-@media screen and (orientation: landscape) and (max-height: 300px) {
-  .page { zoom: 0.45; }
-}
-
-/* 超宽屏幕优化 */
-@media screen and (min-width: 600px) and (orientation: portrait) {
-  .page { max-width: 600px; }
-}
-
-
-
-
-
 </style>
 
