@@ -1,299 +1,212 @@
-/**
- * 游戏状态管理
- * 使用 Vue 3 Composition API
- */
-
-import { ref, computed, reactive } from 'vue'
-import { GAME_MODES, getDynamicModeConfig } from '@/config/gameModes'
+import { ref, computed } from 'vue'
+import { GAME_MODES, getModeConfig } from '@/config/gameModes'
 import { msToTimeStr, formatTime } from '@/utils/math'
-import { getHistory, addRecord } from '@/utils/storage'
+import { addRecord } from '@/utils/storage'
 
 export function useGameState() {
-  // ============================================================
-  // 状态
-  // ============================================================
-  
   const currentModeKey = ref('train')
-  const selectedDivisor = ref(0)
-  
-  // 题目相关
+  const selectedDivisor = ref(12)
   const pool = ref([])
   const idx = ref(0)
-  const current = ref(null)
   const input = ref('')
-  
-  // 计时相关
-  const totalStartTs = ref(0)
-  const qStartTs = ref(0)
-  const totalMs = ref(0)
-  const timer = ref(null)
-  
-  // 统计相关
-  const trainWrong = ref(0)
-  const trainSkip = ref(0)
-  const curWrongTries = ref(0)
-  const trainLog = ref([])
   const results = ref([])
-  
-  // ============================================================
-  // 计算属性
-  // ============================================================
-  
-  const activeConfig = computed(() => {
-    if (currentModeKey.value === 'firstSpec') {
-      return getDynamicModeConfig('firstSpec', { divisor: selectedDivisor.value })
-    }
-    return GAME_MODES[currentModeKey.value] || {}
-  })
-  
-  const totalText = computed(() => msToTimeStr(totalMs.value))
-  
-  const progressText = computed(() => `${idx.value}/${pool.value.length}`)
-  
+  const trainLog = ref([])
+  const startTime = ref(0)
+  const questionStart = ref(0)
+  const totalMs = ref(0)
+  const timerInterval = ref(null)
+  const wrongCount = ref(0)
+  const skipped = ref(false)
+
+  const activeConfig = computed(() => getModeConfig(currentModeKey.value))
+  const isSmallFont = computed(() => activeConfig.value.isSmallFont || false)
+  const leftText = computed(() => currentModeKey.value === 'train' ? '跳过' : '重开')
+
+  const currentQ = computed(() => pool.value[idx.value] || {})
   const qText = computed(() => {
-    if (!current.value) return '—'
-    return `${current.value.dividend}${current.value.symbol}${current.value.divisor}`
+    const q = currentQ.value
+    if (!q.dividend) return ''
+    return `${q.dividend}${q.symbol}${q.divisor}`
   })
-  
-  const isSmallFont = computed(() => {
-    return activeConfig.value.isSmallFont || 
-           currentModeKey.value === 'fourSum' || 
-           currentModeKey.value === 'tripleMix'
-  })
-  
-  const leftText = computed(() => {
-    return currentModeKey.value === 'train' ? '跳过' : '重开'
-  })
-  
-  // ============================================================
-  // 方法
-  // ============================================================
-  
-  function setMode(mode) {
-    currentModeKey.value = mode
+
+  const progressText = computed(() => `${idx.value + 1}/${pool.value.length}`)
+  const totalText = computed(() => msToTimeStr(totalMs.value))
+
+  function setMode(key) {
+    currentModeKey.value = key
   }
-  
+
   function setDivisor(d) {
     selectedDivisor.value = d
   }
-  
+
   function startGame() {
-    const config = activeConfig.value
-    if (!config.gen) return false
-    
-    // 生成题目
-    pool.value = config.gen(10, { divisor: selectedDivisor.value })
-    
-    // 重置状态
+    const config = GAME_MODES[currentModeKey.value]
+    if (!config) return false
+
+    const count = currentModeKey.value === 'train' || currentModeKey.value === 'race' ? 81 : 10
+    pool.value = config.gen(count, selectedDivisor.value)
     idx.value = 0
     input.value = ''
-    trainWrong.value = 0
-    trainSkip.value = 0
-    curWrongTries.value = 0
-    trainLog.value = []
     results.value = []
-    
-    // 开始计时
-    totalStartTs.value = Date.now()
+    trainLog.value = []
     totalMs.value = 0
-    
-    // 设置定时器
-    if (timer.value) clearInterval(timer.value)
-    timer.value = setInterval(() => {
-      totalMs.value = Date.now() - totalStartTs.value
+    startTime.value = Date.now()
+    wrongCount.value = 0
+    skipped.value = false
+
+    timerInterval.value = setInterval(() => {
+      totalMs.value = Date.now() - startTime.value
     }, 100)
-    
+
     return true
   }
-  
+
   function nextQuestion() {
-    if (idx.value >= pool.value.length) {
-      return false // 没有更多题目
-    }
-    
-    current.value = pool.value[idx.value]
-    qStartTs.value = Date.now()
+    if (idx.value >= pool.value.length) return false
     input.value = ''
-    curWrongTries.value = 0
-    idx.value++
-    
+    questionStart.value = Date.now()
+    wrongCount.value = 0
+    skipped.value = false
     return true
   }
-  
+
   function pressDigit(d) {
-    if (input.value.length >= 6) return
-    input.value += String(d)
+    if (input.value.length < 6) {
+      input.value += d
+    }
   }
-  
+
   function clearInput() {
     input.value = ''
   }
-  
+
   function backspace() {
     input.value = input.value.slice(0, -1)
   }
-  
-  function skipQuestion() {
-    const cur = current.value
-    const used = (Date.now() - qStartTs.value) / 1000
-    
-    trainLog.value.push({
-      q: `${cur.dividend}${cur.symbol}${cur.divisor}`,
-      usedStr: used.toFixed(1) + 's',
-      wrong: curWrongTries.value,
-      skipped: true
-    })
-    
-    trainSkip.value++
-    return nextQuestion()
-  }
-  
+
   function checkAnswer() {
     if (!input.value) return null
-    
-    const cur = current.value
+    const q = currentQ.value
+    const userAns = parseFloat(input.value)
     const config = activeConfig.value
-    const n = parseFloat(input.value)
-    const used = (Date.now() - qStartTs.value) / 1000
-    
-    let correct = false
-    let realAnsDisplay = cur.ans
-    
-    // 检查答案
+
+    let correct, realAnsDisplay
     if (config.check) {
-      const checkResult = config.check(n, cur.ans)
-      correct = checkResult.ok
-      realAnsDisplay = checkResult.display
+      const result = config.check(userAns, q.ans)
+      correct = result.ok
+      realAnsDisplay = result.display
     } else {
-      correct = parseInt(input.value) === cur.ans
+      correct = userAns === q.ans
+      realAnsDisplay = q.ans
     }
-    
-    return {
-      correct,
-      realAnsDisplay,
-      usedTime: used,
-      question: `${cur.dividend}${cur.symbol}${cur.divisor}`,
-      yourAnswer: input.value
-    }
+
+    return { correct, realAnsDisplay, userAns, q }
   }
-  
-  function recordTrainResult(result) {
-    if (result.correct) {
+
+  function recordTrainResult(checkResult) {
+    if (checkResult.correct) {
+      const usedMs = Date.now() - questionStart.value
       trainLog.value.push({
-        q: result.question,
-        usedStr: result.usedTime.toFixed(1) + 's',
-        wrong: curWrongTries.value,
-        skipped: false
+        q: qText.value,
+        usedStr: (usedMs / 1000).toFixed(2) + 's',
+        wrong: wrongCount.value,
+        skipped: skipped.value
       })
+      idx.value++
+      return true
     } else {
-      trainWrong.value++
-      curWrongTries.value++
+      wrongCount.value++
       input.value = ''
+      return false
     }
-    return result.correct
   }
-  
-  function recordNormalResult(result) {
+
+  function recordNormalResult(checkResult) {
+    const usedMs = Date.now() - questionStart.value
     results.value.push({
-      q: result.question,
-      ok: result.correct,
-      yourAns: result.yourAnswer,
-      realAns: result.realAnsDisplay,
-      usedStr: result.usedTime.toFixed(1) + 's'
+      q: qText.value,
+      yourAns: checkResult.userAns,
+      realAns: checkResult.realAnsDisplay,
+      ok: checkResult.correct,
+      usedStr: (usedMs / 1000).toFixed(2) + 's'
     })
+    idx.value++
   }
-  
+
+  function skipQuestion() {
+    skipped.value = true
+    const usedMs = Date.now() - questionStart.value
+    trainLog.value.push({
+      q: qText.value,
+      usedStr: (usedMs / 1000).toFixed(2) + 's',
+      wrong: wrongCount.value,
+      skipped: true
+    })
+    idx.value++
+    return idx.value < pool.value.length
+  }
+
+  function stopTimer() {
+    if (timerInterval.value) {
+      clearInterval(timerInterval.value)
+      timerInterval.value = null
+    }
+  }
+
   function finishGame(historyList) {
-    if (timer.value) {
-      clearInterval(timer.value)
-      timer.value = null
-    }
-    
-    const totalSec = (Date.now() - totalStartTs.value) / 1000
-    
-    // 构建记录
-    let summary = ''
-    let detailLog = []
-    
+    stopTimer()
+    const totalSec = totalMs.value / 1000
+
+    let summary, detail
     if (currentModeKey.value === 'train') {
-      summary = `错${trainWrong.value}/跳${trainSkip.value}`
-      detailLog = trainLog.value
+      const totalWrong = trainLog.value.reduce((s, t) => s + t.wrong, 0)
+      summary = `错${totalWrong}`
+      detail = trainLog.value
     } else {
-      const correctCount = results.value.filter(x => x.ok).length
-      const totalCount = results.value.length
-      summary = `正确率 ${Math.round((correctCount / totalCount) * 100)}%`
-      detailLog = results.value
+      const correctCount = results.value.filter(r => r.ok).length
+      summary = `${correctCount}/${results.value.length}`
+      detail = results.value
     }
-    
-    // 获取模式名称
-    const modeName = currentModeKey.value === 'firstSpec'
-      ? `商首位(除${selectedDivisor.value})`
-      : (GAME_MODES[currentModeKey.value]?.name || '未知模式')
-    
+
     const record = {
       ts: Date.now(),
       timeStr: formatTime(Date.now()),
       mode: currentModeKey.value,
-      modeName,
+      modeName: activeConfig.value.name,
+      summary,
       duration: totalSec.toFixed(1) + 's',
-      summary,
-      detail: detailLog
+      detail
     }
-    
-    // 保存记录
-    const newHistory = addRecord(record, historyList)
-    
-    return {
-      totalSec,
-      summary,
-      detailLog,
-      newHistory
-    }
+
+    const newHistory = addRecord(historyList, record)
+    return { totalSec, newHistory }
   }
-  
-  function stopTimer() {
-    if (timer.value) {
-      clearInterval(timer.value)
-      timer.value = null
-    }
-  }
-  
+
   function getResultMeta(totalSec) {
     if (currentModeKey.value === 'train') {
-      return `用时：${totalSec.toFixed(1)}s｜错误：${trainWrong.value}｜跳过：${trainSkip.value}`
+      const totalWrong = trainLog.value.reduce((s, t) => s + t.wrong, 0)
+      return `共错 ${totalWrong} 次 · 总用时 ${totalSec.toFixed(1)}s`
     } else {
-      const correctCount = results.value.filter(x => x.ok).length
-      const totalCount = results.value.length
-      return `正确：${correctCount}/${totalCount}｜总用时：${totalSec.toFixed(1)}s`
+      const correctCount = results.value.filter(r => r.ok).length
+      return `正确 ${correctCount}/${results.value.length} · 总用时 ${totalSec.toFixed(1)}s`
     }
   }
-  
-  // ============================================================
-  // 返回
-  // ============================================================
-  
+
   return {
-    // 状态
     currentModeKey,
     selectedDivisor,
     pool,
     idx,
-    current,
     input,
-    trainWrong,
-    trainSkip,
-    trainLog,
     results,
-    
-    // 计算属性
+    trainLog,
     activeConfig,
-    totalText,
-    progressText,
-    qText,
     isSmallFont,
     leftText,
-    
-    // 方法
+    qText,
+    progressText,
+    totalText,
     setMode,
     setDivisor,
     startGame,
@@ -301,12 +214,12 @@ export function useGameState() {
     pressDigit,
     clearInput,
     backspace,
-    skipQuestion,
     checkAnswer,
     recordTrainResult,
     recordNormalResult,
-    finishGame,
+    skipQuestion,
     stopTimer,
+    finishGame,
     getResultMeta
   }
 }
