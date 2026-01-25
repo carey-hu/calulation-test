@@ -92,8 +92,9 @@
         </div>
         <div class="grid">
           <button v-for="item in [1,2,3,4,5,6,7,8,9]" :key="item" class="k glass-key" @click="pressDigit(item)">{{item}}</button>
-          <button class="k wide glass-key" @click="pressDigit(0)">0</button>
-          <button class="k confirm wide2 glass-key-confirm" @click="confirmAnswer">确认</button>
+          <button class="k glass-key" @click="pressDot">.</button>
+          <button class="k glass-key" @click="pressDigit(0)">0</button>
+          <button class="k confirm glass-key-confirm" @click="confirmAnswer">确认</button>
         </div>
       </div>
     </div>
@@ -404,6 +405,7 @@ export default {
     _setQuestion(q, shownIdx){ this.current = q; this.qStartTs = this.now(); this.input = ''; this.curWrongTries = 0; this.qText = `${q.dividend}${q.symbol}${q.divisor}`; this.progressText = `${shownIdx}/${this.pool.length}`; },
     _nextQuestion(){ const { idx, pool } = this; if(idx >= pool.length){ this._finish(); return; } this._setQuestion(pool[idx], idx + 1); this.idx = idx + 1; },
     pressDigit(d){ let input = this.input || ''; if(input.length >= 6) return; input += String(d); this.input = input; },
+    pressDot(){ let input = this.input || ''; if(input.includes('.')) return; if(input.length >= 6) return; if(input === '') input = '0'; input += '.'; this.input = input; },
     clearInput(){ this.input = ''; },
     backspace(){ this.input = (this.input || '').slice(0, -1); },
     leftAction(){ if(this.currentModeKey !== 'train'){ this.startGame(); return; } const cur = this.current; const used = (this.now() - this.qStartTs)/1000; const log = this.trainLog.concat([{ q: `${cur.dividend}${cur.symbol}${cur.divisor}`, usedStr: used.toFixed(1) + 's', wrong: this.curWrongTries, skipped: true }]); this.trainSkip++; this.trainLog = log; this._nextQuestion(); },
