@@ -46,9 +46,6 @@
            <div class="modeItem" style="flex: 1 0 100%; background: rgba(0, 122, 255, 0.08); border-color: rgba(0, 122, 255, 0.2);" @click="startSliceTrainer">
               <span class="modeTitle" style="color: #007aff;">✂️ 立体切面训练</span>
            </div>
-           <div class="modeItem" style="flex: 1 0 100%; background: rgba(0, 122, 255, 0.08); border-color: rgba(0, 122, 255, 0.2);" @click="startSliceTrainer">
-              <span class="modeTitle" style="color: #007aff;">✂️ 立体切面训练</span>
-           </div>
         </div>
 
         <button class="btnPrimary glass-primary main-action-btn homeStartBtn" @click="startGame">开始练习</button>
@@ -190,68 +187,6 @@
 
         <div class="tip-toast" v-if="cubicMode==='build' && !isDeleteMode">点击地面放置，点击方块叠加</div>
         <div class="tip-toast" v-if="cubicMode==='exam'">拖动滑块观察截面变化，白色为立体，黑色为截面</div>
-      </div>
-    </div>
-
-    <div v-if="viewState==='sliceTrainer'" class="wrap full-height slice-trainer" style="padding:0; overflow:hidden;">
-      <div id="slice-trainer-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
-
-      <div class="slice-trainer-ui safe-top">
-        <div class="glass-panel slice-topbar">
-          <button class="btnBack glass-btn small-btn" @click="quitSliceTrainer">🔙</button>
-          <div class="divider"></div>
-          <div class="slice-select">
-            <span>分类</span>
-            <select v-model.number="sliceCategoryIndex" @change="changeSliceCategory">
-              <option v-for="(cat, idx) in sliceCategories" :key="cat.id" :value="idx">{{ cat.label }}</option>
-            </select>
-          </div>
-          <div class="slice-shape-title">{{ selectedSliceShape.label }}</div>
-        </div>
-
-        <div class="glass-panel slice-shape-list">
-          <button
-            v-for="(item, index) in currentSliceShapes"
-            :key="item.id"
-            :class="['shape-chip', index === sliceShapeIndex ? 'active' : '']"
-            @click="selectSliceShape(index)"
-          >
-            {{ item.label }}
-          </button>
-        </div>
-
-        <button
-          class="slice-control-btn"
-          :class="{ dimmed: !sliceTrainerPanelOpen }"
-          @click="toggleSliceTrainerPanel"
-        >
-          切面调整
-        </button>
-
-        <div v-if="sliceTrainerPanelOpen" class="glass-panel slice-panel trainer-panel">
-          <div class="slice-row">
-            <span class="slice-label">位置</span>
-            <input type="range" min="-8" max="8" step="0.1" v-model.number="sliceTrainerConfig.constant" @input="updateSliceTrainerPlane" class="slice-slider">
-          </div>
-          <div class="slice-row">
-            <span class="slice-label">X轴倾斜</span>
-            <input type="range" min="-1" max="1" step="0.05" v-model.number="sliceTrainerConfig.x" @input="updateSliceTrainerPlane" class="slice-slider">
-          </div>
-          <div class="slice-row">
-            <span class="slice-label">Y轴倾斜</span>
-            <input type="range" min="-1" max="1" step="0.05" v-model.number="sliceTrainerConfig.y" @input="updateSliceTrainerPlane" class="slice-slider">
-          </div>
-          <div class="slice-row">
-            <span class="slice-label">Z轴倾斜</span>
-            <input type="range" min="-1" max="1" step="0.05" v-model.number="sliceTrainerConfig.z" @input="updateSliceTrainerPlane" class="slice-slider">
-          </div>
-          <div class="trainer-actions">
-            <button class="btnGhost small-btn" @click="resetSliceTrainer">重置切面</button>
-            <button class="btnPrimary small-btn" @click="toggleSliceTrainerPanel">完成</button>
-          </div>
-        </div>
-
-        <div class="tip-toast slice-tip">拖动模型可旋转视角，滑动调节切面</div>
       </div>
     </div>
 
@@ -1159,7 +1094,7 @@ export default {
       const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       camera.position.set(10, 10, 12);
 
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, stencil: true });
       renderer.setSize(width, height);
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.localClippingEnabled = this.slicePlaneVisible;
@@ -1202,6 +1137,8 @@ export default {
       const sliceCapMaterial = new THREE.MeshBasicMaterial({
         color: 0x000000,
         side: THREE.DoubleSide,
+        depthWrite: true,
+        depthTest: true,
         stencilWrite: true,
         stencilRef: 0,
         stencilFunc: THREE.NotEqualStencilFunc,
