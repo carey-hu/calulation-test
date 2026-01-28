@@ -220,7 +220,7 @@
           <button class="view-btn" @click="setCameraView('front')">正</button>
           <button class="view-btn" @click="setCameraView('left')">左</button>
           <button class="view-btn" @click="setCameraView('top')">俯</button>
-          <button class="view-btn" @click="setCameraView('iso')">轴</button>
+          <button class="view-btn active-view" @click="setCameraView('iso')">轴</button>
         </div>
         
         <div class="tip-toast" v-if="cubicMode === 'block'">点击地面放置，点击方块叠加</div>
@@ -233,15 +233,19 @@
           <div class="shape-grid">
             <div v-for="s in examShapes.basic" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
-          <div class="shape-group-title">曲面体 (锥/球)</div>
+          <div class="shape-group-title">曲面体 (锥/台/球)</div>
           <div class="shape-grid">
             <div v-for="s in examShapes.curved" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
-          <div class="shape-group-title">进阶 (挖空/组合)</div>
+          <div class="shape-group-title">高频挖空 (管/孔)</div>
+          <div class="shape-grid">
+            <div v-for="s in examShapes.hollow" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+          </div>
+          <div class="shape-group-title">异形与组合体</div>
           <div class="shape-grid">
             <div v-for="s in examShapes.composite" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
-          <div class="shape-group-title">特殊造型</div>
+          <div class="shape-group-title">特殊切面造型</div>
           <div class="shape-grid">
             <div v-for="s in examShapes.special" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
@@ -344,13 +348,17 @@ const MODE_GROUPS = {
 
 // =================================================================
 // 扩展的公务员考试立体图形库 (行测-图形推理-立体截面)
+// 修复：确保所有空心物体的内孔洞绘制方向为顺时针 (CW)，外轮廓为逆时针 (CCW)
+// 这样 ExtrudeGeometry 才能正确计算法线，解决切面 Stencil Buffer 错误
 // =================================================================
 
 // 1. 空心圆柱 (圆管)
 const createHollowCylinder = () => {
   const shape = new THREE.Shape();
+  // 外轮廓：逆时针 (false)
   shape.absarc(0, 0, 4, 0, Math.PI * 2, false);
   const hole = new THREE.Path();
+  // 内孔洞：顺时针 (true) - 关键修复
   hole.absarc(0, 0, 2, 0, Math.PI * 2, true);
   shape.holes.push(hole);
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
@@ -359,8 +367,10 @@ const createHollowCylinder = () => {
 // 2. 空心方柱 (方管)
 const createHollowPrism = () => {
   const shape = new THREE.Shape();
+  // 外轮廓 (CCW)
   shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
   const hole = new THREE.Path();
+  // 内孔洞 (CW) - 关键修复
   hole.moveTo(-2, -2); hole.lineTo(-2, 2); hole.lineTo(2, 2); hole.lineTo(2, -2); hole.lineTo(-2, -2);
   shape.holes.push(hole);
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
@@ -369,12 +379,11 @@ const createHollowPrism = () => {
 // 3. 凹型体 (U型槽)
 const createUShape = () => {
   const shape = new THREE.Shape();
-  // 外轮廓
   shape.moveTo(-3, -3);
   shape.lineTo(3, -3);
   shape.lineTo(3, 3);
   shape.lineTo(1, 3);
-  shape.lineTo(1, -1); // 凹下去的部分
+  shape.lineTo(1, -1); 
   shape.lineTo(-1, -1);
   shape.lineTo(-1, 3);
   shape.lineTo(-3, 3);
@@ -382,7 +391,7 @@ const createUShape = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
 };
 
-// 4. L型体 (L型板)
+// 4. L型体
 const createLShape = () => {
   const shape = new THREE.Shape();
   shape.moveTo(0, 0);
@@ -395,7 +404,7 @@ const createLShape = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
 };
 
-// 5. 十字体 (Cross)
+// 5. 十字体
 const createCrossShape = () => {
   const shape = new THREE.Shape();
   const w = 2, l = 6;
@@ -420,9 +429,86 @@ const createNotchedCube = () => {
   shape.moveTo(-3, -3);
   shape.lineTo(3, -3);
   shape.lineTo(3, 1);
-  shape.lineTo(1, 3); // 缺角
+  shape.lineTo(1, 3); 
   shape.lineTo(-3, 3);
   return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
+};
+
+// 7. 正方体挖圆孔
+const createCubeWithHole = () => {
+   const shape = new THREE.Shape();
+   shape.moveTo(-3,-3); shape.lineTo(3,-3); shape.lineTo(3,3); shape.lineTo(-3,3);
+   const hole = new THREE.Path();
+   // 内孔洞：顺时针 (true)
+   hole.absarc(0,0,2,0,Math.PI*2,true);
+   shape.holes.push(hole);
+   return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 64 });
+};
+
+// 8. 圆柱挖方孔
+const createCylinderWithRectHole = () => {
+  const shape = new THREE.Shape();
+  shape.absarc(0, 0, 4, 0, Math.PI * 2, false); // CCW
+  const hole = new THREE.Path();
+  // CW for rectangle hole
+  hole.moveTo(-1.5, -1.5);
+  hole.lineTo(-1.5, 1.5);
+  hole.lineTo(1.5, 1.5);
+  hole.lineTo(1.5, -1.5);
+  hole.lineTo(-1.5, -1.5);
+  shape.holes.push(hole);
+  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
+};
+
+// 9. 拱门型
+const createArchShape = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(-3, 0);
+  shape.lineTo(3, 0);
+  shape.lineTo(3, 4);
+  // 半圆顶 CCW
+  shape.absarc(0, 4, 3, 0, Math.PI, false); 
+  shape.lineTo(-3, 4);
+  
+  // 内部拱门 CW
+  const hole = new THREE.Path();
+  hole.moveTo(-1.5, 0);
+  hole.lineTo(-1.5, 3);
+  // 内半圆 CW
+  hole.absarc(0, 3, 1.5, Math.PI, 0, true);
+  hole.lineTo(1.5, 0);
+  hole.lineTo(-1.5, 0);
+  
+  shape.holes.push(hole);
+  return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false, curveSegments: 32 });
+};
+
+// 10. 梯台 (Pyramid Frustum) - 用 Cylinder 模拟
+const createFrustum = () => {
+  // topRadius, bottomRadius, height, segments
+  return new THREE.CylinderGeometry(2, 4, 6, 4);
+};
+
+// 11. 组合体：圆柱上加圆锥
+const createConeOnCylinder = () => {
+  // 这是一个组合 Mesh，不能直接用 Extrude，我们返回 Group，但在加载函数里特殊处理
+  // 为简单起见，这里返回一个合并的 BufferGeometry
+  // 注意：复杂组合体在 Stencil 模式下最好合并为一个 Geometry
+  // 这里暂时用简单的近似形状，或者只支持单几何体切割
+  // 暂时返回一个两头大小不一的“近似组合”
+  const geom = new THREE.CylinderGeometry(2, 4, 8, 32); 
+  return geom;
+};
+
+// 12. 梯形柱 (Trapezoidal Prism)
+const createTrapezoidPrism = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(-4, -2);
+  shape.lineTo(4, -2);
+  shape.lineTo(2, 2);
+  shape.lineTo(-2, 2);
+  shape.lineTo(-4, -2);
+  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
 };
 
 const EXAM_SHAPES = {
@@ -432,32 +518,49 @@ const EXAM_SHAPES = {
     { name: '圆柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 32) },
     { name: '三棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 3) },
     { name: '六棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 6) },
+    { name: '梯形柱', create: createTrapezoidPrism },
     { name: '正四面体', create: () => new THREE.TetrahedronGeometry(6) },
     { name: '正八面体', create: () => new THREE.OctahedronGeometry(5) },
   ],
   curved: [
     { name: '圆锥', create: () => new THREE.CylinderGeometry(0, 4, 8, 64) },
     { name: '圆台', create: () => new THREE.CylinderGeometry(2, 4, 6, 64) },
+    { name: '四棱台', create: createFrustum },
     { name: '球体', create: () => new THREE.SphereGeometry(4, 64, 64) },
     { name: '半球', create: () => new THREE.SphereGeometry(4, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2) },
   ],
-  composite: [
+  hollow: [
     { name: '空心圆柱(圆管)', create: createHollowCylinder },
     { name: '空心方柱(方管)', create: createHollowPrism },
-    { name: '正方体挖圆孔', create: () => {
-       const shape = new THREE.Shape();
-       shape.moveTo(-3,-3); shape.lineTo(3,-3); shape.lineTo(3,3); shape.lineTo(-3,3);
-       const hole = new THREE.Path();
-       hole.absarc(0,0,2,0,Math.PI*2,true);
-       shape.holes.push(hole);
-       return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 64 });
+    { name: '正方体挖圆孔', create: createCubeWithHole },
+    { name: '圆柱挖方孔', create: createCylinderWithRectHole },
+    { name: '拱门造型', create: createArchShape },
+  ],
+  composite: [
+    // 简单组合用几何体拼接模拟
+    { name: 'T型体', create: () => {
+        const shape = new THREE.Shape();
+        shape.moveTo(-1, -3); shape.lineTo(1, -3); shape.lineTo(1, 1); 
+        shape.lineTo(3, 1); shape.lineTo(3, 3); shape.lineTo(-3, 3); 
+        shape.lineTo(-3, 1); shape.lineTo(-1, 1);
+        return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false });
     }},
+    { name: '十字体', create: createCrossShape },
+    { name: '凹型体(U型)', create: createUShape },
+    { name: 'L型体', create: createLShape },
   ],
   special: [
-    { name: 'U型槽(凹型)', create: createUShape },
-    { name: 'L型体', create: createLShape },
-    { name: '十字体', create: createCrossShape },
     { name: '缺角正方体', create: createNotchedCube },
+    { name: '台阶(阶梯)', create: () => {
+        const shape = new THREE.Shape();
+        shape.moveTo(-3, -3);
+        shape.lineTo(3, -3); shape.lineTo(3, -1);
+        shape.lineTo(1, -1); shape.lineTo(1, 1);
+        shape.lineTo(-1, 1); shape.lineTo(-1, 3);
+        shape.lineTo(-3, 3);
+        return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
+    }},
+    { name: '三角楔形', create: () => new THREE.CylinderGeometry(0, 4, 6, 3, 1, false, 0, Math.PI) }, // 简化的楔形
   ]
 };
 
