@@ -46,6 +46,9 @@
            <div class="modeItem" style="flex: 1 0 100%; background: rgba(0, 122, 255, 0.08); border-color: rgba(0, 122, 255, 0.2);" @click="startSliceTrainer">
               <span class="modeTitle" style="color: #007aff;">✂️ 立体切面训练</span>
            </div>
+           <div class="modeItem" style="flex: 1 0 100%; background: rgba(0, 122, 255, 0.08); border-color: rgba(0, 122, 255, 0.2);" @click="startSliceTrainer">
+              <span class="modeTitle" style="color: #007aff;">✂️ 立体切面训练</span>
+           </div>
         </div>
 
         <button class="btnPrimary glass-primary main-action-btn homeStartBtn" @click="startGame">开始练习</button>
@@ -252,6 +255,119 @@
       </div>
     </div>
 
+    <div v-if="viewState==='sliceTrainer'" class="wrap full-height slice-trainer" style="padding:0; overflow:hidden;">
+      <div id="slice-trainer-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
+
+      <div class="slice-trainer-ui safe-top">
+        <div class="glass-panel slice-topbar">
+          <button class="btnBack glass-btn small-btn" @click="quitSliceTrainer">🔙</button>
+          <div class="divider"></div>
+          <div class="slice-select">
+            <span>分类</span>
+            <select v-model.number="sliceCategoryIndex" @change="changeSliceCategory">
+              <option v-for="(cat, idx) in sliceCategories" :key="cat.id" :value="idx">{{ cat.label }}</option>
+            </select>
+          </div>
+          <div class="slice-shape-title">{{ selectedSliceShape.label }}</div>
+          <button class="slice-toggle-btn" @click="toggleSlicePlaneVisible">
+            {{ slicePlaneVisible ? '隐藏切面' : '显示切面' }}
+          </button>
+        </div>
+
+        <div class="glass-panel slice-shape-list">
+          <button
+            v-for="(item, index) in currentSliceShapes"
+            :key="item.id"
+            :class="['shape-chip', index === sliceShapeIndex ? 'active' : '']"
+            @click="selectSliceShape(index)"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+
+        <button
+          class="slice-control-btn"
+          :class="{ dimmed: !sliceTrainerPanelOpen }"
+          @click="toggleSliceTrainerPanel"
+        >
+          切面调整
+        </button>
+
+        <div v-if="sliceTrainerPanelOpen" class="glass-panel slice-panel trainer-panel">
+          <div class="slice-row">
+            <span class="slice-label">位置</span>
+            <div class="slice-input-group">
+              <button class="step-btn" @click="nudgeSlice('constant', -0.1)">-</button>
+              <input
+                type="number"
+                min="-8"
+                max="8"
+                step="0.1"
+                v-model.number="sliceTrainerConfig.constant"
+                @input="normalizeSliceValue('constant')"
+                class="slice-number"
+              >
+              <button class="step-btn" @click="nudgeSlice('constant', 0.1)">+</button>
+            </div>
+          </div>
+          <div class="slice-row">
+            <span class="slice-label">X轴倾斜</span>
+            <div class="slice-input-group">
+              <button class="step-btn" @click="nudgeSlice('x', -0.05)">-</button>
+              <input
+                type="number"
+                min="-1"
+                max="1"
+                step="0.05"
+                v-model.number="sliceTrainerConfig.x"
+                @input="normalizeSliceValue('x')"
+                class="slice-number"
+              >
+              <button class="step-btn" @click="nudgeSlice('x', 0.05)">+</button>
+            </div>
+          </div>
+          <div class="slice-row">
+            <span class="slice-label">Y轴倾斜</span>
+            <div class="slice-input-group">
+              <button class="step-btn" @click="nudgeSlice('y', -0.05)">-</button>
+              <input
+                type="number"
+                min="-1"
+                max="1"
+                step="0.05"
+                v-model.number="sliceTrainerConfig.y"
+                @input="normalizeSliceValue('y')"
+                class="slice-number"
+              >
+              <button class="step-btn" @click="nudgeSlice('y', 0.05)">+</button>
+            </div>
+          </div>
+          <div class="slice-row">
+            <span class="slice-label">Z轴倾斜</span>
+            <div class="slice-input-group">
+              <button class="step-btn" @click="nudgeSlice('z', -0.05)">-</button>
+              <input
+                type="number"
+                min="-1"
+                max="1"
+                step="0.05"
+                v-model.number="sliceTrainerConfig.z"
+                @input="normalizeSliceValue('z')"
+                class="slice-number"
+              >
+              <button class="step-btn" @click="nudgeSlice('z', 0.05)">+</button>
+            </div>
+          </div>
+          <div class="trainer-actions">
+            <button class="btnGhost small-btn" @click="resetSliceTrainer">重置切面</button>
+            <button class="btnPrimary small-btn" @click="toggleSliceTrainerPanel">完成</button>
+          </div>
+        </div>
+
+        <div class="tip-toast slice-tip">拖动模型可旋转视角，滑动调节切面</div>
+      </div>
+    </div>
+
     <div v-if="viewState==='result'" class="wrap full-height">
       <div class="header-area safe-header">
         <div class="title">{{resultTitle}}</div>
@@ -376,59 +492,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { SOLID_SLICE_BANK } from './data/solidSliceBank.js';
 
 // =================================================================
-// 公考立体图形库定义
-// =================================================================
-const createExtrudeShape = (pts) => {
-    const shape = new THREE.Shape();
-    shape.moveTo(pts[0][0], pts[0][1]);
-    for(let i=1; i<pts.length; i++) shape.lineTo(pts[i][0], pts[i][1]);
-    shape.closePath();
-    const settings = { depth: 4, bevelEnabled: false };
-    const geom = new THREE.ExtrudeGeometry(shape, settings);
-    geom.center(); // 居中
-    return geom;
-};
-
-const SHAPE_LIB = [
-  // --- 规则立体图形 ---
-  { key: 'cube', name: '【规则】正方体', create: () => new THREE.BoxGeometry(6,6,6) },
-  { key: 'cuboid', name: '【规则】长方体', create: () => new THREE.BoxGeometry(4,8,4) },
-  { key: 'cylinder', name: '【规则】圆柱体', create: () => new THREE.CylinderGeometry(3,3,8,64) },
-  { key: 'cone', name: '【规则】圆锥体', create: () => new THREE.ConeGeometry(4,8,64) },
-  { key: 'sphere', name: '【规则】球体', create: () => new THREE.SphereGeometry(4,64,64) },
-  { key: 'tetra', name: '【锥体】正四面体', create: () => new THREE.TetrahedronGeometry(5) },
-  { key: 'pyramid', name: '【锥体】四棱锥', create: () => {
-       // 也就是金字塔，用 Cylinder 模拟，顶半径0，底半径4，4边形
-       return new THREE.CylinderGeometry(0, 5, 6, 4);
-  }},
-  { key: 'prism6', name: '【柱体】六棱柱', create: () => new THREE.CylinderGeometry(4,4,8,6) },
-  
-  // --- 不规则/组合图形 ---
-  { key: 'hollow_cyl', name: '【不规则】空心管', create: () => {
-      // 模拟圆管切面，用粗环面模拟截面效果
-      return new THREE.TorusGeometry(3, 1.5, 32, 64);
-  }},
-  { key: 'u_shape', name: '【不规则】凹字形(U型)', create: () => {
-      // 凹字
-      return createExtrudeShape([
-        [-3,3], [-1,3], [-1,0], [1,0], [1,3], [3,3], 
-        [3,-3], [-3,-3]
-      ]);
-  }},
-  { key: 'l_shape', name: '【不规则】L字形', create: () => {
-      return createExtrudeShape([
-        [-3,4], [0,4], [0,0], [3,0], [3,-3], [-3,-3]
-      ]);
-  }},
-  { key: 'cross', name: '【不规则】十字形', create: () => {
-      return createExtrudeShape([
-        [-1,3], [1,3], [1,1], [3,1], [3,-1], [1,-1], 
-        [1,-3], [-1,-3], [-1,-1], [-3,-1], [-3,1], [-1,1]
-      ]);
-  }}
-];
-
-// =================================================================
 // 核心逻辑层 (原 math.js 和 gameModes.js 内容整合)
 // =================================================================
 
@@ -513,6 +576,7 @@ export default {
       sliceCategoryIndex: 0,
       sliceShapeIndex: 0,
       sliceTrainerPanelOpen: false,
+      slicePlaneVisible: false,
       sliceTrainerConfig: {
         constant: 1.5,
         x: 0.4,
@@ -550,15 +614,6 @@ export default {
       return this.currentSliceShapes[this.sliceShapeIndex] || this.currentSliceShapes[0] || { label: '' };
     }
   },
-  watch: {
-    // 监听公考切面参数变化，实时更新
-    examSlice: {
-      handler() {
-        if(this.cubicMode === 'exam') this.updateExamPlane();
-      },
-      deep: true
-    }
-  },
   mounted() {
     const history = localStorage.getItem('calc_history');
     if(history) { try { this.historyList = JSON.parse(history); } catch(e){ console.error(e) } }
@@ -570,7 +625,7 @@ export default {
   },
   created() {
     this.threeApp = { scene: null, camera: null, renderer: null, controls: null, raycaster: null, pointer: null, objects: [], animationId: null, clippingPlane: null, planeHelper: null };
-    this.sliceApp = { scene: null, camera: null, renderer: null, controls: null, animationId: null, mesh: null, clippingPlane: null, slicePlaneMesh: null };
+    this.sliceApp = { scene: null, camera: null, renderer: null, controls: null, animationId: null, mesh: null, clippingPlane: null, slicePlaneMesh: null, sliceCapMesh: null, stencilGroup: null };
   },
   methods: {
     now() { return Date.now(); },
@@ -1026,9 +1081,45 @@ export default {
     toggleSliceTrainerPanel() {
       this.sliceTrainerPanelOpen = !this.sliceTrainerPanelOpen;
     },
+    toggleSlicePlaneVisible() {
+      this.slicePlaneVisible = !this.slicePlaneVisible;
+      if (this.sliceApp.renderer) {
+        this.sliceApp.renderer.localClippingEnabled = this.slicePlaneVisible;
+      }
+      if (this.sliceApp.slicePlaneMesh) {
+        this.sliceApp.slicePlaneMesh.visible = this.slicePlaneVisible;
+      }
+      if (this.sliceApp.sliceCapMesh) {
+        this.sliceApp.sliceCapMesh.visible = this.slicePlaneVisible;
+      }
+      if (this.sliceApp.stencilGroup) {
+        this.sliceApp.stencilGroup.visible = this.slicePlaneVisible;
+      }
+      this.updateSliceTrainerPlane();
+    },
     resetSliceTrainer() {
       this.sliceTrainerConfig = { constant: 1.5, x: 0.4, y: -0.8, z: 0.2 };
       this.updateSliceTrainerPlane();
+    },
+    normalizeSliceValue(field) {
+      const limits = {
+        constant: { min: -8, max: 8 },
+        x: { min: -1, max: 1 },
+        y: { min: -1, max: 1 },
+        z: { min: -1, max: 1 }
+      };
+      const range = limits[field];
+      if (!range) return;
+      const value = Number(this.sliceTrainerConfig[field]);
+      if (Number.isNaN(value)) return;
+      const clamped = Math.min(range.max, Math.max(range.min, value));
+      this.sliceTrainerConfig[field] = clamped;
+      this.updateSliceTrainerPlane();
+    },
+    nudgeSlice(field, delta) {
+      const current = Number(this.sliceTrainerConfig[field]) || 0;
+      this.sliceTrainerConfig[field] = current + delta;
+      this.normalizeSliceValue(field);
     },
     updateSliceTrainerPlane() {
       if (!this.sliceApp.clippingPlane) return;
@@ -1045,9 +1136,15 @@ export default {
       const planePoint = new THREE.Vector3();
       plane.coplanarPoint(planePoint);
       this.sliceApp.slicePlaneMesh.position.copy(planePoint);
+      if (this.sliceApp.sliceCapMesh) {
+        this.sliceApp.sliceCapMesh.position.copy(planePoint);
+      }
       const quat = new THREE.Quaternion();
       quat.setFromUnitVectors(new THREE.Vector3(0, 0, 1), plane.normal.clone().normalize());
       this.sliceApp.slicePlaneMesh.quaternion.copy(quat);
+      if (this.sliceApp.sliceCapMesh) {
+        this.sliceApp.sliceCapMesh.quaternion.copy(quat);
+      }
     },
     initSliceTrainer() {
       const container = document.getElementById('slice-trainer-container');
@@ -1065,7 +1162,7 @@ export default {
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(width, height);
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.localClippingEnabled = true;
+      renderer.localClippingEnabled = this.slicePlaneVisible;
       container.appendChild(renderer.domElement);
 
       const controls = new OrbitControls(camera, renderer.domElement);
@@ -1095,13 +1192,29 @@ export default {
       const slicePlaneMaterial = new THREE.MeshBasicMaterial({
         color: 0x000000,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.15,
         side: THREE.DoubleSide
       });
       const slicePlaneMesh = new THREE.Mesh(slicePlaneGeometry, slicePlaneMaterial);
+      slicePlaneMesh.visible = this.slicePlaneVisible;
       scene.add(slicePlaneMesh);
 
-      this.sliceApp = { scene, camera, renderer, controls, animationId: null, mesh: null, clippingPlane, slicePlaneMesh };
+      const sliceCapMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        side: THREE.DoubleSide,
+        stencilWrite: true,
+        stencilRef: 0,
+        stencilFunc: THREE.NotEqualStencilFunc,
+        stencilFail: THREE.ReplaceStencilOp,
+        stencilZFail: THREE.ReplaceStencilOp,
+        stencilZPass: THREE.ReplaceStencilOp
+      });
+      const sliceCapMesh = new THREE.Mesh(slicePlaneGeometry, sliceCapMaterial);
+      sliceCapMesh.renderOrder = 2;
+      sliceCapMesh.visible = this.slicePlaneVisible;
+      scene.add(sliceCapMesh);
+
+      this.sliceApp = { scene, camera, renderer, controls, animationId: null, mesh: null, clippingPlane, slicePlaneMesh, sliceCapMesh, stencilGroup: null };
       this.loadSliceShape();
       this.updateSliceTrainerPlane();
       this.animateSliceTrainer();
@@ -1120,7 +1233,7 @@ export default {
         const container = document.getElementById('slice-trainer-container');
         if (container) container.innerHTML = '';
       }
-      this.sliceApp = { scene: null, camera: null, renderer: null, controls: null, animationId: null, mesh: null, clippingPlane: null, slicePlaneMesh: null };
+      this.sliceApp = { scene: null, camera: null, renderer: null, controls: null, animationId: null, mesh: null, clippingPlane: null, slicePlaneMesh: null, sliceCapMesh: null, stencilGroup: null };
       this.sliceTrainerPanelOpen = false;
     },
     loadSliceShape() {
@@ -1128,13 +1241,65 @@ export default {
       if (this.sliceApp.mesh) {
         this.sliceApp.scene.remove(this.sliceApp.mesh);
       }
+      if (this.sliceApp.stencilGroup) {
+        this.sliceApp.scene.remove(this.sliceApp.stencilGroup);
+      }
 
       const shape = this.selectedSliceShape;
       const mesh = this.buildSliceMesh(shape);
       if (mesh) {
         this.sliceApp.mesh = mesh;
+        mesh.traverse((child) => {
+          if (child.isMesh) child.renderOrder = 3;
+        });
         this.sliceApp.scene.add(mesh);
+        this.sliceApp.stencilGroup = this.createSliceStencilGroup(mesh);
+        this.sliceApp.stencilGroup.visible = this.slicePlaneVisible;
+        this.sliceApp.scene.add(this.sliceApp.stencilGroup);
       }
+    },
+    createSliceStencilGroup(targetMesh) {
+      const group = new THREE.Group();
+      targetMesh.updateMatrixWorld(true);
+
+      targetMesh.traverse((child) => {
+        if (!child.isMesh) return;
+        const geometry = child.geometry;
+
+        const baseMaterial = new THREE.MeshBasicMaterial();
+        baseMaterial.depthWrite = false;
+        baseMaterial.depthTest = false;
+        baseMaterial.colorWrite = false;
+        baseMaterial.stencilWrite = true;
+        baseMaterial.stencilFunc = THREE.AlwaysStencilFunc;
+
+        const backMaterial = baseMaterial.clone();
+        backMaterial.side = THREE.BackSide;
+        backMaterial.clippingPlanes = [this.sliceApp.clippingPlane];
+        backMaterial.stencilFail = THREE.IncrementWrapStencilOp;
+        backMaterial.stencilZFail = THREE.IncrementWrapStencilOp;
+        backMaterial.stencilZPass = THREE.IncrementWrapStencilOp;
+
+        const frontMaterial = baseMaterial.clone();
+        frontMaterial.side = THREE.FrontSide;
+        frontMaterial.clippingPlanes = [this.sliceApp.clippingPlane];
+        frontMaterial.stencilFail = THREE.DecrementWrapStencilOp;
+        frontMaterial.stencilZFail = THREE.DecrementWrapStencilOp;
+        frontMaterial.stencilZPass = THREE.DecrementWrapStencilOp;
+
+        const backMesh = new THREE.Mesh(geometry, backMaterial);
+        backMesh.matrixAutoUpdate = false;
+        backMesh.matrix.copy(child.matrixWorld);
+
+        const frontMesh = new THREE.Mesh(geometry, frontMaterial);
+        frontMesh.matrixAutoUpdate = false;
+        frontMesh.matrix.copy(child.matrixWorld);
+
+        group.add(backMesh, frontMesh);
+      });
+
+      group.renderOrder = 1;
+      return group;
     },
     buildSliceMesh(shape) {
       if (!shape) return null;
@@ -1529,6 +1694,16 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
   font-size: 13px;
   color: #111;
 }
+.slice-toggle-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(17,17,17,0.9);
+  color: #fff;
+  margin-left: 8px;
+}
 .slice-shape-list {
   width: 95%;
   display: flex;
@@ -1577,6 +1752,30 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
   margin-top: 6px;
 }
 .slice-tip { margin-top: 0; }
+.slice-input-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.slice-number {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+  text-align: center;
+  background: rgba(255,255,255,0.85);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+}
+.step-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.08);
+  color: #111;
+  font-weight: 700;
+}
 .slice-row {
   display: flex;
   align-items: center;

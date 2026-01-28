@@ -1,7 +1,7 @@
 export const SOLID_SLICE_BANK = [
   {
     id: 'regular-1',
-    label: '规则立体图形1',
+    label: '规则立体｜棱柱/柱体',
     items: [
       { id: 'cube', label: '正方体', type: 'box', params: { w: 4, h: 4, d: 4 } },
       { id: 'rect-prism', label: '长方体', type: 'box', params: { w: 5, h: 3.5, d: 3 } },
@@ -15,7 +15,7 @@ export const SOLID_SLICE_BANK = [
   },
   {
     id: 'regular-2',
-    label: '规则立体图形2',
+    label: '规则立体｜锥体/台体',
     items: [
       { id: 'sphere', label: '球体', type: 'sphere', params: { radius: 2.6 } },
       { id: 'hemisphere', label: '半球体', type: 'hemisphere', params: { radius: 2.6 } },
@@ -29,7 +29,7 @@ export const SOLID_SLICE_BANK = [
   },
   {
     id: 'regular-3',
-    label: '规则立体图形3',
+    label: '规则立体｜球体/多面体',
     items: [
       { id: 'tetra', label: '四面体', type: 'polyhedron', params: { name: 'tetrahedron', radius: 2.6 } },
       { id: 'octa', label: '八面体', type: 'polyhedron', params: { name: 'octahedron', radius: 2.6 } },
@@ -43,7 +43,7 @@ export const SOLID_SLICE_BANK = [
   },
   {
     id: 'regular-4',
-    label: '规则立体图形4',
+    label: '规则立体｜特殊形',
     items: [
       { id: 'tri-prism-tall', label: '高三棱柱', type: 'prism', params: { radius: 2.1, height: 5.2, segments: 3 } },
       { id: 'hex-prism-flat', label: '扁六棱柱', type: 'prism', params: { radius: 2.6, height: 2.4, segments: 6 } },
@@ -57,7 +57,7 @@ export const SOLID_SLICE_BANK = [
   },
   {
     id: 'irregular-1',
-    label: '不规则立体图形1',
+    label: '不规则立体｜组合块',
     items: [
       { id: 'step-block', label: '阶梯体', type: 'stacked', params: { levels: 3 } },
       { id: 'l-block', label: 'L形组合体', type: 'composite', params: { variant: 'l-shape' } },
@@ -71,7 +71,7 @@ export const SOLID_SLICE_BANK = [
   },
   {
     id: 'irregular-2',
-    label: '不规则立体图形2',
+    label: '不规则立体｜组合体',
     items: [
       { id: 'cone-cylinder', label: '圆锥+圆柱', type: 'composite', params: { variant: 'cone-cylinder' } },
       { id: 'cylinder-cylinder', label: '双圆柱组合', type: 'composite', params: { variant: 'double-cylinder' } },
@@ -85,7 +85,7 @@ export const SOLID_SLICE_BANK = [
   },
   {
     id: 'irregular-3',
-    label: '不规则立体图形3',
+    label: '不规则立体｜切割体',
     items: [
       { id: 'skew-prism', label: '斜切棱柱', type: 'composite', params: { variant: 'skew-prism' } },
       { id: 'half-cylinder', label: '半圆柱', type: 'composite', params: { variant: 'half-cylinder' } },
