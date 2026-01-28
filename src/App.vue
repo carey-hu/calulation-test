@@ -199,21 +199,21 @@
                   📂 题库 ({{ currentShapeName }})
                 </button>
                 <div v-if="showShapeMenu" class="shape-menu glass-panel">
-                  <div class="shape-group-title">基础柱体</div>
+                  <div class="shape-group-title">基础柱体/多面体</div>
                   <div class="shape-grid">
                     <div v-for="s in examShapes.basic" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
                   </div>
-                  <div class="shape-group-title">基础锥/台</div>
+                  <div class="shape-group-title">曲面体 (锥/球)</div>
                   <div class="shape-grid">
-                    <div v-for="s in examShapes.cone" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+                    <div v-for="s in examShapes.curved" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
                   </div>
-                  <div class="shape-group-title">球/多面体</div>
+                  <div class="shape-group-title">进阶 (挖空/组合)</div>
                   <div class="shape-grid">
-                    <div v-for="s in examShapes.sphere" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+                    <div v-for="s in examShapes.composite" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
                   </div>
-                  <div class="shape-group-title">进阶组合(挖空)</div>
+                  <div class="shape-group-title">特殊造型</div>
                   <div class="shape-grid">
-                    <div v-for="s in examShapes.adv" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+                    <div v-for="s in examShapes.special" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
                   </div>
                 </div>
              </div>
@@ -340,52 +340,121 @@ const MODE_GROUPS = {
 };
 
 // =================================================================
-// 扩展的公务员考试立体图形库
+// 扩展的公务员考试立体图形库 (行测-图形推理-立体截面)
 // =================================================================
+
+// 1. 空心圆柱 (圆管)
 const createHollowCylinder = () => {
   const shape = new THREE.Shape();
   shape.absarc(0, 0, 4, 0, Math.PI * 2, false);
   const hole = new THREE.Path();
   hole.absarc(0, 0, 2, 0, Math.PI * 2, true);
   shape.holes.push(hole);
-  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 32 });
+  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
 };
 
-const createConcaveCube = () => {
+// 2. 空心方柱 (方管)
+const createHollowPrism = () => {
   const shape = new THREE.Shape();
+  shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
+  const hole = new THREE.Path();
+  hole.moveTo(-2, -2); hole.lineTo(-2, 2); hole.lineTo(2, 2); hole.lineTo(2, -2); hole.lineTo(-2, -2);
+  shape.holes.push(hole);
+  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
+};
+
+// 3. 凹型体 (U型槽)
+const createUShape = () => {
+  const shape = new THREE.Shape();
+  // 外轮廓
   shape.moveTo(-3, -3);
   shape.lineTo(3, -3);
   shape.lineTo(3, 3);
   shape.lineTo(1, 3);
-  shape.lineTo(1, 0); 
-  shape.lineTo(-1, 0);
+  shape.lineTo(1, -1); // 凹下去的部分
+  shape.lineTo(-1, -1);
   shape.lineTo(-1, 3);
   shape.lineTo(-3, 3);
   shape.lineTo(-3, -3);
   return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
 };
 
+// 4. L型体 (L型板)
+const createLShape = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0);
+  shape.lineTo(4, 0);
+  shape.lineTo(4, 2);
+  shape.lineTo(2, 2);
+  shape.lineTo(2, 6);
+  shape.lineTo(0, 6);
+  shape.lineTo(0, 0);
+  return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
+};
+
+// 5. 十字体 (Cross)
+const createCrossShape = () => {
+  const shape = new THREE.Shape();
+  const w = 2, l = 6;
+  shape.moveTo(-w/2, -l/2);
+  shape.lineTo(w/2, -l/2);
+  shape.lineTo(w/2, -w/2);
+  shape.lineTo(l/2, -w/2);
+  shape.lineTo(l/2, w/2);
+  shape.lineTo(w/2, w/2);
+  shape.lineTo(w/2, l/2);
+  shape.lineTo(-w/2, l/2);
+  shape.lineTo(-w/2, w/2);
+  shape.lineTo(-l/2, w/2);
+  shape.lineTo(-l/2, -w/2);
+  shape.lineTo(-w/2, -w/2);
+  return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false });
+};
+
+// 6. 缺角正方体
+const createNotchedCube = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(-3, -3);
+  shape.lineTo(3, -3);
+  shape.lineTo(3, 1);
+  shape.lineTo(1, 3); // 缺角
+  shape.lineTo(-3, 3);
+  return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
+};
+
 const EXAM_SHAPES = {
   basic: [
     { name: '正方体', create: () => new THREE.BoxGeometry(6, 6, 6) },
-    { name: '长方体', create: () => new THREE.BoxGeometry(4, 8, 4) },
+    { name: '长方体(扁)', create: () => new THREE.BoxGeometry(4, 8, 2) },
     { name: '圆柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 32) },
     { name: '三棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 3) },
     { name: '六棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 6) },
-  ],
-  cone: [
-    { name: '圆锥', create: () => new THREE.CylinderGeometry(0, 4, 8, 32) },
-    { name: '圆台', create: () => new THREE.CylinderGeometry(2, 4, 6, 32) },
     { name: '正四面体', create: () => new THREE.TetrahedronGeometry(6) },
-    { name: '四棱锥', create: () => new THREE.CylinderGeometry(0, 5, 6, 4) },
-  ],
-  sphere: [
-    { name: '球体', create: () => new THREE.SphereGeometry(4, 32, 32) },
     { name: '正八面体', create: () => new THREE.OctahedronGeometry(5) },
   ],
-  adv: [
-    { name: '空心圆柱', create: createHollowCylinder },
-    { name: '凹型体(U型)', create: createConcaveCube },
+  curved: [
+    { name: '圆锥', create: () => new THREE.CylinderGeometry(0, 4, 8, 64) },
+    { name: '圆台', create: () => new THREE.CylinderGeometry(2, 4, 6, 64) },
+    { name: '球体', create: () => new THREE.SphereGeometry(4, 64, 64) },
+    { name: '半球', create: () => new THREE.SphereGeometry(4, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2) },
+  ],
+  composite: [
+    { name: '空心圆柱(圆管)', create: createHollowCylinder },
+    { name: '空心方柱(方管)', create: createHollowPrism },
+    { name: '正方体挖圆孔', create: () => {
+       const shape = new THREE.Shape();
+       shape.moveTo(-3,-3); shape.lineTo(3,-3); shape.lineTo(3,3); shape.lineTo(-3,3);
+       const hole = new THREE.Path();
+       hole.absarc(0,0,2,0,Math.PI*2,true);
+       shape.holes.push(hole);
+       return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 64 });
+    }},
+  ],
+  special: [
+    { name: 'U型槽(凹型)', create: createUShape },
+    { name: 'L型体', create: createLShape },
+    { name: '十字体', create: createCrossShape },
+    { name: '缺角正方体', create: createNotchedCube },
   ]
 };
 
@@ -605,9 +674,7 @@ export default {
       const dist = 20; 
       
       // 相机移动到切面法线方向
-      // 注意：clippingPlane normal 指向的是"保留"的一侧，
-      // 所以我们要顺着法线反方向看，或者顺着法线看，取决于想看内部还是外部
-      // 这里设置为：位于平面上方，向下看
+      // Clipping Plane normal points OUT of the kept side.
       const eyePos = target.clone().add(normal.multiplyScalar(-dist));
       
       this.threeApp.camera.position.copy(eyePos);
@@ -673,9 +740,9 @@ export default {
       dirLight.position.set(10, 20, 10); 
       scene.add(dirLight);
 
-      // 辅助线
-      const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xe5e5e5); 
-      scene.add(gridHelper);
+      // 辅助线 (网格) - 已移除
+      // const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xe5e5e5); 
+      // scene.add(gridHelper);
       
       const planeGeometry = new THREE.PlaneGeometry(20, 20); 
       planeGeometry.rotateX(-Math.PI / 2);
