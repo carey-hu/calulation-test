@@ -11,7 +11,7 @@
     </div>
 
     <div v-if="viewState==='home'" class="wrap homeWrap">
-       <div class="header-area">
+      <div class="header-area">
         <div class="title">计算助手</div>
         <div class="subtitle">专项练习：进位加、退位减、大九九除法</div>
       </div>
@@ -38,10 +38,13 @@
           </div>
         </template>
         
-        <div class="rowLabel">空间思维专项</div>
+        <div class="rowLabel">空间思维专项 (公考行测)</div>
         <div class="modeRow">
-           <div class="modeItem" style="flex: 1 0 100%; background: rgba(88, 86, 214, 0.1); border-color: rgba(88, 86, 214, 0.2);" @click="startCubicMode">
-              <span class="modeTitle" style="color: #5856d6;">🧊 立体截面 / 积木训练</span>
+           <div class="modeItem" style="flex: 1 0 45%; background: rgba(0,122,255,0.08); border-color: rgba(0,122,255,0.2);" @click="startCubicMode('block')">
+              <span class="modeTitle" style="color: #007aff;">🧱 立体拼合</span>
+           </div>
+           <div class="modeItem" style="flex: 1 0 45%; background: rgba(88,86,214,0.1); border-color: rgba(88,86,214,0.2);" @click="startCubicMode('section')">
+              <span class="modeTitle" style="color: #5856d6;">🔪 立体截面</span>
            </div>
         </div>
 
@@ -57,9 +60,7 @@
       </div>
       <div class="card glass-panel">
         <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px;">
-          <button v-for="item in divisorList" :key="item" 
-                  class="k glass-key" style="font-size:20px; height:50px; line-height:50px;" 
-                  @click="selectDivisorAndStart(item)">{{item}}</button>
+          <button v-for="item in divisorList" :key="item" class="k glass-key" style="font-size:20px; height:50px; line-height:50px;" @click="selectDivisorAndStart(item)">{{item}}</button>
         </div>
         <button class="btnGhost glass-btn main-action-btn" style="margin-top: 20px;" @click="goHome">返回主页</button>
       </div>
@@ -73,17 +74,14 @@
           <div class="stat glass-pill timer">⏱ {{totalText}}</div>
         </div>
       </div>
-      
       <div class="gameMain">
         <div class="card qCard glass-panel">
           <div :class="['qText', isSmallFont ? 'qText-small' : '']">{{qText}}</div>
-          
           <div class="qNote">{{activeConfig.hintNote || activeConfig.hint || '精确到整数'}}</div>
           <div class="ansBox glass-input">答案：{{input ? input : '—'}}</div>
           <div class="hint">{{uiHint}}</div>
         </div>
       </div>
-      
       <div class="keypad card glass-panel">
         <div class="fnRow">
           <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
@@ -104,19 +102,16 @@
         <div class="title">{{resultTitle}}</div>
         <div class="subtitle">{{resultMeta}}</div>
       </div>
-      
       <div class="card full-flex glass-panel">
         <div class="resultScroll">
           <template v-if="currentModeKey==='train'">
             <div v-for="(item, index) in trainLog" :key="index" class="row">
               <span class="rowLeft">{{index+1}}. {{item.q}}</span>
               <span class="rowRight">
-                <span :style="{ color: parseFloat(item.usedStr) > 2 ? '#ff3b30' : 'inherit' }">{{item.usedStr}}</span> 
-                / 错{{item.wrong}}{{item.skipped?'(跳)':''}}
+                <span :style="{ color: parseFloat(item.usedStr) > 2 ? '#ff3b30' : 'inherit' }">{{item.usedStr}}</span> / 错{{item.wrong}}{{item.skipped?'(跳)':''}}
               </span>
             </div>
           </template>
-          
           <template v-else>
             <div v-for="(item, index) in results" :key="index" class="row">
               <span class="rowLeft">{{index+1}}. {{item.q}} = {{item.yourAns}}</span>
@@ -126,7 +121,6 @@
                       <span>{{item.ok ? '✅' : '❌'}}</span>
                       <span v-if="!item.ok" style="color:#ff3b30; font-size:13px; margin-left:2px; font-weight:700;">({{item.realAns}})</span>
                   </div>
-                  
                   <div v-if="item.ok && item.exactAns" style="font-size:11px; color:#007aff; margin-top:2px; font-weight:500;">
                       准:{{ item.exactAns }} 误:{{ item.errorRate }}
                   </div>
@@ -151,37 +145,22 @@
         <div class="title">历史记录</div>
         <div class="subtitle">仅保留最近5000条训练数据</div>
       </div>
-      
       <div class="card full-flex glass-panel">
         <div v-if="showChart" class="chart-container glass-inner">
            <div class="chart-tabs">
-             <div 
-               v-for="m in availableModes" 
-               :key="m"
-               :class="['chart-tab-item', chartTab === m ? 'active' : '']"
-               @click="switchChartTab(m)"
-             >
-               {{ m }}
-             </div>
+             <div v-for="m in availableModes" :key="m" :class="['chart-tab-item', chartTab === m ? 'active' : '']" @click="switchChartTab(m)">{{ m }}</div>
            </div>
            <div id="accChart" style="width: 100%; height: 220px;"></div>
            <button class="btnGhost small" style="margin-top:5px; font-size:13px;" @click="closeChart">收起图表</button>
         </div>
         <div v-else>
-           <button class="btnGhost glass-btn" style="height:44px; line-height:44px; font-size:16px; margin-bottom:15px; color:#007aff;" @click="initChart">
-             📊 按模块分析趋势
-           </button>
+           <button class="btnGhost glass-btn" style="height:44px; line-height:44px; font-size:16px; margin-bottom:15px; color:#007aff;" @click="initChart">📊 按模块分析趋势</button>
         </div>
-
         <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:0 8px; font-weight:700; color:#8e8e93; font-size:13px;">
-           <span>时间 / 模式</span>
-           <span>成绩 / 耗时</span>
+           <span>时间 / 模式</span><span>成绩 / 耗时</span>
         </div>
-        
         <div class="resultScroll">
-          <div v-if="historyList.length === 0" style="text-align:center; padding: 20px; color:rgba(0,0,0,0.4);">
-            暂无记录，快去练习吧！
-          </div>
+          <div v-if="historyList.length === 0" style="text-align:center; padding: 20px; color:rgba(0,0,0,0.4);">暂无记录，快去练习吧！</div>
           <div v-else>
             <div v-for="(item, index) in historyList" :key="item.ts" class="row hover-row" @click="viewHistoryDetail(index)" style="cursor:pointer;">
               <div class="rowLeft" style="display:flex; flex-direction:column;">
@@ -195,17 +174,8 @@
             </div>
           </div>
         </div>
-        
         <div style="margin-top: 15px; display:flex; flex-direction: column; gap:10px;">
-          <button 
-            v-if="historyList.length > 1000" 
-            class="btnGhost glass-btn" 
-            style="margin:0; height: 40px; font-size: 16px; color: #ff3b30; background: rgba(255,59,48,0.08); border-color: rgba(255,59,48,0.2);" 
-            @click="clearOldest"
-          >
-            🗑️ 清理最早的 1000 条
-          </button>
-
+          <button v-if="historyList.length > 1000" class="btnGhost glass-btn" style="margin:0; height: 40px; font-size: 16px; color: #ff3b30; background: rgba(255,59,48,0.08); border-color: rgba(255,59,48,0.2);" @click="clearOldest">🗑️ 清理最早的 1000 条</button>
           <div style="display:flex; gap:10px;">
             <button class="btnDanger glass-btn main-action-btn" style="margin:0; flex:1;" @click="clearHistory">清空全部</button>
             <button class="btnPrimary glass-primary main-action-btn" style="margin:0; flex:1;" @click="closeHistory">返回主页</button>
@@ -221,39 +191,48 @@
       <div class="cubic-ui safe-top">
         <div class="glass-panel" style="padding: 8px 12px; display: flex; gap: 8px; align-items: center; border-radius: 24px; max-width: 98%; overflow-x: auto;">
           <button class="btnBack glass-btn small-btn" @click="quitCubicMode">🔙</button>
-          
           <div class="divider"></div>
 
-          <div style="position:relative;">
-              <button class="btnGhost small-btn" @click="showShapeMenu = !showShapeMenu" style="font-size:12px;">
-                📂 模型库
-              </button>
-              <div v-if="showShapeMenu" class="shape-menu glass-panel">
-                <div class="shape-grid">
-                  <div v-for="(shape, idx) in examShapes" :key="idx" class="shape-item" @click="loadExamShape(shape)">
-                    {{ shape.name }}
+          <template v-if="cubicMode === 'section'">
+             <div style="position:relative;">
+                <button class="btnGhost small-btn" @click="showShapeMenu = !showShapeMenu" style="font-size:13px; color:#5856d6; font-weight:700;">
+                  📂 题库 ({{ currentShapeName }})
+                </button>
+                <div v-if="showShapeMenu" class="shape-menu glass-panel">
+                  <div class="shape-group-title">基础柱体</div>
+                  <div class="shape-grid">
+                    <div v-for="s in examShapes.basic" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+                  </div>
+                  <div class="shape-group-title">基础锥/台</div>
+                  <div class="shape-grid">
+                    <div v-for="s in examShapes.cone" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+                  </div>
+                  <div class="shape-group-title">球/多面体</div>
+                  <div class="shape-grid">
+                    <div v-for="s in examShapes.sphere" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+                  </div>
+                  <div class="shape-group-title">进阶组合(挖空)</div>
+                  <div class="shape-grid">
+                    <div v-for="s in examShapes.adv" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
                   </div>
                 </div>
-                <div class="shape-item" style="color:#ff3b30; border-top:1px solid rgba(0,0,0,0.1); margin-top:4px;" @click="clearCubes(); showShapeMenu=false;">
-                   🧹 清空/积木模式
-                </div>
-              </div>
-           </div>
+             </div>
+             <div class="divider"></div>
+             <button class="view-btn" style="background:#000; color:#fff; border:none;" @click="lookAtSection">👀 正视切面</button>
+          </template>
 
-          <div class="divider"></div>
-          
-          <button :class="['btnIcon', isSliceMode ? 'active' : '']" @click="toggleSliceMode">🔪 切面</button>
-          
-          <template v-if="!isExamMode">
-            <div class="divider"></div>
+          <template v-else>
             <div style="display:flex; gap:4px;">
               <div v-for="c in colors" :key="c" 
                 :style="{backgroundColor: c, border: c === '#ffffff' ? '1px solid #ccc' : 'none'}"
                 :class="['color-dot', selectedColor === c && !isDeleteMode ? 'active' : '']"
                 @click="switchColor(c)"></div>
             </div>
+            <div class="divider"></div>
             <button :class="['btnIcon', isDeleteMode ? 'active' : '']" @click="toggleDeleteMode">🗑️</button>
+            <button class="btnIcon" @click="clearCubes">🔄</button>
           </template>
+
         </div>
 
         <div class="view-selector glass-panel">
@@ -261,20 +240,19 @@
           <button class="view-btn" @click="setCameraView('left')">左</button>
           <button class="view-btn" @click="setCameraView('top')">俯</button>
           <button class="view-btn active-view" @click="setCameraView('iso')">轴</button>
-          <button v-if="isSliceMode" class="view-btn" style="color:#007aff;" @click="lookAtSection">👀 看切面</button>
         </div>
 
-        <div v-if="isSliceMode" :class="['slice-panel-container', sliceMenuCollapsed ? 'collapsed' : '']">
+        <div v-if="cubicMode === 'section'" :class="['slice-panel-container', sliceMenuCollapsed ? 'collapsed' : '']">
           <div class="glass-panel slice-panel-content">
              <div class="panel-header" @click="sliceMenuCollapsed = !sliceMenuCollapsed">
-                <span>🎛️ 切面参数</span>
+                <span>📐 切面调节</span>
                 <span style="font-size:12px; color:#666;">{{ sliceMenuCollapsed ? '展开' : '收起' }}</span>
              </div>
              
              <div v-if="!sliceMenuCollapsed" class="controls-body">
                 <div class="slice-row">
-                  <span class="slice-label">位置</span>
-                  <input type="range" min="-10" max="10" step="0.1" v-model.number="sliceConfig.constant" class="slice-slider">
+                  <span class="slice-label">位移</span>
+                  <input type="range" min="-8" max="8" step="0.1" v-model.number="sliceConfig.constant" class="slice-slider">
                 </div>
                 <div class="slice-row">
                   <span class="slice-label">X旋转</span>
@@ -288,15 +266,15 @@
                   <span class="slice-label">Z旋转</span>
                   <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotZ" class="slice-slider">
                 </div>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                   <button class="btnGhost small-btn" style="flex:1; font-size:12px;" @click="resetSlice">重置参数</button>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                   <button class="btnGhost small-btn" style="flex:1; font-size:12px;" @click="resetSlice">重置位置</button>
                 </div>
              </div>
           </div>
         </div>
 
-        <div class="tip-toast" v-if="!isSliceMode && !isExamMode">点击地面放置，点击方块叠加</div>
-        <div class="tip-toast" v-if="isExamMode && isSliceMode" style="background:rgba(0,122,255,0.8);">当前为立体考题模式：白色为实体，黑色为截面</div>
+        <div class="tip-toast" v-if="cubicMode === 'block'">点击地面放置，点击方块叠加</div>
+        <div class="tip-toast" v-if="cubicMode === 'section'" style="background:rgba(88,86,214,0.85);">请调节滑块观察截面变化</div>
       </div>
     </div>
   </div>
@@ -308,7 +286,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // =================================================================
-// 核心逻辑层 (保持原有逻辑不变)
+// 核心逻辑层 (保持原有逻辑)
 // =================================================================
 
 const shuffle = (arr) => {
@@ -361,20 +339,61 @@ const MODE_GROUPS = {
   spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB', 'divSpecC'] }
 };
 
-const EXAM_SHAPES = [
-  { name: '正方体', create: () => new THREE.BoxGeometry(6, 6, 6) },
-  { name: '圆柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 32) },
-  { name: '圆锥', create: () => new THREE.CylinderGeometry(0, 4, 8, 32) },
-  { name: '正四面体', create: () => new THREE.TetrahedronGeometry(6) },
-  { name: '正八面体', create: () => new THREE.OctahedronGeometry(5) },
-  { name: '三棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 3) },
-  { name: '球体', create: () => new THREE.SphereGeometry(4, 32, 32) },
-  { name: '六棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 6) }
-];
+// =================================================================
+// 扩展的公务员考试立体图形库 (无需额外库)
+// =================================================================
+const createHollowCylinder = () => {
+  const shape = new THREE.Shape();
+  shape.absarc(0, 0, 4, 0, Math.PI * 2, false);
+  const hole = new THREE.Path();
+  hole.absarc(0, 0, 2, 0, Math.PI * 2, true);
+  shape.holes.push(hole);
+  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 32 });
+};
+
+const createConcaveCube = () => {
+  // U型 / 凹型体
+  const shape = new THREE.Shape();
+  shape.moveTo(-3, -3);
+  shape.lineTo(3, -3);
+  shape.lineTo(3, 3);
+  shape.lineTo(1, 3);
+  shape.lineTo(1, 0); // 凹下去
+  shape.lineTo(-1, 0);
+  shape.lineTo(-1, 3);
+  shape.lineTo(-3, 3);
+  shape.lineTo(-3, -3);
+  return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
+};
+
+const EXAM_SHAPES = {
+  basic: [
+    { name: '正方体', create: () => new THREE.BoxGeometry(6, 6, 6) },
+    { name: '长方体', create: () => new THREE.BoxGeometry(4, 8, 4) },
+    { name: '圆柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 32) },
+    { name: '三棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 3) },
+    { name: '六棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 6) },
+  ],
+  cone: [
+    { name: '圆锥', create: () => new THREE.CylinderGeometry(0, 4, 8, 32) },
+    { name: '圆台', create: () => new THREE.CylinderGeometry(2, 4, 6, 32) },
+    { name: '正四面体', create: () => new THREE.TetrahedronGeometry(6) },
+    { name: '四棱锥', create: () => new THREE.CylinderGeometry(0, 5, 6, 4) },
+  ],
+  sphere: [
+    { name: '球体', create: () => new THREE.SphereGeometry(4, 32, 32) },
+    { name: '正八面体', create: () => new THREE.OctahedronGeometry(5) },
+  ],
+  adv: [
+    { name: '空心圆柱', create: createHollowCylinder },
+    { name: '凹型体(U型)', create: createConcaveCube },
+  ]
+};
 
 export default {
   data() {
     return {
+      // ... (原有 data) ...
       viewState: 'home', currentModeKey: 'train', selectedDivisor: 0,
       pool: [], idx: 0, current: null, input: '', uiHint: 'Ready?', totalText: '0:00.0', progressText: '1/81', qText: '—', leftText: '跳过', 
       totalStartTs: 0, qStartTs: 0, timer: null, trainWrong: 0, trainSkip: 0, curWrongTries: 0, trainLog: [], results: [], 
@@ -383,11 +402,11 @@ export default {
       modeGroups: MODE_GROUPS, divisorList: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],
       
       // 3D 模式状态
+      cubicMode: 'block', // 'block' | 'section'
       isDeleteMode: false,
-      isSliceMode: false,
-      isExamMode: false, 
       showShapeMenu: false, 
       sliceMenuCollapsed: false, 
+      currentShapeName: '正方体',
       colors: ['#007aff', '#ff9500', '#333333', '#ffffff'], 
       selectedColor: '#007aff',
       examShapes: EXAM_SHAPES,
@@ -525,24 +544,40 @@ export default {
     closeChart() { this.showChart = false; if(this.chartInstance) { this.chartInstance.dispose(); this.chartInstance = null; } },
 
     // =================================================================
-    // 3D 模块 (Stencil Buffer 逻辑修复版)
+    // 3D 模块 (拼合 & 截面 双模式)
     // =================================================================
-    startCubicMode() { this.viewState = 'cubic'; this.$nextTick(() => { this.initThree(); }); },
-    quitCubicMode() { this.cleanup3D(); this.viewState = 'home'; this.isSliceMode = false; this.isExamMode = false; this.showShapeMenu = false; },
-    switchColor(c) { this.selectedColor = c; this.isDeleteMode = false; },
-    toggleDeleteMode() { this.isDeleteMode = !this.isDeleteMode; if(this.isDeleteMode) this.isSliceMode = false; },
-    
-    toggleSliceMode() {
-      this.isSliceMode = !this.isSliceMode;
-      if(this.isSliceMode) this.isDeleteMode = false;
-      this.updateRendererClipping();
+    startCubicMode(mode = 'block') {
+      this.cubicMode = mode;
+      this.viewState = 'cubic'; 
+      this.sliceMenuCollapsed = false;
+      this.resetSlice();
+      
+      this.$nextTick(() => { 
+        this.initThree(); 
+        if(mode === 'section') {
+          // 截面模式默认加载一个基础正方体
+          this.loadExamShape(this.examShapes.basic[0]);
+        }
+      }); 
     },
 
+    quitCubicMode() { 
+      this.cleanup3D(); 
+      this.viewState = 'home'; 
+      this.isDeleteMode = false; 
+      this.showShapeMenu = false; 
+    },
+
+    switchColor(c) { this.selectedColor = c; this.isDeleteMode = false; },
+    toggleDeleteMode() { this.isDeleteMode = !this.isDeleteMode; },
+    
     updateRendererClipping() {
        if(!this.threeApp.renderer) return;
-       this.threeApp.renderer.localClippingEnabled = this.isSliceMode;
-       if(this.threeApp.planeHelper) this.threeApp.planeHelper.visible = this.isSliceMode;
-       if(this.threeApp.capMesh) this.threeApp.capMesh.visible = this.isSliceMode && this.isExamMode;
+       // 仅在截面模式启用裁剪
+       const isSection = (this.cubicMode === 'section');
+       this.threeApp.renderer.localClippingEnabled = isSection;
+       if(this.threeApp.planeHelper) this.threeApp.planeHelper.visible = isSection;
+       if(this.threeApp.capMesh) this.threeApp.capMesh.visible = isSection;
     },
     
     updateSlicePlane() {
@@ -569,8 +604,13 @@ export default {
       const normal = this.threeApp.clippingPlane.normal.clone();
       const target = this.threeApp.controls.target.clone();
       const dist = 20; 
-      // 反向沿法线移动相机，以正对切面
+      
+      // 相机移动到切面法线方向
+      // 注意：clippingPlane normal 指向的是"保留"的一侧，
+      // 所以我们要顺着法线反方向看，或者顺着法线看，取决于想看内部还是外部
+      // 这里设置为：位于平面上方，向下看
       const eyePos = target.clone().add(normal.multiplyScalar(-dist));
+      
       this.threeApp.camera.position.copy(eyePos);
       this.threeApp.camera.lookAt(target);
       this.threeApp.controls.update();
@@ -615,13 +655,13 @@ export default {
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, stencil: true }); 
       renderer.setSize(width, height); 
       renderer.setPixelRatio(window.devicePixelRatio); 
-      renderer.localClippingEnabled = this.isSliceMode; 
+      renderer.localClippingEnabled = (this.cubicMode === 'section'); 
       container.appendChild(renderer.domElement);
 
       // 全局裁剪平面
       const clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
       const planeHelper = new THREE.PlaneHelper(clippingPlane, 15, 0xff0000);
-      planeHelper.visible = this.isSliceMode;
+      planeHelper.visible = (this.cubicMode === 'section');
       scene.add(planeHelper);
       
       this.threeApp.clippingPlane = clippingPlane;
@@ -646,20 +686,19 @@ export default {
       scene.add(plane);
 
       // === 创建全局 Cap Mesh (盖子) ===
-      // 使用 DoubleSide 确保从任意角度都能看到盖子
       const capGeom = new THREE.PlaneGeometry(100, 100);
       const capMat = new THREE.MeshBasicMaterial({
         color: 0x111111, 
         stencilWrite: true,
         stencilRef: 0,
-        stencilFunc: THREE.NotEqualStencilFunc, // 只有模版值不为0时才绘制（即物体内部）
+        stencilFunc: THREE.NotEqualStencilFunc, 
         stencilFail: THREE.ReplaceStencilOp,
         stencilZFail: THREE.ReplaceStencilOp,
         stencilZPass: THREE.ReplaceStencilOp,
-        side: THREE.DoubleSide // 关键：防止盖子因为视角问题被剔除
+        side: THREE.DoubleSide 
       });
       const capMesh = new THREE.Mesh(capGeom, capMat);
-      capMesh.renderOrder = 2; // 最后渲染
+      capMesh.renderOrder = 2; 
       capMesh.visible = false;
       scene.add(capMesh);
       this.threeApp.capMesh = capMesh;
@@ -694,9 +733,11 @@ export default {
 
     loadExamShape(shapeConf) {
        this.clearCubes(); 
-       this.isExamMode = true; 
        this.showShapeMenu = false;
-       this.isSliceMode = true; 
+       this.currentShapeName = shapeConf.name;
+
+       // 强制重置参数
+       this.resetSlice();
        this.updateRendererClipping();
 
        if(this.threeApp.examGroup) {
@@ -705,14 +746,15 @@ export default {
        }
 
        const geometry = shapeConf.create();
+       
+       // Center Geometry
+       geometry.computeBoundingBox();
+       geometry.center();
+
        const plane = this.threeApp.clippingPlane;
        const group = new THREE.Group();
 
-       // ==========================================
-       // 1. 模版层 (不可见) - 写入模版缓存
-       // ==========================================
-       
-       // 1.1 背面层 (Back Faces): 模版 +1
+       // 1. 背面模版
        const matStencilBack = new THREE.MeshBasicMaterial({
          depthWrite: false, depthTest: false, colorWrite: false,
          stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc,
@@ -726,8 +768,7 @@ export default {
        meshStencilBack.renderOrder = 0; 
        group.add(meshStencilBack);
 
-       // 1.2 正面层 (Front Faces): 模版 -1
-       // 关键修复：通过减去正面，确保只有"内部"区域模版值不为0
+       // 2. 正面模版
        const matStencilFront = new THREE.MeshBasicMaterial({
          depthWrite: false, depthTest: false, colorWrite: false,
          stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc,
@@ -741,9 +782,7 @@ export default {
        meshStencilFront.renderOrder = 0; 
        group.add(meshStencilFront);
 
-       // ==========================================
-       // 2. 视觉层 (可见) - 渲染物体表面
-       // ==========================================
+       // 3. 视觉层
        const matBase = new THREE.MeshStandardMaterial({
          color: 0xFFFFFF,
          metalness: 0.1,
@@ -758,8 +797,6 @@ export default {
 
        this.threeApp.scene.add(group);
        this.threeApp.examGroup = group;
-       
-       this.resetSlice();
     },
 
     animate3D() { 
@@ -768,32 +805,25 @@ export default {
       
       this.threeApp.animationId = requestAnimationFrame(this.animate3D); 
       
-      // === 强制每帧更新盖子位置 ===
-      // 确保盖子始终严丝合缝地贴在切面上
-      if (capMesh && this.isExamMode && this.isSliceMode) {
+      // Cap Mesh 同步
+      if (capMesh && this.cubicMode === 'section') {
          const n = clippingPlane.normal;
          const c = clippingPlane.constant;
-         
-         // 1. 位置：沿法线反向移动 constant 距离
          capMesh.position.copy(n).clone().multiplyScalar(-c);
-         
-         // 2. 旋转：使用 lookAt 确保平面垂直于法线
-         // PlaneGeometry 默认面向 Z 轴，我们看向 "位置 + 法线" 即可对齐
          const target = capMesh.position.clone().add(n);
          capMesh.lookAt(target);
-         
          capMesh.visible = true;
       } else if (capMesh) {
          capMesh.visible = false;
       }
 
-      renderer.clearStencil(); // 清除模版
+      renderer.clearStencil(); 
       controls.update(); 
       renderer.render(scene, camera); 
     },
 
     handle3DClick(raycaster, pointer, scene, camera, plane) {
-      if (this.isExamMode) return; 
+      if (this.cubicMode === 'section') return; 
 
       raycaster.setFromCamera(pointer, camera); 
       const intersects = raycaster.intersectObjects(this.threeApp.objects, false);
@@ -820,19 +850,14 @@ export default {
 
     addCubeAt(scene, position) {
       const geometry = new THREE.BoxGeometry(1, 1, 1); 
-      const material = new THREE.MeshLambertMaterial({ 
-        color: this.selectedColor,
-        clippingPlanes: [this.threeApp.clippingPlane] 
-      }); 
+      // 拼合模式不需要 clipping
+      const material = new THREE.MeshLambertMaterial({ color: this.selectedColor }); 
       
       const cube = new THREE.Mesh(geometry, material); 
       cube.position.copy(position);
       
       const edges = new THREE.EdgesGeometry(geometry); 
-      const lineMaterial = new THREE.LineBasicMaterial({ 
-        color: (this.selectedColor === '#333333') ? 0xffffff : 0x000000,
-        clippingPlanes: [this.threeApp.clippingPlane] 
-      });
+      const lineMaterial = new THREE.LineBasicMaterial({ color: (this.selectedColor === '#333333') ? 0xffffff : 0x000000 });
       const line = new THREE.LineSegments(edges, lineMaterial); 
       cube.add(line);
 
@@ -855,9 +880,7 @@ export default {
          scene.remove(this.threeApp.examGroup);
          this.threeApp.examGroup = null;
       }
-      this.isExamMode = false;
-      this.isSliceMode = false;
-      this.updateRendererClipping();
+      // 不重置 cubicMode，仅清理对象
     },
     cleanup3D() { 
       if (this.threeApp.animationId) { cancelAnimationFrame(this.threeApp.animationId); } 
@@ -873,23 +896,33 @@ export default {
 </script>
 
 <style scoped>
-/* 保持原有样式，新增以下部分 */
+/* 保持原有样式，新增/修改部分如下 */
 
 .shape-menu {
   position: absolute;
   top: 45px;
   left: 0;
-  width: 180px;
-  padding: 8px;
+  width: 260px; /* 加宽以容纳更多 */
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   z-index: 20;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.shape-group-title {
+  font-size: 12px;
+  color: #8e8e93;
+  font-weight: 700;
+  margin-top: 4px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  padding-bottom: 2px;
 }
 .shape-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
+  gap: 6px;
 }
 .shape-item {
   background: rgba(255,255,255,0.8);
@@ -900,33 +933,35 @@ export default {
   cursor: pointer;
   font-weight: 600;
   border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.2s;
 }
 .shape-item:active {
   background: #007aff;
   color: white;
+  transform: scale(0.95);
 }
 
 /* 半隐式切面面板 */
 .slice-panel-container {
   position: absolute;
-  bottom: 20px; /* 放在底部方便操作 */
+  bottom: 20px; 
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
   max-width: 360px;
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   opacity: 1;
-  pointer-events: none; /* 容器穿透，内容接受点击 */
+  pointer-events: none; 
 }
 .slice-panel-container.collapsed {
-  transform: translateX(-50%) translateY(85%); /* 只露出一部分头部 */
+  transform: translateX(-50%) translateY(85%); 
   opacity: 0.8;
 }
 .slice-panel-content {
   pointer-events: auto;
   padding: 0;
   overflow: hidden;
-  background: rgba(255,255,255,0.85); /* 不透明度高一点 */
+  background: rgba(255,255,255,0.85); 
 }
 .panel-header {
   padding: 12px 16px;
@@ -960,18 +995,16 @@ export default {
 .slice-slider {
   flex: 1;
   -webkit-appearance: none;
-  height: 20px; /* 加大触摸区域 */
+  height: 20px; 
   background: transparent;
   outline: none;
 }
-/* Slider Track */
 .slice-slider::-webkit-slider-runnable-track {
   width: 100%;
   height: 4px;
   background: rgba(0,0,0,0.1);
   border-radius: 2px;
 }
-/* Slider Thumb */
 .slice-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 20px;
@@ -980,7 +1013,7 @@ export default {
   background: #ffffff;
   border: 0.5px solid rgba(0,0,0,0.1);
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  margin-top: -8px; /* 居中 */
+  margin-top: -8px; 
   cursor: pointer;
 }
 
