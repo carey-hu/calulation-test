@@ -41,7 +41,7 @@
         <div class="rowLabel">空间思维专项</div>
         <div class="modeRow">
            <div class="modeItem" style="flex: 1 0 100%; background: rgba(88, 86, 214, 0.1); border-color: rgba(88, 86, 214, 0.2);" @click="startCubicMode">
-              <span class="modeTitle" style="color: #5856d6;">🧊 立体拼合 / 截面训练</span>
+              <span class="modeTitle" style="color: #5856d6;">🧊 立体拼合训练</span>
            </div>
            <div class="modeItem" style="flex: 1 0 100%; background: rgba(0, 122, 255, 0.08); border-color: rgba(0, 122, 255, 0.2);" @click="startSliceTrainer">
               <span class="modeTitle" style="color: #007aff;">✂️ 立体切面训练</span>
@@ -110,10 +110,7 @@
           <div style="display:flex; gap:8px; align-items:center;">
              <button class="btnBack glass-btn small-btn" @click="quitCubicMode">🔙</button>
              <div class="divider"></div>
-             <div class="toggle-group">
-                <button :class="['toggle-btn', cubicMode==='build'?'active':'']" @click="switchCubicMode('build')">积木</button>
-                <button :class="['toggle-btn', cubicMode==='exam'?'active':'']" @click="switchCubicMode('exam')">截面</button>
-             </div>
+             <div class="mode-pill">立体拼合</div>
           </div>
           
           <div v-if="cubicMode==='build'" style="display:flex; gap:8px;">
@@ -674,7 +671,7 @@ export default {
     // =================================================================
     // 3D 模块逻辑 (增强：双模式切换 + 实心切面)
     // =================================================================
-    startCubicMode() { this.viewState = 'cubic'; this.$nextTick(() => { this.initThree(); }); },
+    startCubicMode() { this.cubicMode = 'build'; this.viewState = 'cubic'; this.$nextTick(() => { this.initThree(); }); },
     quitCubicMode() { this.cleanup3D(); this.viewState = 'home'; this.isSliceMode = false; },
     startSliceTrainer() { this.viewState = 'sliceTrainer'; this.$nextTick(() => { this.initSliceTrainer(); }); },
     quitSliceTrainer() { this.cleanupSliceTrainer(); this.viewState = 'home'; },
@@ -1185,10 +1182,10 @@ export default {
       scene.add(slicePlaneMesh);
 
       const sliceCapMaterial = new THREE.MeshBasicMaterial({
-        color: 0x111111,
+        color: 0x000000,
         side: THREE.DoubleSide,
-        depthWrite: true,
-        depthTest: true,
+        depthWrite: false,
+        depthTest: false,
         polygonOffset: true,
         polygonOffsetFactor: -1,
         polygonOffsetUnits: -1,
@@ -1202,6 +1199,7 @@ export default {
       const sliceCapMesh = new THREE.Mesh(slicePlaneGeometry, sliceCapMaterial);
       sliceCapMesh.renderOrder = 4;
       sliceCapMesh.visible = this.slicePlaneVisible;
+      sliceCapMesh.onAfterRender = (renderer) => renderer.clearStencil();
       scene.add(sliceCapMesh);
 
       this.sliceApp = { scene, camera, renderer, controls, animationId: null, mesh: null, clippingPlane, slicePlaneMesh, sliceCapMesh, stencilGroup: null };
@@ -1688,6 +1686,7 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .btnIcon { background: rgba(255,255,255,0.4); border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; padding: 8px 12px; font-size: 14px; font-weight: 600; color: #333; transition: all 0.2s; }
 .btnIcon.active { background: #007aff; color: white; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
 .divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); margin: 0 5px; }
+.mode-pill { padding: 6px 14px; border-radius: 16px; background: rgba(88, 86, 214, 0.12); color: #5856d6; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
 .tip-toast { margin-top: 10px; background: rgba(0,0,0,0.6); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; backdrop-filter: blur(4px); }
 
 /* Color Dot */
