@@ -1,63 +1,51 @@
 /**
- * CSS 变量定义
- * 集中管理颜色、尺寸等
+ * iOS 26 液态玻璃风格 - 全局变量定义
+ * 核心：高通透、高饱和、流动感
  */
 
 :root {
-  /* 主题色 */
+  /* 品牌色 - 调整为更高饱和度以适应玻璃滤镜 */
   --color-primary: #007aff;
   --color-success: #34c759;
   --color-warning: #ff9500;
   --color-danger: #ff3b30;
   --color-purple: #5856d6;
   
-  /* 文字颜色 */
-  --color-text-primary: #1c1c1e;
-  --color-text-secondary: #8e8e93;
+  /* 文本颜色 */
+  --color-text-primary: #000000;
+  --color-text-secondary: rgba(60, 60, 67, 0.6);
   --color-text-white: #ffffff;
   
-  /* 背景色 */
-  --color-bg-page: #f2f2f7;
-  --color-bg-card: rgba(255, 255, 255, 0.7);
-  --color-bg-glass: rgba(255, 255, 255, 0.5);
+  /* 液态玻璃核心变量 */
+  --glass-blur: blur(25px) saturate(180%); /* 核心滤镜：强模糊+高饱和 */
+  --glass-surface: rgba(255, 255, 255, 0.35); /* 基础玻璃层 */
+  --glass-surface-hover: rgba(255, 255, 255, 0.55);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.4); /* 极细的高光边框 */
   
-  /* 边框 */
-  --border-light: 1px solid rgba(0, 0, 0, 0.05);
-  --border-radius-sm: 12px;
-  --border-radius-md: 16px;
-  --border-radius-lg: 20px;
-  --border-radius-xl: 28px;
-  
-  /* 阴影 */
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 25px rgba(0, 122, 255, 0.25);
-  
-  /* 间距 */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 20px;
-  --spacing-xl: 24px;
+  /* 液态阴影：弥散光感而非黑色投影 */
+  --glass-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+
+  --border-radius-md: 18px;
+  --border-radius-lg: 24px;
+  --border-radius-xl: 32px;
   
   /* 安全区 */
   --safe-area-top: max(44px, env(safe-area-inset-top));
   --safe-area-bottom: env(safe-area-inset-bottom);
 }
 
-/* ============================================================
-   基础重置
-   ============================================================ */
-
-* {
-  box-sizing: border-box;
-}
+/* 基础重置 */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html, body {
   margin: 0;
   padding: 0;
-  background: #93d5dc;
+  background: #f2f2f7;
   overscroll-behavior: none;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 button {
@@ -65,151 +53,140 @@ button {
   outline: none;
   cursor: pointer;
   font-family: inherit;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* ============================================================
-   毛玻璃效果
+   通用液态组件
    ============================================================ */
 
+/* 玻璃面板（用于卡片容器） */
 .glass-panel {
-  background: var(--color-bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--border-radius-lg);
-  border: var(--border-light);
-  box-shadow: var(--shadow-md);
+  background: var(--glass-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--glass-shadow);
 }
 
+/* 通用液态按钮基类 */
 .glass-btn {
-  background: var(--color-bg-glass);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: var(--border-light);
-  transition: background 0.2s;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-primary);
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .glass-btn:active {
-  background: rgba(255, 255, 255, 0.8);
+  transform: scale(0.94);
+  background: var(--glass-surface-hover);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.glass-pill {
-  background: var(--color-bg-glass);
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: var(--border-light);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.glass-key {
-  background: rgba(255, 255, 255, 0.85);
-  border: var(--border-light);
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.04);
-  transition: all 0.1s;
-}
-
-.glass-key:active {
-  transform: translateY(4px);
-  box-shadow: none;
-  background: #fff;
-}
-
-.glass-input {
-  background: var(--color-bg-glass);
-  border-radius: var(--border-radius-lg);
-  border: var(--border-light);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.03);
-}
-
-/* ============================================================
-   按钮样式
-   ============================================================ */
-
+/* 主操作按钮（液态绿） */
 .btn-primary {
-  width: 100%;
-  height: 50px;
-  line-height: 50px;
-  border-radius: var(--border-radius-md);
-  background: linear-gradient(135deg, var(--color-success) 0%, #28a745 100%);
-  color: var(--color-text-white);
-  font-size: 20px;
+  background: rgba(52, 199, 89, 0.25); /* 透明绿 */
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(52, 199, 89, 0.3);
+  color: #0f5120; /* 深绿色文字以保证对比度 */
   font-weight: 700;
-  box-shadow: var(--shadow-lg);
-  transition: transform 0.1s;
+  box-shadow: 0 10px 30px rgba(52, 199, 89, 0.25);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
-  opacity: 0.9;
+  transform: scale(0.96);
+  background: rgba(52, 199, 89, 0.4);
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.15);
 }
 
-.btn-ghost {
-  width: 100%;
-  height: 48px;
-  line-height: 48px;
-  border-radius: var(--border-radius-md);
-  background: var(--color-bg-glass);
-  border: var(--border-light);
-  color: var(--color-primary);
-  font-size: 18px;
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-ghost:active {
-  background: rgba(255, 255, 255, 0.8);
-}
-
+/* 危险按钮（液态红） */
 .btn-danger {
-  width: 100%;
-  height: 48px;
-  line-height: 48px;
-  border-radius: var(--border-radius-md);
-  background: rgba(255, 59, 48, 0.1);
-  color: var(--color-danger);
-  font-size: 20px;
+  background: rgba(255, 59, 48, 0.2);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  color: #aa1e16;
   font-weight: 700;
-  border: 1px solid rgba(255, 59, 48, 0.2);
+  transition: all 0.2s;
 }
 
 .btn-danger:active {
-  background: rgba(255, 59, 48, 0.2);
+  transform: scale(0.96);
+  background: rgba(255, 59, 48, 0.35);
 }
 
+/* 历史记录按钮（液态紫） */
 .btn-history {
-  width: 100%;
-  height: 48px;
-  line-height: 48px;
-  margin-top: 9px;
-  border-radius: var(--border-radius-md);
-  background: rgba(88, 86, 214, 0.1);
-  color: var(--color-purple);
-  font-size: 20px;
+  background: rgba(88, 86, 214, 0.2);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(88, 86, 214, 0.3);
+  color: #4542bd;
   font-weight: 700;
-  border: 1px solid rgba(88, 86, 214, 0.2);
+  transition: all 0.2s;
 }
 
 .btn-history:active {
-  background: rgba(88, 86, 214, 0.2);
+  transform: scale(0.96);
+  background: rgba(88, 86, 214, 0.35);
 }
 
 /* ============================================================
-   动画
+   功能性样式
    ============================================================ */
 
+/* 键盘按键专用样式 */
+.glass-key {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+  color: #000;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-key:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 输入框 */
+.glass-input {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* 胶囊标签 */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50px;
+}
+
+/* 动画定义 */
 @keyframes float {
   0% { transform: translate(0, 0); }
-  100% { transform: translate(20px, 30px); }
+  100% { transform: translate(15px, 20px); }
 }
 
-/* ============================================================
-   安全区适配
-   ============================================================ */
-
-.safe-top {
-  padding-top: var(--safe-area-top);
-}
-
-.safe-bottom {
-  padding-bottom: var(--safe-area-bottom);
-}
+/* 顶部与底部安全区适配 */
+.safe-top { padding-top: var(--safe-area-top); }
+.safe-bottom { padding-bottom: var(--safe-area-bottom); }

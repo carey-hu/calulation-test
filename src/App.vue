@@ -21,7 +21,7 @@
           <div class="rowLabel" v-if="group.label">{{ group.label }}</div>
           
           <div v-if="groupKey === 'divSelect'" style="margin-bottom: 10px;">
-              <button class="btnGhost glass-btn" style="margin-top:0; height:45px; line-height:45px; font-size:16px;" @click="toSelectDivisor">
+              <button class="btnGhost glass-btn" style="height:48px; font-size:17px;" @click="toSelectDivisor">
               进入除数选择模式
             </button>
           </div>
@@ -40,13 +40,13 @@
         
         <div class="rowLabel">空间思维专项</div>
         <div class="modeRow">
-           <div class="modeItem" style="flex: 1 0 100%; background: rgba(88, 86, 214, 0.1); border-color: rgba(88, 86, 214, 0.2);" @click="startCubicMode">
+           <div class="modeItem cubic-mode-item" @click="startCubicMode">
               <span class="modeTitle" style="color: #5856d6;">🧊 立体拼合 / 积木训练</span>
            </div>
         </div>
 
-        <button class="btnPrimary glass-primary main-action-btn homeStartBtn" @click="startGame">开始练习</button>
-        <button class="btnHistory glass-btn main-action-btn" @click="openHistory">历史记录</button>
+        <button class="btnPrimary btn-primary homeStartBtn" @click="startGame">开始练习</button>
+        <button class="btnHistory main-action-btn" @click="openHistory">历史记录</button>
       </div>
     </div>
 
@@ -56,12 +56,12 @@
         <div class="subtitle">点击下方数字开始练习商首位</div>
       </div>
       <div class="card glass-panel">
-        <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px;">
+        <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px;">
           <button v-for="item in divisorList" :key="item" 
-                  class="k glass-key" style="font-size:20px; height:50px; line-height:50px;" 
+                  class="k glass-key" style="font-size:22px; height:56px;" 
                   @click="selectDivisorAndStart(item)">{{item}}</button>
         </div>
-        <button class="btnGhost glass-btn main-action-btn" style="margin-top: 20px;" @click="goHome">返回主页</button>
+        <button class="btnGhost glass-btn main-action-btn" style="margin-top: 24px;" @click="goHome">返回主页</button>
       </div>
     </div>
 
@@ -103,11 +103,11 @@
       <div id="three-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
 
       <div class="cubic-ui safe-top">
-        <div class="glass-panel" style="padding: 8px 12px; display: flex; gap: 8px; align-items: center; border-radius: 24px; max-width: 95%;">
+        <div class="glass-panel" style="padding: 10px 14px; display: flex; gap: 10px; align-items: center; border-radius: 32px; max-width: 95%;">
           <button class="btnBack glass-btn small-btn" @click="quitCubicMode">🔙</button>
           <div class="divider"></div>
           
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:10px;">
             <div 
               v-for="c in colors" 
               :key="c" 
@@ -139,19 +139,19 @@
             <input type="range" min="-10" max="15" step="0.1" v-model.number="sliceConfig.constant" @input="updateSlicePlane" class="slice-slider">
           </div>
           <div class="slice-row">
-            <span class="slice-label">X轴倾斜</span>
+            <span class="slice-label">X倾斜</span>
             <input type="range" min="-1" max="1" step="0.1" v-model.number="sliceConfig.x" @input="updateSlicePlane" class="slice-slider">
           </div>
           <div class="slice-row">
-            <span class="slice-label">Y轴倾斜</span>
+            <span class="slice-label">Y倾斜</span>
             <input type="range" min="-1" max="1" step="0.1" v-model.number="sliceConfig.y" @input="updateSlicePlane" class="slice-slider">
           </div>
           <div class="slice-row">
-            <span class="slice-label">Z轴倾斜</span>
+            <span class="slice-label">Z倾斜</span>
             <input type="range" min="-1" max="1" step="0.1" v-model.number="sliceConfig.z" @input="updateSlicePlane" class="slice-slider">
           </div>
-          <div style="text-align:center; margin-top:5px;">
-             <button class="btnGhost small-btn" style="height:28px; line-height:28px; font-size:12px;" @click="resetSlice">重置切面</button>
+          <div style="text-align:center; margin-top:8px;">
+             <button class="btnGhost glass-btn small-btn" style="height:32px; font-size:13px;" @click="resetSlice">重置切面</button>
           </div>
         </div>
 
@@ -186,21 +186,20 @@
                       <span>{{item.ok ? '✅' : '❌'}}</span>
                       <span v-if="!item.ok" style="color:#ff3b30; font-size:13px; margin-left:2px; font-weight:700;">({{item.realAns}})</span>
                   </div>
-                  
-                  <div v-if="item.ok && item.exactAns" style="font-size:11px; color:#007aff; margin-top:2px; font-weight:500;">
+                  <div v-if="item.ok && item.exactAns" style="font-size:11px; color:#007aff; margin-top:2px;">
                       准:{{ item.exactAns }} 误:{{ item.errorRate }}
                   </div>
               </span>
             </div>
           </template>
         </div>
-        <div style="margin-top: 15px;">
-          <div v-if="isHistoryReview">
-            <button class="btnPrimary glass-primary main-action-btn" @click="backToHistory">返回列表</button>
+        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
+          <div v-if="isHistoryReview" style="width:100%">
+            <button class="btnPrimary btn-primary main-action-btn" @click="backToHistory">返回列表</button>
           </div>
-          <div v-else>
-            <button class="btnPrimary glass-primary main-action-btn" @click="goHome">返回主页</button>
-            <button class="btnGhost glass-btn main-action-btn" @click="startGame" style="margin-top:10px;">再来一局</button>
+          <div v-else style="width:100%; display: flex; flex-direction: column; gap: 12px;">
+            <button class="btnGhost glass-btn main-action-btn" @click="startGame">再来一局</button>
+            <button class="btnPrimary btn-primary main-action-btn" @click="goHome">返回主页</button>
           </div>
         </div>
       </div>
@@ -225,10 +224,10 @@
              </div>
            </div>
            <div id="accChart" style="width: 100%; height: 220px;"></div>
-           <button class="btnGhost small" style="margin-top:5px; font-size:13px;" @click="closeChart">收起图表</button>
+           <button class="btnGhost small glass-btn" style="margin-top:10px; font-size:13px; height:32px;" @click="closeChart">收起图表</button>
         </div>
         <div v-else>
-           <button class="btnGhost glass-btn" style="height:44px; line-height:44px; font-size:16px; margin-bottom:15px; color:#007aff;" @click="initChart">
+           <button class="btnGhost glass-btn" style="height:48px; font-size:16px; margin-bottom:15px; color:#007aff;" @click="initChart">
              📊 按模块分析趋势
            </button>
         </div>
@@ -256,19 +255,19 @@
           </div>
         </div>
         
-        <div style="margin-top: 15px; display:flex; flex-direction: column; gap:10px;">
+        <div style="margin-top: 15px; display:flex; flex-direction: column; gap:12px;">
           <button 
             v-if="historyList.length > 1000" 
             class="btnGhost glass-btn" 
-            style="margin:0; height: 40px; font-size: 16px; color: #ff3b30; background: rgba(255,59,48,0.08); border-color: rgba(255,59,48,0.2);" 
+            style="margin:0; height: 44px; font-size: 16px; color: #ff3b30;" 
             @click="clearOldest"
           >
             🗑️ 清理最早的 1000 条
           </button>
 
-          <div style="display:flex; gap:10px;">
-            <button class="btnDanger glass-btn main-action-btn" style="margin:0; flex:1;" @click="clearHistory">清空全部</button>
-            <button class="btnPrimary glass-primary main-action-btn" style="margin:0; flex:1;" @click="closeHistory">返回主页</button>
+          <div style="display:flex; gap:12px;">
+            <button class="btnDanger main-action-btn" style="margin:0; flex:1;" @click="clearHistory">清空</button>
+            <button class="btnPrimary btn-primary main-action-btn" style="margin:0; flex:1;" @click="closeHistory">返回</button>
           </div>
         </div>
       </div>
@@ -282,6 +281,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GAME_MODES, MODE_GROUPS } from './logic/gameModes';
 
+// 逻辑部分保持不变
 export default {
   data() {
     return {
@@ -292,13 +292,11 @@ export default {
       toast: { show: false, title: '' },
       modeGroups: MODE_GROUPS, divisorList: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],
       
-      // 3D 模式状态
       isDeleteMode: false,
-      isSliceMode: false, // 切面模式
+      isSliceMode: false,
       colors: ['#007aff', '#ff9500', '#333333', '#ffffff'], 
       selectedColor: '#007aff',
       
-      // 切面配置
       sliceConfig: {
         constant: 5,
         x: 0,
@@ -346,7 +344,6 @@ export default {
     selectDivisorAndStart(d){ this.currentModeKey = 'firstSpec'; this.selectedDivisor = d; this.startGame(); },
     showToast(title) { this.toast.title = title; this.toast.show = true; setTimeout(() => { this.toast.show = false; }, 1500); },
     
-    // --- 游戏核心逻辑 ---
     startGame(){
       const config = this.activeConfig;
       if (!config.gen) return;
@@ -366,7 +363,6 @@ export default {
     backspace(){ this.input = (this.input || '').slice(0, -1); },
     leftAction(){ if(this.currentModeKey !== 'train'){ this.startGame(); return; } const cur = this.current; const used = (this.now() - this.qStartTs)/1000; const log = this.trainLog.concat([{ q: `${cur.dividend}${cur.symbol}${cur.divisor}`, usedStr: used.toFixed(1) + 's', wrong: this.curWrongTries, skipped: true }]); this.trainSkip++; this.trainLog = log; this._nextQuestion(); },
     
-    // ================== 修改重点：确认答案逻辑 ==================
     confirmAnswer(){
       const { current: cur, input, currentModeKey: mode, activeConfig } = this; 
       if(!input) return; 
@@ -398,22 +394,18 @@ export default {
         return; 
       }
       
-      // >>>>>> 新增：计算误差率逻辑 >>>>>>
       let extraInfo = {};
       const estimateModes = ['tripleDiv', 'divSpecA', 'divSpecB', 'divSpecC'];
       
       if (correct && estimateModes.includes(mode)) {
           const exact = cur.dividend / cur.divisor;
           const error = Math.abs(n - exact) / exact;
-          // 若为整数显示整数，否则保留1位小数
           const exactStr = Number.isInteger(exact) ? String(exact) : exact.toFixed(1);
-          
           extraInfo = {
               exactAns: exactStr,
               errorRate: (error * 100).toFixed(2) + '%'
           };
       }
-      // <<<<<< 新增结束 <<<<<<
       
       const results = this.results.concat([{ 
         q: `${cur.dividend}${cur.symbol}${cur.divisor}`, 
@@ -421,7 +413,7 @@ export default {
         yourAns: input, 
         realAns: realAnsDisplay, 
         usedStr: used.toFixed(1) + 's',
-        ...extraInfo // 合并误差信息
+        ...extraInfo
       }]); 
       
       this.results = results; 
@@ -444,9 +436,6 @@ export default {
     renderChart(targetModeName) { const chartDom = document.getElementById('accChart'); if(!chartDom) return; if(this.chartInstance) this.chartInstance.dispose(); this.chartInstance = echarts.init(chartDom); const allData = JSON.parse(JSON.stringify(this.historyList)).reverse(); const filteredData = allData.filter(item => item.modeName === targetModeName); const dateList = []; const accuracyList = []; const timeList = []; filteredData.forEach(item => { let accuracy = 0; if(item.mode === 'train') { let wrong = 0; if(item.detail && item.detail.length > 0) { wrong = item.detail.filter(x => x.wrong > 0).length; } else { const match = item.summary.match(/错(\d+)/); if(match) wrong = parseInt(match[1]); } accuracy = ((81 - wrong) / 81) * 100; } else { if(item.detail && item.detail.length > 0) { const correctCount = item.detail.filter(x => x.ok).length; accuracy = (correctCount / item.detail.length) * 100; } else { const match = item.summary.match(/(\d+)%/); if(match) accuracy = parseInt(match[1]); } } let duration = 0; if(item.duration) { duration = parseFloat(item.duration.replace('s', '')); } dateList.push(item.timeStr); accuracyList.push(accuracy.toFixed(0)); timeList.push(duration.toFixed(1)); }); if(dateList.length === 0) { this.chartInstance.setOption({ title: { text: '该模式暂无数据', left: 'center', top: 'center', textStyle: { color: '#999' } } }); return; } const option = { grid: { top: 30, bottom: 20, left: 30, right: 30, containLabel: true }, tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: dateList, axisLabel: { color: '#333', fontSize: 10, interval: 'auto', hideOverlap: true } }, yAxis: [ { type: 'value', min: 0, max: 100, position: 'left', splitLine: { show:true, lineStyle: { type: 'dashed', opacity: 0.1 } }, axisLabel: {color: '#007aff', formatter: '{value}%'} }, { type: 'value', position: 'right', splitLine: { show: false }, axisLabel: {color: '#ff3b30', formatter: '{value}s'} } ], series: [ { name: '正确率', type: 'line', yAxisIndex: 0, smooth: true, lineStyle: { color: '#007aff', width: 3 }, itemStyle: { color: '#007aff' }, data: accuracyList }, { name: '耗时', type: 'line', yAxisIndex: 1, smooth: true, lineStyle: { color: '#ff3b30', width: 2, type: 'dashed' }, itemStyle: { color: '#ff3b30' }, data: timeList } ] }; this.chartInstance.setOption(option); },
     closeChart() { this.showChart = false; if(this.chartInstance) { this.chartInstance.dispose(); this.chartInstance = null; } },
 
-    // =================================================================
-    // 3D 模块逻辑 (增强：正交相机、下沉视图、任意切面)
-    // =================================================================
     startCubicMode() { this.viewState = 'cubic'; this.$nextTick(() => { this.initThree(); }); },
     quitCubicMode() { this.cleanup3D(); this.viewState = 'home'; this.isSliceMode = false; },
     switchColor(c) { 
@@ -457,8 +446,6 @@ export default {
       this.isDeleteMode = !this.isDeleteMode;
       if(this.isDeleteMode) this.isSliceMode = false;
     },
-    
-    // 切换切面模式
     toggleSliceMode() {
       this.isSliceMode = !this.isSliceMode;
       if (this.isSliceMode) {
@@ -470,35 +457,24 @@ export default {
         this.threeApp.renderer.localClippingEnabled = false;
       }
     },
-    
-    // 更新切面参数
     updateSlicePlane() {
       if (!this.threeApp.clippingPlane) return;
       const { x, y, z, constant } = this.sliceConfig;
-      // 更新法向量
       const normal = new THREE.Vector3(x, y, z).normalize();
-      if (normal.length() === 0) normal.set(0, -1, 0); // 防止全0
-      
+      if (normal.length() === 0) normal.set(0, -1, 0); 
       this.threeApp.clippingPlane.normal.copy(normal);
       this.threeApp.clippingPlane.constant = constant;
     },
-
     resetSlice() {
       this.sliceConfig = { constant: 5, x: 0, y: -1, z: 0 };
       this.updateSlicePlane();
     },
-
-    // 设置正交视图
     setCameraView(type) {
       if (!this.threeApp.camera || !this.threeApp.controls) return;
       const { camera, controls } = this.threeApp;
       const dist = 20; 
-      
-      // 核心调整：将观察中心点(Target)上移，这会让物体在屏幕中下移
       const targetY = 6; 
-      
       controls.target.set(0, targetY, 0);
-
       switch(type) {
         case 'front': camera.position.set(0, targetY, dist); break;
         case 'back': camera.position.set(0, targetY, -dist); break;
@@ -507,83 +483,56 @@ export default {
         case 'top': camera.position.set(0, dist + targetY, 0); break;
         case 'iso': camera.position.set(12, 12 + targetY, 12); break;
       }
-      
       camera.lookAt(0, targetY, 0);
       controls.update();
     },
-
     initThree() {
       const container = document.getElementById('three-container'); 
       if (!container) return;
       const width = container.clientWidth; 
       const height = container.clientHeight;
-
       const scene = new THREE.Scene(); 
       scene.background = new THREE.Color('#f2f2f7'); 
       scene.fog = new THREE.Fog('#f2f2f7', 20, 50);
-
-      // 正交相机
       const aspect = width / height;
       const d = 18; 
-      const camera = new THREE.OrthographicCamera(
-        -d * aspect, d * aspect, 
-        d, -d,                   
-        1, 1000                  
-      );
-      
-      // 初始视角位置 (配合 Target 偏移)
+      const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
       const targetY = 6; 
       camera.position.set(12, 12 + targetY, 12); 
       camera.lookAt(0, targetY, 0);
-
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); 
       renderer.setSize(width, height); 
       renderer.setPixelRatio(window.devicePixelRatio); 
-      renderer.localClippingEnabled = false; // 初始关闭
+      renderer.localClippingEnabled = false; 
       container.appendChild(renderer.domElement);
-
-      // 初始化全局裁剪平面
       const clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 5);
       const planeHelper = new THREE.PlaneHelper(clippingPlane, 20, 0xff0000);
       planeHelper.visible = false;
       scene.add(planeHelper);
-      
       this.threeApp.clippingPlane = clippingPlane;
       this.threeApp.planeHelper = planeHelper;
-
-      // 灯光
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
       scene.add(ambientLight);
       const dirLight = new THREE.DirectionalLight(0xffffff, 0.7); 
       dirLight.position.set(10, 20, 10); 
       scene.add(dirLight);
-
-      // 辅助网格 & 地面
       const gridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xdddddd); 
       scene.add(gridHelper);
-
       const planeGeometry = new THREE.PlaneGeometry(20, 20); 
       planeGeometry.rotateX(-Math.PI / 2);
       const planeMaterial = new THREE.MeshBasicMaterial({ visible: true, transparent: true, opacity: 0 }); 
       const plane = new THREE.Mesh(planeGeometry, planeMaterial); 
       plane.name = 'ground'; 
       scene.add(plane);
-
-      // 控制器
       const controls = new OrbitControls(camera, renderer.domElement); 
       controls.enableDamping = true; 
       controls.dampingFactor = 0.05;
-      // 设置控制中心偏上，使物体沉底
       controls.target.set(0, targetY, 0);
       controls.update();
-
-      // 交互事件
       const raycaster = new THREE.Raycaster(); 
       const pointer = new THREE.Vector2();
       let downTime = 0;
-
       renderer.domElement.addEventListener('pointerdown', () => { downTime = Date.now(); });
-      
       renderer.domElement.addEventListener('pointerup', (event) => {
         if (Date.now() - downTime < 200) {
           const rect = renderer.domElement.getBoundingClientRect(); 
@@ -592,19 +541,14 @@ export default {
           this.handle3DClick(raycaster, pointer, scene, camera, plane);
         }
       });
-
       this.threeApp.scene = scene;
       this.threeApp.camera = camera;
       this.threeApp.renderer = renderer;
       this.threeApp.controls = controls;
       this.threeApp.objects = [plane]; 
-      
-      // 初始化已保存的切面配置
       this.updateSlicePlane();
-
       this.animate3D();
     },
-
     animate3D() { 
       const { scene, camera, renderer, controls } = this.threeApp; 
       if (!renderer) return; 
@@ -612,14 +556,11 @@ export default {
       controls.update(); 
       renderer.render(scene, camera); 
     },
-
     handle3DClick(raycaster, pointer, scene, camera, plane) {
       raycaster.setFromCamera(pointer, camera); 
       const intersects = raycaster.intersectObjects(this.threeApp.objects, false);
-
       if (intersects.length > 0) {
         const intersect = intersects[0];
-        
         if (this.isDeleteMode) {
           if (intersect.object.name !== 'ground') {
              scene.remove(intersect.object);
@@ -629,20 +570,15 @@ export default {
              intersect.object.material.dispose();
           }
         } else {
-          // 放置逻辑
           const voxelPos = new THREE.Vector3().copy(intersect.point).addScaledVector(intersect.face.normal, 0.5);
           voxelPos.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5);
-          
           if (voxelPos.y < 0) return;
           this.addCubeAt(scene, voxelPos);
         }
       }
     },
-
     addCubeAt(scene, position) {
       const geometry = new THREE.BoxGeometry(1, 1, 1); 
-      
-      // 材质加入 clippingPlanes
       const material = new THREE.MeshLambertMaterial({ 
         color: this.selectedColor,
         polygonOffset: true,
@@ -650,26 +586,20 @@ export default {
         polygonOffsetUnits: 1,
         clippingPlanes: [this.threeApp.clippingPlane] 
       }); 
-      
       const cube = new THREE.Mesh(geometry, material); 
       cube.position.copy(position);
-      
       const isDarkBlock = (this.selectedColor === '#333333');
       const edgeColor = isDarkBlock ? 0xffffff : 0x000000;
-      
       const edges = new THREE.EdgesGeometry(geometry); 
-      // 边线材质也需要裁剪
       const lineMaterial = new THREE.LineBasicMaterial({ 
         color: edgeColor,
         clippingPlanes: [this.threeApp.clippingPlane] 
       });
       const line = new THREE.LineSegments(edges, lineMaterial); 
       cube.add(line);
-
       scene.add(cube); 
       this.threeApp.objects.push(cube);
     },
-
     clearCubes() { 
       const { scene, objects } = this.threeApp; 
       for (let i = objects.length - 1; i >= 0; i--) { 
@@ -696,291 +626,129 @@ export default {
 </script>
 
 <style scoped>
-.homeStartBtn{ margin-top: 14px; }
-.page { height: 100vh; min-height: 100vh; background: radial-gradient(at 0% 0%, hsla(210,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(260,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(300,100%,94%,1) 0, transparent 50%), radial-gradient(at 0% 100%, hsla(180,100%,94%,1) 0, transparent 50%); background-color: #f2f2f7; color: #1c1c1e; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.08); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; box-sizing: border-box; position: relative; overflow: hidden; }
+.page { 
+  height: 100vh; 
+  background-color: #f2f2f7; 
+  display: flex; 
+  flex-direction: column; 
+  max-width: 480px; 
+  margin: 0 auto; 
+  box-shadow: 0 0 60px rgba(0,0,0,0.05); 
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+  position: relative; 
+  overflow: hidden; 
+}
+
+/* 动态流动背景 */
 .mesh-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
-.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.7; animation: float 10s infinite alternate ease-in-out; }
-.orb-1 { width: 350px; height: 350px; background: #a2d2ff; top: -100px; left: -100px; }
-.orb-2 { width: 300px; height: 300px; background: #e2c2ff; bottom: -50px; right: -80px; animation-delay: -3s; }
-.orb-3 { width: 200px; height: 200px; background: #ffdfba; top: 40%; left: 30%; opacity:0.5; animation-delay: -6s; }
-@keyframes float { 0% { transform: translate(0, 0); } 100% { transform: translate(20px, 30px); } }
+.orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.65; animation: float 8s infinite alternate ease-in-out; }
+.orb-1 { width: 400px; height: 400px; background: #a2d2ff; top: -120px; left: -120px; }
+.orb-2 { width: 350px; height: 350px; background: #e2c2ff; bottom: -80px; right: -100px; animation-delay: -3s; }
+.orb-3 { width: 250px; height: 250px; background: #ffdfba; top: 35%; left: 20%; opacity:0.4; animation-delay: -5s; }
+
 .toast-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; z-index: 999; pointer-events: none; }
-.toast-content { background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); color: #fff; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-.wrap { padding: 20px 16px 24px; box-sizing: border-box; position: relative; z-index: 1; }
+.toast-content { background: rgba(0,0,0,0.6); backdrop-filter: blur(25px); color: #fff; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+
+.wrap { padding: 20px 18px 24px; box-sizing: border-box; position: relative; z-index: 1; }
 .homeWrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: max(60px, env(safe-area-inset-top)); padding-bottom: 40px; scrollbar-width: none; }
 .homeWrap::-webkit-scrollbar { display: none; }
+
 .full-height { flex: 1; display: flex; flex-direction: column; height: 100vh; }
 .full-flex { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 20px; }
-.header-area { margin-bottom: 20px; text-align: center; flex-shrink: 0; }
-.title { font-size: 34px; font-weight: 900; margin: 0 0 6px; color: #000; letter-spacing: -0.5px; }
-.subtitle { font-size: 15px; color: #8e8e93; font-weight: 500; }
-.glass-panel { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(50px) saturate(200%); -webkit-backdrop-filter: blur(50px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5); }
-.card { border-radius: 28px; padding: 16px; }
-.rowLabel { font-size: 13px; font-weight: 700; color: #007aff; margin: 16px 0 8px 6px; opacity: 0.9; letter-spacing: 0.5px; }
-.modeRow { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-.modeItem { flex: 1 0 30%; padding: 14px 4px; border-radius: 16px; background: rgba(255,255,255,0.5); border: 1px solid rgba(0,0,0,0.05); text-align: center; box-sizing: border-box; transition: all 0.1s; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-.modeItem:active { transform: scale(0.97); }
-.modeItem.active { background: #007aff; border-color: transparent; box-shadow: 0 8px 20px rgba(0,122,255,0.3); }
-.modeTitle { display: block; font-size: 16px; font-weight: 700; color: #1c1c1e; }
-.modeItem.active .modeTitle { color: #fff; }
-button { 
-  border: none; 
-  outline: none; 
+
+.header-area { margin-bottom: 24px; text-align: center; flex-shrink: 0; }
+.title { font-size: 36px; font-weight: 900; margin: 0 0 6px; color: #1d1d1f; letter-spacing: -0.5px; }
+.subtitle { font-size: 15px; color: var(--color-text-secondary); font-weight: 500; }
+
+.card { padding: 20px; }
+.rowLabel { font-size: 13px; font-weight: 700; color: var(--color-primary); margin: 20px 0 10px 6px; opacity: 0.8; letter-spacing: 0.5px; text-transform: uppercase; }
+
+.modeRow { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.modeItem { 
+  flex: 1 0 30%; 
+  padding: 16px 4px; 
+  border-radius: 20px; 
+  background: rgba(255,255,255,0.45); 
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.4); 
+  text-align: center; 
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); 
   cursor: pointer; 
-  font-family: inherit; 
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  background: var(--liquid-bg, rgba(255, 255, 255, 0.45));
-  border: 1px solid var(--liquid-border, rgba(255, 255, 255, 0.65));
-  box-shadow: var(--liquid-shadow, 0 10px 30px rgba(15, 23, 42, 0.12));
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  transition: transform 0.15s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.01); 
 }
-button::after {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0) 45%);
-  opacity: var(--liquid-shine, 0.45);
-  pointer-events: none;
-  mix-blend-mode: screen;
+.modeItem:active { transform: scale(0.96); }
+.modeItem.active { 
+  background: rgba(255,255,255,0.75); 
+  box-shadow: 0 8px 24px rgba(0,122,255,0.15), inset 0 0 0 1px rgba(0,122,255,0.2);
 }
-.btnPrimary { 
-  width: 100%; 
-  height: 50px; 
-  line-height: 50px; 
-  border-radius: 16px; 
-  --liquid-bg: linear-gradient(140deg, rgba(52,199,89,0.95), rgba(52,199,89,0.55));
-  --liquid-border: rgba(46, 184, 80, 0.6);
-  --liquid-shadow: 0 14px 30px rgba(52,199,89,0.35);
-  color: #fff; 
-  font-size: 20px; 
-  font-weight: 700; 
+.modeTitle { display: block; font-size: 16px; font-weight: 600; color: #1d1d1f; }
+.cubic-mode-item {
+  flex: 1 0 100%;
+  background: rgba(88, 86, 214, 0.1); 
+  border: 1px solid rgba(88, 86, 214, 0.15);
 }
-.btnPrimary:active { transform: translateY(1px) scale(0.99); --liquid-bg: linear-gradient(140deg, rgba(52,199,89,0.9), rgba(52,199,89,0.5)); }
-.btnGhost { 
-  width: 100%; 
-  height: 48px; 
-  line-height: 48px; 
-  border-radius: 16px; 
-  --liquid-bg: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.35));
-  --liquid-border: rgba(255,255,255,0.7);
-  --liquid-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
-  color: #007aff; 
-  font-size: 18px; 
-  font-weight: 600; 
-}
-.btnGhost:active { transform: translateY(1px); --liquid-bg: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.45)); }
-.btnHistory { 
-  width: 100%; 
-  height: 48px; 
-  line-height: 48px; 
-  margin-top: 9px; 
-  border-radius: 16px; 
-  --liquid-bg: linear-gradient(135deg, rgba(88,86,214,0.18), rgba(88,86,214,0.05));
-  --liquid-border: rgba(88,86,214,0.35);
-  --liquid-shadow: 0 10px 22px rgba(88, 86, 214, 0.25);
-  color: #5856d6; 
-  font-size: 20px; 
-  font-weight: 700; 
-}
-.btnHistory:active { transform: translateY(1px); --liquid-bg: linear-gradient(135deg, rgba(88,86,214,0.24), rgba(88,86,214,0.08)); }
-.btnDanger { 
-  width: 100%; 
-  height: 48px; 
-  line-height: 48px; 
-  border-radius: 16px; 
-  --liquid-bg: linear-gradient(135deg, rgba(255,59,48,0.2), rgba(255,59,48,0.06));
-  --liquid-border: rgba(255,59,48,0.35);
-  --liquid-shadow: 0 12px 24px rgba(255,59,48,0.25);
-  color: #ff3b30; 
-  font-size: 20px; 
-  font-weight: 700; 
-}
-.btnDanger:active { transform: translateY(1px); --liquid-bg: linear-gradient(135deg, rgba(255,59,48,0.26), rgba(255,59,48,0.1)); }
-.main-action-btn { font-size: 20px !important; height: 54px !important; line-height: 54px !important; }
+
+.homeStartBtn{ margin-top: 24px; height: 56px; border-radius: 22px; font-size: 21px; }
+.main-action-btn { height: 56px !important; border-radius: 22px !important; font-size: 19px !important; }
+
 .gameRoot { min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 0; }
 .safe-top { padding-top: max(44px, env(safe-area-inset-top)); padding-bottom: 12px; height: auto; box-sizing: content-box; display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
 .safe-header { padding-top: max(44px, env(safe-area-inset-top)); margin-bottom: 20px; }
-.btnBack { 
-  width: 80px; 
-  height: 44px; 
-  line-height: 44px; 
-  border-radius: 14px; 
-  --liquid-bg: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.4));
-  --liquid-border: rgba(255,255,255,0.7);
-  --liquid-shadow: 0 6px 16px rgba(15,23,42,0.1);
-  font-weight: 700; 
-  font-size: 16px; 
-  margin: 0; 
-  color: #1c1c1e; 
-}
+
+.btnBack { width: 88px; height: 44px; line-height: 44px; border-radius: 16px; font-weight: 600; font-size: 16px; color: #1c1c1e; }
 .topStats { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: #333; }
-.glass-pill { background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.03); backdrop-filter: blur(10px); }
-.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.qCard { text-align: center; padding: 30px 20px; }
-.qText { font-size: 64px; font-weight: 800; margin-top: 0; color: #1c1c1e; letter-spacing: -2px; }
-.qNote { margin-top: 8px; font-size: 16px; color: #8e8e93; font-weight: 500; }
-.ansBox { margin-top: 20px; padding: 15px; border-radius: 20px; background: rgba(255,255,255,0.5); font-size: 44px; font-weight: 800; min-height: 44px; color: #007aff; box-shadow: inset 0 2px 6px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03); }
-.hint { margin-top: 15px; color: #8e8e93; font-size: 15px; font-weight: 600; }
-.keypad { border-radius: 28px; overflow: hidden; clip-path: inset(0 0 0 0 round 28px); margin-bottom: calc( 6px + env(safe-area-inset-bottom)); }
-.fnRow { display: flex; gap: 9px; margin-bottom: 9px; }
-.kFn { 
-  flex: 1; 
-  height: 65px; 
-  line-height: 65px; 
-  border-radius: 14px; 
-  font-size: 20px; 
-  font-weight: 900; 
-  margin: 0; 
-  color: #fff; 
-  --liquid-border: rgba(255,255,255,0.4);
-  --liquid-shadow: 0 12px 22px rgba(0,0,0,0.2);
-}
-.style-skip { --liquid-bg: linear-gradient(140deg, rgba(52,199,89,0.95), rgba(52,199,89,0.55)); } 
-.style-clear { --liquid-bg: linear-gradient(140deg, rgba(255,149,0,0.95), rgba(255,149,0,0.55)); } 
-.style-del { --liquid-bg: linear-gradient(140deg, rgba(255,59,48,0.95), rgba(255,59,48,0.55)); } 
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-.k { 
-  width: 100%; 
-  height: 70px; 
-  line-height: 70px; 
-  border-radius: 14px; 
-  --liquid-bg: linear-gradient(150deg, rgba(255,255,255,0.95), rgba(255,255,255,0.55));
-  --liquid-border: rgba(255,255,255,0.75);
-  --liquid-shadow: 0 8px 16px rgba(15,23,42,0.12);
-  --liquid-shine: 0.3;
-  font-size: 30px; 
-  font-weight: 900; 
-  margin: 0; 
-  color: #000; 
-  transition: all 0.1s; 
-}
-.k:active { transform: translateY(4px); box-shadow: none; --liquid-bg: linear-gradient(150deg, rgba(255,255,255,1), rgba(255,255,255,0.7)); }
-.glass-key-confirm { 
-  --liquid-bg: linear-gradient(140deg, rgba(52,199,89,0.95), rgba(52,199,89,0.55)); 
-  --liquid-border: rgba(46, 184, 80, 0.6);
-  --liquid-shadow: 0 10px 20px rgba(52,199,89,0.35);
-  color: #fff; 
-  font-size: 28px; 
-  border-radius: 11px; 
-}
-.glass-key-confirm:active { --liquid-bg: linear-gradient(140deg, rgba(52,199,89,0.85), rgba(52,199,89,0.45)); transform: translateY(4px); box-shadow: none; }
-.k.wide { grid-column: 1 / 2; }
-.k.wide2 { grid-column: 2 / 4; }
-.chart-container { background: rgba(255,255,255,0.4); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.5); }
-.chart-tabs { display: flex; gap: 4px; overflow-x: auto; padding: 4px; margin-bottom: 12px; background: rgba(118, 118, 128, 0.12); border-radius: 12px; scrollbar-width: none; }
-.chart-tabs::-webkit-scrollbar { display: none; }
-.chart-tab-item { flex-shrink: 0; font-size: 13px; padding: 6px 14px; border-radius: 8px; color: #666; cursor: pointer; font-weight: 600; border: 1px solid transparent; }
+.glass-pill { padding: 8px 16px; font-size: 14px; color: rgba(0,0,0,0.7); }
+.timer { color: var(--color-primary); }
+
+.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px 0; }
+.qCard { text-align: center; padding: 40px 20px; border-radius: 32px; }
+.qText { font-size: 72px; font-weight: 800; margin: 0; color: #000; letter-spacing: -3px; line-height: 1.1; }
+.qText-small { font-size: 56px !important; letter-spacing: -2px !important; }
+.qNote { margin-top: 8px; font-size: 16px; color: var(--color-text-secondary); font-weight: 500; }
+.ansBox { margin-top: 24px; padding: 16px; font-size: 48px; font-weight: 800; min-height: 80px; display:flex; align-items:center; justify-content:center; color: var(--color-primary); }
+.hint { margin-top: 20px; color: var(--color-text-secondary); font-size: 15px; font-weight: 600; min-height: 20px; }
+
+.keypad { border-radius: 32px; padding: 16px; margin-bottom: calc(10px + env(safe-area-inset-bottom)); }
+.fnRow { display: flex; gap: 10px; margin-bottom: 10px; }
+.kFn { flex: 1; height: 60px; border-radius: 18px; font-size: 19px; font-weight: 700; border: none; backdrop-filter: blur(15px); }
+.style-skip { background: rgba(52, 199, 89, 0.15); color: #207d33; } 
+.style-clear { background: rgba(255, 149, 0, 0.15); color: #b86e00; } 
+.style-del { background: rgba(255, 59, 48, 0.15); color: #cd2b22; } 
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.k { width: 100%; height: 72px; border-radius: 20px; font-size: 32px; font-weight: 500; color: #000; }
+.glass-key-confirm { background: rgba(52, 199, 89, 0.25); color: #0f5120; border: 1px solid rgba(52, 199, 89, 0.2); font-weight: 700; font-size: 24px; }
+.glass-key-confirm:active { background: rgba(52, 199, 89, 0.4); }
+
+.chart-container { border-radius: 24px; padding: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.4); }
+.chart-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 4px; margin-bottom: 12px; background: rgba(118, 118, 128, 0.12); border-radius: 12px; }
+.chart-tab-item { flex-shrink: 0; font-size: 13px; padding: 6px 14px; border-radius: 8px; color: #666; cursor: pointer; font-weight: 600; }
 .chart-tab-item.active { background: #fff; color: #000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .resultScroll { width: 100%; flex: 1; overflow-y: auto; padding-right: 4px; }
-.row { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-weight: 600; white-space: nowrap; color: #1c1c1e; }
-.hover-row:active { background: rgba(0,0,0,0.03); border-radius: 12px; }
+.row { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-weight: 600; color: #1c1c1e; }
 .rowLeft { flex: 1; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
 .rowRight { flex-shrink: 0; display: flex; align-items: center; text-align: right; justify-content: flex-end; }
-.qText-small { font-size: 52px !important; letter-spacing: -1px !important; white-space: nowrap; margin-top: 10px; overflow: visible; }
 
-.cubic-ui { position: absolute; top: 0; left: 0; width: 100%; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; padding-top: max(60px, calc(env(safe-area-inset-top) + 10px)); box-sizing: border-box; pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; }
-.cubic-ui > * { pointer-events: auto; }
-.small-btn { width: auto !important; height: 36px !important; line-height: 36px !important; padding: 0 16px !important; font-size: 14px !important; }
-.btnIcon { 
-  border-radius: 12px; 
-  padding: 8px 12px; 
-  font-size: 14px; 
-  font-weight: 600; 
-  color: #333; 
-  --liquid-bg: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.25));
-  --liquid-border: rgba(255,255,255,0.65);
-  --liquid-shadow: 0 8px 18px rgba(15,23,42,0.12);
-  transition: all 0.2s; 
-}
-.btnIcon.active { --liquid-bg: linear-gradient(135deg, rgba(0,122,255,0.9), rgba(0,122,255,0.5)); color: white; box-shadow: 0 10px 20px rgba(0,122,255,0.35); }
-.divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); margin: 0 5px; }
-.tip-toast { margin-top: 10px; background: rgba(0,0,0,0.6); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; backdrop-filter: blur(4px); }
+/* 3D Mode UI */
+.cubic-ui { position: absolute; top: 0; left: 0; width: 100%; padding: 0 10px; box-sizing: border-box; pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; }
+.cubic-ui > * { pointer-events: auto; margin-bottom: 10px; }
+.small-btn { padding: 0 16px !important; font-size: 14px !important; height: 36px !important; border-radius: 12px !important; }
+.btnIcon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); }
+.btnIcon.active { background: var(--color-primary); color: white; box-shadow: 0 4px 12px rgba(0,122,255,0.3); }
+.divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); margin: 0 4px; }
+.tip-toast { background: rgba(0,0,0,0.6); color: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; backdrop-filter: blur(10px); }
 
-/* Color Dot */
-.color-dot {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.5);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-}
-.color-dot:active { transform: scale(0.9); }
-.color-dot.active {
-  transform: scale(1.1);
-  border-color: #fff;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(255,255,255,0.8);
-}
+.color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 2px 6px rgba(0,0,0,0.1); transition: all 0.2s; cursor: pointer; }
+.color-dot.active { transform: scale(1.15); border-color: #fff; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); }
 
-/* View Selector Styles */
-.view-selector {
-  margin-top: 8px;
-  padding: 6px;
-  display: flex; 
-  gap: 6px;
-  border-radius: 20px;
-  flex-wrap: wrap; 
-  justify-content: center;
-}
-.view-btn {
-  border-radius: 12px;
-  padding: 6px 14px; 
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-  --liquid-bg: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
-  --liquid-border: rgba(255,255,255,0.65);
-  --liquid-shadow: 0 6px 14px rgba(15,23,42,0.1);
-}
-.view-btn:active, .view-btn.active-view {
-  --liquid-bg: linear-gradient(135deg, rgba(0,122,255,0.9), rgba(0,122,255,0.5));
-  color: white;
-}
+.view-selector { padding: 8px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; border-radius: 20px; }
+.view-btn { background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 6px 16px; font-size: 13px; font-weight: 600; color: #333; }
+.view-btn.active-view { background: var(--color-primary); color: white; border-color: transparent; }
 
-/* Slice Panel Styles */
-.slice-panel {
-  margin-top: 8px;
-  padding: 12px;
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 90%;
-  max-width: 300px;
-}
-.slice-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #333;
-}
-.slice-label {
-  width: 50px;
-  text-align: right;
-}
-.slice-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 4px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 2px;
-  outline: none;
-}
-.slice-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #007aff;
-  cursor: pointer;
-  border: 2px solid #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
+.slice-panel { padding: 16px; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 320px; border-radius: 24px; }
+.slice-row { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; color: #333; }
+.slice-label { width: 50px; text-align: right; opacity: 0.7; }
+.slice-slider { flex: 1; -webkit-appearance: none; height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; }
+.slice-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 0.5px solid rgba(0,0,0,0.1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 </style>
