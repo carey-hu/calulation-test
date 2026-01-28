@@ -307,7 +307,10 @@ import * as echarts from 'echarts';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-// ... (GAME_MODES, MODE_GROUPS, buildBasePool 等原有逻辑保持不变) ...
+// =================================================================
+// 核心逻辑层 (原 math.js 和 gameModes.js 内容整合)
+// =================================================================
+
 const shuffle = (arr) => {
   for(let i=arr.length-1;i>0;i--){ 
     const j = Math.floor(Math.random()*(i+1)); 
@@ -326,7 +329,7 @@ const buildBasePool = () => {
   return arr;
 };
 
-// 游戏模式定义 (保持原样)
+// 游戏模式定义
 const GAME_MODES = {
   'train': { name: '训练', title: '基础训练完成！', hintNote: '精确到整数', gen: () => shuffle(buildBasePool()) },
   'speed': { name: '竞速', title: '竞速完成！', hintNote: '精确到整数', gen: () => shuffle(buildBasePool()).slice(0, 10) },
@@ -384,24 +387,23 @@ export default {
       // 3D 模式状态
       isDeleteMode: false,
       isSliceMode: false,
-      isExamMode: false, // 新增：是否为考题模型模式
-      showShapeMenu: false, // 菜单显隐
-      sliceMenuCollapsed: false, // 切面菜单收起
+      isExamMode: false, 
+      showShapeMenu: false, 
+      sliceMenuCollapsed: false, 
       colors: ['#007aff', '#ff9500', '#333333', '#ffffff'], 
       selectedColor: '#007aff',
       examShapes: EXAM_SHAPES,
       
-      // 增强版切面配置 (改为角度控制更直观)
+      // 增强版切面配置 (角度控制)
       sliceConfig: {
         constant: 0,
-        rotX: 90, // 默认水平切
+        rotX: 90, 
         rotY: 0,
         rotZ: 0
       }
     }
   },
   computed: {
-    // ... (原有 computed 保持不变) ...
     activeConfig() {
       if(this.currentModeKey === 'firstSpec') {
         return { name: `商首位(除${this.selectedDivisor})`, title: `商首位(除${this.selectedDivisor})完成！`, hintNote: `除数${this.selectedDivisor}专项：只填商首位`, gen: GAME_MODES['firstSpec'].gen };
@@ -430,17 +432,19 @@ export default {
     this.cleanup3D(); 
   },
   created() {
-    this.threeApp = { scene: null, camera: null, renderer: null, controls: null, raycaster: null, pointer: null, objects: [], animationId: null, clippingPlane: null, planeHelper: null, examGroup: null };
+    this.threeApp = { 
+      scene: null, camera: null, renderer: null, controls: null, 
+      raycaster: null, pointer: null, objects: [], animationId: null, 
+      clippingPlane: null, planeHelper: null, examGroup: null, capMesh: null 
+    };
   },
   watch: {
-    // 监听切面配置变化，实时更新
     sliceConfig: {
        handler() { this.updateSlicePlane(); },
        deep: true
     }
   },
   methods: {
-    // ... (startGame, _tick, confirmAnswer 等原有游戏逻辑保持不变，省略以节省空间) ...
     now() { return Date.now(); },
     getModeConfig(key) { return GAME_MODES[key] || { name: key }; },
     setMode(mode){ this.currentModeKey = mode; },
@@ -523,7 +527,7 @@ export default {
     closeChart() { this.showChart = false; if(this.chartInstance) { this.chartInstance.dispose(); this.chartInstance = null; } },
 
     // =================================================================
-    // 3D 模块 (大幅增强：考题模型、黑切面、UI)
+    // 3D 模块 (Stencil Buffer 完美修复版)
     // =================================================================
     startCubicMode() { this.viewState = 'cubic'; this.$nextTick(() => { this.initThree(); }); },
     quitCubicMode() { this.cleanup3D(); this.viewState = 'home'; this.isSliceMode = false; this.isExamMode = false; this.showShapeMenu = false; },
@@ -532,25 +536,21 @@ export default {
     
     toggleSliceMode() {
       this.isSliceMode = !this.isSliceMode;
-      // 开启切面时，关闭删除
       if(this.isSliceMode) this.isDeleteMode = false;
       this.updateRendererClipping();
     },
 
     updateRendererClipping() {
        if(!this.threeApp.renderer) return;
-       // 开启切面模式时，开启 localClipping
        this.threeApp.renderer.localClippingEnabled = this.isSliceMode;
-       // 更新切面辅助面显隐
        if(this.threeApp.planeHelper) this.threeApp.planeHelper.visible = this.isSliceMode;
+       if(this.threeApp.capMesh) this.threeApp.capMesh.visible = this.isSliceMode && this.isExamMode;
     },
     
-    // 更新切面 (基于角度和位置)
     updateSlicePlane() {
       if (!this.threeApp.clippingPlane) return;
       const { constant, rotX, rotY, rotZ } = this.sliceConfig;
       
-      // 将欧拉角转换为法向量
       const euler = new THREE.Euler(
         THREE.MathUtils.degToRad(rotX), 
         THREE.MathUtils.degToRad(rotY), 
@@ -566,19 +566,12 @@ export default {
       this.sliceConfig = { constant: 0, rotX: 90, rotY: 0, rotZ: 0 };
     },
 
-    // 核心功能：看向切面 (正视图按钮)
     lookAtSection() {
       if (!this.threeApp.clippingPlane || !this.threeApp.controls || !this.threeApp.camera) return;
-      
       const normal = this.threeApp.clippingPlane.normal.clone();
       const target = this.threeApp.controls.target.clone();
-      const dist = 20; // 保持距离
-      
-      // 相机位置 = 目标点 + 法向量 * 距离 (确保垂直于切面)
-      // 注意 normal 指向被切掉的一侧，所以我们看向它要取反？
-      // ClippingPlane normal points OUT of the kept side. So we look AGAINST the normal to see the cut face.
+      const dist = 20; 
       const eyePos = target.clone().add(normal.multiplyScalar(-dist));
-      
       this.threeApp.camera.position.copy(eyePos);
       this.threeApp.camera.lookAt(target);
       this.threeApp.controls.update();
@@ -588,7 +581,7 @@ export default {
       if (!this.threeApp.camera || !this.threeApp.controls) return;
       const { camera, controls } = this.threeApp;
       const dist = 20; 
-      const targetY = 0; // 考题模式中心在0
+      const targetY = 0; 
       controls.target.set(0, targetY, 0);
 
       switch(type) {
@@ -596,7 +589,7 @@ export default {
         case 'back': camera.position.set(0, targetY, -dist); break;
         case 'left': camera.position.set(-dist, targetY, 0); break;
         case 'right': camera.position.set(dist, targetY, 0); break;
-        case 'top': camera.position.set(0, dist, 0); break; // 修正 Top 视角
+        case 'top': camera.position.set(0, dist, 0); break; 
         case 'iso': camera.position.set(12, 12, 12); break;
       }
       camera.lookAt(0, targetY, 0);
@@ -611,7 +604,6 @@ export default {
 
       const scene = new THREE.Scene(); 
       scene.background = new THREE.Color('#f2f2f7'); 
-      // 考题模式不需要雾，或者雾远一点
       scene.fog = new THREE.Fog('#f2f2f7', 30, 80);
 
       // 正交相机
@@ -621,7 +613,7 @@ export default {
       camera.position.set(12, 12, 12); 
       camera.lookAt(0, 0, 0);
 
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, stencil: true }); // 开启 stencil
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, stencil: true }); 
       renderer.setSize(width, height); 
       renderer.setPixelRatio(window.devicePixelRatio); 
       renderer.localClippingEnabled = this.isSliceMode; 
@@ -647,7 +639,6 @@ export default {
       const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xe5e5e5); 
       scene.add(gridHelper);
       
-      // 隐形地面 (用于点击)
       const planeGeometry = new THREE.PlaneGeometry(20, 20); 
       planeGeometry.rotateX(-Math.PI / 2);
       const planeMaterial = new THREE.MeshBasicMaterial({ visible: false }); 
@@ -655,13 +646,29 @@ export default {
       plane.name = 'ground'; 
       scene.add(plane);
 
-      // Controls
+      // === 创建全局 Cap Mesh (盖子) ===
+      // 一个巨大的平面，用来在模版区域渲染黑色
+      const capGeom = new THREE.PlaneGeometry(100, 100);
+      const capMat = new THREE.MeshBasicMaterial({
+        color: 0x111111, // 黑色
+        stencilWrite: true,
+        stencilRef: 0,
+        stencilFunc: THREE.NotEqualStencilFunc, // 只有 Stencil 值不为 0 时才显示（即物体被切开的内部）
+        stencilFail: THREE.ReplaceStencilOp,
+        stencilZFail: THREE.ReplaceStencilOp,
+        stencilZPass: THREE.ReplaceStencilOp,
+      });
+      const capMesh = new THREE.Mesh(capGeom, capMat);
+      capMesh.renderOrder = 2; // 必须最后渲染
+      capMesh.visible = false;
+      scene.add(capMesh);
+      this.threeApp.capMesh = capMesh;
+
       const controls = new OrbitControls(camera, renderer.domElement); 
       controls.enableDamping = true; 
       controls.dampingFactor = 0.05;
       controls.update();
 
-      // Events
       const raycaster = new THREE.Raycaster(); 
       const pointer = new THREE.Vector2();
       let downTime = 0;
@@ -681,137 +688,94 @@ export default {
       this.threeApp.controls = controls;
       this.threeApp.objects = [plane]; 
 
-      this.updateSlicePlane(); // 应用初始参数
+      this.updateSlicePlane(); 
       this.animate3D();
     },
 
-    // 加载考题模型 (核心逻辑：清空并生成带 Stencil 盖子的模型)
     loadExamShape(shapeConf) {
-       this.clearCubes(); // 清空普通积木
+       this.clearCubes(); 
        this.isExamMode = true; 
        this.showShapeMenu = false;
-       this.isSliceMode = true; // 自动开启切面
+       this.isSliceMode = true; 
        this.updateRendererClipping();
 
-       // 移除旧的考题模型
        if(this.threeApp.examGroup) {
          this.threeApp.scene.remove(this.threeApp.examGroup);
          this.threeApp.examGroup = null;
        }
 
-       // 1. 创建几何体
        const geometry = shapeConf.create();
-       
-       // 2. 创建 Stencil Group (关键：用于生成黑色截面)
-       const group = this.createStencilGroup(geometry, this.threeApp.clippingPlane);
-       
+       const plane = this.threeApp.clippingPlane;
+       const group = new THREE.Group();
+
+       // 1. 正常物体 (正面)
+       // 颜色设置：白色
+       const matBase = new THREE.MeshStandardMaterial({
+         color: 0xFFFFFF,
+         metalness: 0.1,
+         roughness: 0.75,
+         clippingPlanes: [plane],
+         side: THREE.FrontSide
+       });
+       const meshBase = new THREE.Mesh(geometry, matBase);
+       meshBase.renderOrder = 1; // 正常渲染顺序
+       group.add(meshBase);
+
+       // 2. 模版物体 (背面) - 关键！
+       // 不写入颜色，只写入模版缓存，用于标记“内部区域”
+       const matStencil = new THREE.MeshBasicMaterial({
+         depthWrite: false,
+         depthTest: false,
+         colorWrite: false,
+         stencilWrite: true,
+         stencilFunc: THREE.AlwaysStencilFunc,
+         side: THREE.BackSide, // 渲染背面
+         clippingPlanes: [plane],
+         
+         stencilFail: THREE.IncrementWrapStencilOp,
+         stencilZFail: THREE.IncrementWrapStencilOp,
+         stencilZPass: THREE.IncrementWrapStencilOp,
+       });
+       const meshStencil = new THREE.Mesh(geometry, matStencil);
+       meshStencil.renderOrder = 0; // 最先渲染，写入模版
+       group.add(meshStencil);
+
        this.threeApp.scene.add(group);
        this.threeApp.examGroup = group;
        
-       // 重置切面位置
        this.resetSlice();
     },
 
-    // === Stencil Buffer 核心函数：创建带实心截面的物体 ===
-    createStencilGroup(geometry, plane) {
-      const group = new THREE.Group();
-      const baseColor = 0xFFFFFF; // 白色外观
-      const sectionColor = 0x111111; // 黑色截面
-
-      // 1. 基础 Mesh (外表面)
-      // 使用 PolygonOffset 防止 Z-fighting
-      const matBase = new THREE.MeshStandardMaterial({
-        color: baseColor,
-        metalness: 0.1,
-        roughness: 0.75,
-        clippingPlanes: [plane],
-        polygonOffset: true,
-        polygonOffsetFactor: 1, 
-        polygonOffsetUnits: 1,
-        side: THREE.FrontSide // 只渲染正面
-      });
-      const meshBase = new THREE.Mesh(geometry, matBase);
-      group.add(meshBase);
-
-      // 2. Stencil 逻辑 (处理背面)
-      // 背面渲染不写入颜色，只写入 Stencil Buffer
-      const matStencil = new THREE.MeshBasicMaterial({
-        depthWrite: false,
-        depthTest: false,
-        colorWrite: false,
-        stencilWrite: true,
-        stencilFunc: THREE.AlwaysStencilFunc,
-        side: THREE.BackSide,
-        clippingPlanes: [plane],
-        
-        stencilFail: THREE.IncrementWrapStencilOp,
-        stencilZFail: THREE.IncrementWrapStencilOp,
-        stencilZPass: THREE.IncrementWrapStencilOp,
-      });
-      const meshStencil = new THREE.Mesh(geometry, matStencil);
-      group.add(meshStencil);
-
-      // 3. 盖子 (Section Cap)
-      // 渲染一个足够大的平面，只有在 Stencil Buffer 匹配的地方才显示颜色
-      // 这里的 planeGeom 不需要太大，只要包住物体即可，可以用物体的 BoundingBox，这里简单给个大平面
-      const capGeom = new THREE.PlaneGeometry(30, 30);
-      const matCap = new THREE.MeshBasicMaterial({
-        color: sectionColor,
-        stencilWrite: true,
-        stencilRef: 0,
-        stencilFunc: THREE.NotEqualStencilFunc, // 只有 Stencil 值不为 0 (即在物体内部) 时才绘制
-        stencilFail: THREE.ReplaceStencilOp,
-        stencilZFail: THREE.ReplaceStencilOp,
-        stencilZPass: THREE.ReplaceStencilOp,
-      });
-      
-      const meshCap = new THREE.Mesh(capGeom, matCap);
-      // 必须让盖子永远面向相机，或者跟切面共面
-      // 这里我们在 onAfterRender 中每帧同步它的位置和旋转
-      meshCap.onAfterRender = (renderer) => {
-         renderer.clearStencil(); // 清除 stencil 供下一个物体使用
-      };
-      // 这是一个 Hack，我们让 meshCap 的变换矩阵跟随 clippingPlane
-      // 但由于 Plane 是数学对象，我们需要每帧手动同步 meshCap 的位置和旋转
-      meshCap.isCap = true; // 标记一下
-      group.add(meshCap);
-
-      return group;
-    },
-
     animate3D() { 
-      const { scene, camera, renderer, controls, clippingPlane } = this.threeApp; 
+      const { scene, camera, renderer, controls, clippingPlane, capMesh } = this.threeApp; 
       if (!renderer) return; 
       
       this.threeApp.animationId = requestAnimationFrame(this.animate3D); 
       
-      // 如果存在 Cap Mesh，需要将其对齐到 Cutting Plane
-      if (this.threeApp.examGroup && this.isSliceMode) {
-         this.threeApp.examGroup.children.forEach(child => {
-            if (child.isCap) {
-               // 让 Cap 平面与 Clipping Plane 共面
-               // Clipping Plane 定义为 normal * point + constant = 0
-               // ThreeJS Plane: normal (Vector3), constant (float)
-               // Mesh position should be normal * -constant
-               const n = clippingPlane.normal;
-               const c = clippingPlane.constant;
-               
-               // 位置：沿着法线移动 constant 距离 (注意符号)
-               child.position.copy(n).multiplyScalar(-c);
-               
-               // 旋转：让平面的 Z 轴对齐到 clippingPlane 的 normal
-               // PlaneGeometry 默认面向 +Z? No, default is X-Y plane, facing +Z.
-               child.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), n);
-            }
-         });
+      // === 关键修复：同步盖子平面位置 ===
+      if (capMesh && this.isExamMode && this.isSliceMode) {
+         // 1. 位置：沿着法线反向移动 constant 距离
+         const n = clippingPlane.normal;
+         const c = clippingPlane.constant;
+         capMesh.position.copy(n).clone().multiplyScalar(-c);
+         
+         // 2. 旋转：让平面朝向法线方向 (PlaneGeometry 默认朝向 +Z，也就是 (0,0,1))
+         // 我们需要让它朝向 n
+         capMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), n);
+         capMesh.visible = true;
+      } else if (capMesh) {
+         capMesh.visible = false;
       }
+
+      // 清除模版缓存，准备下一帧渲染
+      renderer.clearStencil();
 
       controls.update(); 
       renderer.render(scene, camera); 
     },
 
     handle3DClick(raycaster, pointer, scene, camera, plane) {
-      if (this.isExamMode) return; // 考题模式下禁用放置积木
+      if (this.isExamMode) return; 
 
       raycaster.setFromCamera(pointer, camera); 
       const intersects = raycaster.intersectObjects(this.threeApp.objects, false);
@@ -860,7 +824,6 @@ export default {
 
     clearCubes() { 
       const { scene, objects } = this.threeApp; 
-      // 清空积木
       for (let i = objects.length - 1; i >= 0; i--) { 
         const obj = objects[i]; 
         if (obj.name !== 'ground') { 
@@ -870,7 +833,6 @@ export default {
           objects.splice(i, 1); 
         } 
       }
-      // 清空考题模型
       if(this.threeApp.examGroup) {
          scene.remove(this.threeApp.examGroup);
          this.threeApp.examGroup = null;
