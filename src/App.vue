@@ -352,6 +352,40 @@ const MODE_GROUPS = {
 // 这样 ExtrudeGeometry 才能正确计算法线，解决切面 Stencil Buffer 错误
 // =================================================================
 
+const createPolygonShape = (sides, radius, rotation = 0) => {
+  const shape = new THREE.Shape();
+  for (let i = 0; i < sides; i += 1) {
+    const angle = rotation + (i * Math.PI * 2) / sides;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    if (i === 0) {
+      shape.moveTo(x, y);
+    } else {
+      shape.lineTo(x, y);
+    }
+  }
+  shape.closePath();
+  return shape;
+};
+
+const createHollowPolygonPrism = (sides, outerRadius, innerRadius, depth = 8) => {
+  const shape = createPolygonShape(sides, outerRadius, Math.PI / sides);
+  const hole = new THREE.Path();
+  for (let i = sides - 1; i >= 0; i -= 1) {
+    const angle = Math.PI / sides + (i * Math.PI * 2) / sides;
+    const x = Math.cos(angle) * innerRadius;
+    const y = Math.sin(angle) * innerRadius;
+    if (i === sides - 1) {
+      hole.moveTo(x, y);
+    } else {
+      hole.lineTo(x, y);
+    }
+  }
+  hole.closePath();
+  shape.holes.push(hole);
+  return new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false });
+};
+
 // 1. 空心圆柱 (圆管)
 const createHollowCylinder = () => {
   const shape = new THREE.Shape();
@@ -511,6 +545,90 @@ const createTrapezoidPrism = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
 };
 
+const createParallelogramPrism = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(-4, -2);
+  shape.lineTo(2, -2);
+  shape.lineTo(4, 2);
+  shape.lineTo(-2, 2);
+  shape.lineTo(-4, -2);
+  return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
+};
+
+const createHousePrism = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(-4, -2);
+  shape.lineTo(4, -2);
+  shape.lineTo(4, 2);
+  shape.lineTo(0, 5);
+  shape.lineTo(-4, 2);
+  shape.lineTo(-4, -2);
+  return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
+};
+
+const createHexagonPrism = () => {
+  const shape = createPolygonShape(6, 4, Math.PI / 6);
+  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
+};
+
+const createPentagonPrism = () => {
+  const shape = createPolygonShape(5, 4, Math.PI / 5);
+  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
+};
+
+const createHollowTrianglePrism = () => createHollowPolygonPrism(3, 4.5, 2.2, 6);
+const createHollowHexagonPrism = () => createHollowPolygonPrism(6, 4.5, 2.2, 6);
+
+const createEllipticCylinder = () => {
+  const geom = new THREE.CylinderGeometry(3, 3, 8, 64);
+  geom.scale(1.6, 1, 1);
+  return geom;
+};
+
+const createSteppedPrism = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(-4, -3);
+  shape.lineTo(4, -3);
+  shape.lineTo(4, -1);
+  shape.lineTo(1, -1);
+  shape.lineTo(1, 1);
+  shape.lineTo(-1, 1);
+  shape.lineTo(-1, 3);
+  shape.lineTo(-4, 3);
+  shape.lineTo(-4, -3);
+  return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
+};
+
+const createFramePrism = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(-4, -4);
+  shape.lineTo(4, -4);
+  shape.lineTo(4, 4);
+  shape.lineTo(-4, 4);
+  shape.lineTo(-4, -4);
+  const hole = new THREE.Path();
+  hole.moveTo(-2.5, -2.5);
+  hole.lineTo(-2.5, 2.5);
+  hole.lineTo(2.5, 2.5);
+  hole.lineTo(2.5, -2.5);
+  hole.lineTo(-2.5, -2.5);
+  shape.holes.push(hole);
+  return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false });
+};
+
+const createVNotchPrism = () => {
+  const shape = new THREE.Shape();
+  shape.moveTo(-4, -3);
+  shape.lineTo(4, -3);
+  shape.lineTo(4, 3);
+  shape.lineTo(1, 3);
+  shape.lineTo(0, 1);
+  shape.lineTo(-1, 3);
+  shape.lineTo(-4, 3);
+  shape.lineTo(-4, -3);
+  return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
+};
+
 const EXAM_SHAPES = {
   basic: [
     { name: '正方体', create: () => new THREE.BoxGeometry(6, 6, 6) },
@@ -518,9 +636,18 @@ const EXAM_SHAPES = {
     { name: '圆柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 32) },
     { name: '三棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 3) },
     { name: '六棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 6) },
+    { name: '五棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 5) },
+    { name: '七棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 7) },
+    { name: '八棱柱', create: () => new THREE.CylinderGeometry(4, 4, 8, 8) },
     { name: '梯形柱', create: createTrapezoidPrism },
+    { name: '平行四边形柱', create: createParallelogramPrism },
+    { name: '正六边形柱', create: createHexagonPrism },
+    { name: '正五边形柱', create: createPentagonPrism },
+    { name: '屋顶型柱', create: createHousePrism },
     { name: '正四面体', create: () => new THREE.TetrahedronGeometry(6) },
     { name: '正八面体', create: () => new THREE.OctahedronGeometry(5) },
+    { name: '正十二面体', create: () => new THREE.DodecahedronGeometry(5) },
+    { name: '正二十面体', create: () => new THREE.IcosahedronGeometry(5) },
   ],
   curved: [
     { name: '圆锥', create: () => new THREE.CylinderGeometry(0, 4, 8, 64) },
@@ -528,13 +655,18 @@ const EXAM_SHAPES = {
     { name: '四棱台', create: createFrustum },
     { name: '球体', create: () => new THREE.SphereGeometry(4, 64, 64) },
     { name: '半球', create: () => new THREE.SphereGeometry(4, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2) },
+    { name: '椭圆柱', create: createEllipticCylinder },
+    { name: '圆环面', create: () => new THREE.TorusGeometry(3, 1.2, 32, 64) },
   ],
   hollow: [
     { name: '空心圆柱(圆管)', create: createHollowCylinder },
     { name: '空心方柱(方管)', create: createHollowPrism },
+    { name: '空心三棱柱', create: createHollowTrianglePrism },
+    { name: '空心六棱柱', create: createHollowHexagonPrism },
     { name: '正方体挖圆孔', create: createCubeWithHole },
     { name: '圆柱挖方孔', create: createCylinderWithRectHole },
     { name: '拱门造型', create: createArchShape },
+    { name: '框型薄板', create: createFramePrism },
   ],
   composite: [
     // 简单组合用几何体拼接模拟
@@ -548,6 +680,7 @@ const EXAM_SHAPES = {
     { name: '十字体', create: createCrossShape },
     { name: '凹型体(U型)', create: createUShape },
     { name: 'L型体', create: createLShape },
+    { name: '阶梯组合', create: createSteppedPrism },
   ],
   special: [
     { name: '缺角正方体', create: createNotchedCube },
@@ -561,6 +694,7 @@ const EXAM_SHAPES = {
         return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
     }},
     { name: '三角楔形', create: () => new THREE.CylinderGeometry(0, 4, 6, 3, 1, false, 0, Math.PI) }, // 简化的楔形
+    { name: 'V形槽柱', create: createVNotchPrism },
   ]
 };
 
@@ -934,7 +1068,7 @@ export default {
 
        // 1. 背面模版
        const matStencilBack = new THREE.MeshBasicMaterial({
-         depthWrite: false, depthTest: false, colorWrite: false,
+         depthWrite: false, depthTest: true, colorWrite: false,
          stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc,
          side: THREE.BackSide,
          clippingPlanes: [plane],
@@ -948,7 +1082,7 @@ export default {
 
        // 2. 正面模版
        const matStencilFront = new THREE.MeshBasicMaterial({
-         depthWrite: false, depthTest: false, colorWrite: false,
+         depthWrite: false, depthTest: true, colorWrite: false,
          stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc,
          side: THREE.FrontSide,
          clippingPlanes: [plane],
