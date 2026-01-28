@@ -232,7 +232,6 @@
             <button :class="['btnIcon', isDeleteMode ? 'active' : '']" @click="toggleDeleteMode">🗑️</button>
             <button class="btnIcon" @click="clearCubes">🔄</button>
           </template>
-
         </div>
 
         <div class="view-selector glass-panel">
@@ -241,41 +240,42 @@
           <button class="view-btn" @click="setCameraView('top')">俯</button>
           <button class="view-btn active-view" @click="setCameraView('iso')">轴</button>
         </div>
-
-        <div v-if="cubicMode === 'section'" :class="['slice-panel-container', sliceMenuCollapsed ? 'collapsed' : '']">
-          <div class="glass-panel slice-panel-content">
-             <div class="panel-header" @click="sliceMenuCollapsed = !sliceMenuCollapsed">
-                <span>📐 切面调节</span>
-                <span style="font-size:12px; color:#666;">{{ sliceMenuCollapsed ? '展开' : '收起' }}</span>
-             </div>
-             
-             <div v-if="!sliceMenuCollapsed" class="controls-body">
-                <div class="slice-row">
-                  <span class="slice-label">位移</span>
-                  <input type="range" min="-8" max="8" step="0.1" v-model.number="sliceConfig.constant" class="slice-slider">
-                </div>
-                <div class="slice-row">
-                  <span class="slice-label">X旋转</span>
-                  <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotX" class="slice-slider">
-                </div>
-                <div class="slice-row">
-                  <span class="slice-label">Y旋转</span>
-                  <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotY" class="slice-slider">
-                </div>
-                <div class="slice-row">
-                  <span class="slice-label">Z旋转</span>
-                  <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotZ" class="slice-slider">
-                </div>
-                <div style="display:flex; gap:10px; margin-top:5px;">
-                   <button class="btnGhost small-btn" style="flex:1; font-size:12px;" @click="resetSlice">重置位置</button>
-                </div>
-             </div>
-          </div>
-        </div>
-
+        
         <div class="tip-toast" v-if="cubicMode === 'block'">点击地面放置，点击方块叠加</div>
-        <div class="tip-toast" v-if="cubicMode === 'section'" style="background:rgba(88,86,214,0.85);">请调节滑块观察截面变化</div>
+        <div class="tip-toast" v-if="cubicMode === 'section'" style="background:rgba(88,86,214,0.85);">请调节下方滑块观察截面变化</div>
       </div>
+
+      <div v-if="cubicMode === 'section'" :class="['slice-panel-container', sliceMenuCollapsed ? 'collapsed' : '']">
+        <div class="glass-panel slice-panel-content">
+            <div class="panel-header" @click="sliceMenuCollapsed = !sliceMenuCollapsed">
+              <span>📐 切面调节</span>
+              <span style="font-size:12px; color:#666;">{{ sliceMenuCollapsed ? '展开' : '收起' }}</span>
+            </div>
+            
+            <div v-if="!sliceMenuCollapsed" class="controls-body">
+              <div class="slice-row">
+                <span class="slice-label">位移</span>
+                <input type="range" min="-8" max="8" step="0.1" v-model.number="sliceConfig.constant" class="slice-slider">
+              </div>
+              <div class="slice-row">
+                <span class="slice-label">X旋转</span>
+                <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotX" class="slice-slider">
+              </div>
+              <div class="slice-row">
+                <span class="slice-label">Y旋转</span>
+                <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotY" class="slice-slider">
+              </div>
+              <div class="slice-row">
+                <span class="slice-label">Z旋转</span>
+                <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotZ" class="slice-slider">
+              </div>
+              <div style="display:flex; gap:10px; margin-top:5px;">
+                  <button class="btnGhost small-btn" style="flex:1; font-size:12px;" @click="resetSlice">重置位置</button>
+              </div>
+            </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -286,7 +286,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // =================================================================
-// 核心逻辑层 (保持原有逻辑)
+// 核心逻辑层
 // =================================================================
 
 const shuffle = (arr) => {
@@ -340,7 +340,7 @@ const MODE_GROUPS = {
 };
 
 // =================================================================
-// 扩展的公务员考试立体图形库 (无需额外库)
+// 扩展的公务员考试立体图形库
 // =================================================================
 const createHollowCylinder = () => {
   const shape = new THREE.Shape();
@@ -352,13 +352,12 @@ const createHollowCylinder = () => {
 };
 
 const createConcaveCube = () => {
-  // U型 / 凹型体
   const shape = new THREE.Shape();
   shape.moveTo(-3, -3);
   shape.lineTo(3, -3);
   shape.lineTo(3, 3);
   shape.lineTo(1, 3);
-  shape.lineTo(1, 0); // 凹下去
+  shape.lineTo(1, 0); 
   shape.lineTo(-1, 0);
   shape.lineTo(-1, 3);
   shape.lineTo(-3, 3);
