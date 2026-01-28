@@ -41,7 +41,10 @@
         <div class="rowLabel">空间思维专项</div>
         <div class="modeRow">
            <div class="modeItem" style="flex: 1 0 100%; background: rgba(88, 86, 214, 0.1); border-color: rgba(88, 86, 214, 0.2);" @click="startCubicMode">
-              <span class="modeTitle" style="color: #5856d6;">🧊 立体拼合 / 积木训练</span>
+              <span class="modeTitle" style="color: #5856d6;">🧊 立体拼合 / 截面训练</span>
+           </div>
+           <div class="modeItem" style="flex: 1 0 100%; background: rgba(0, 122, 255, 0.08); border-color: rgba(0, 122, 255, 0.2);" @click="startSliceTrainer">
+              <span class="modeTitle" style="color: #007aff;">✂️ 立体切面训练</span>
            </div>
            <div class="modeItem" style="flex: 1 0 100%; background: rgba(0, 122, 255, 0.08); border-color: rgba(0, 122, 255, 0.2);" @click="startSliceTrainer">
               <span class="modeTitle" style="color: #007aff;">✂️ 立体切面训练</span>
@@ -106,25 +109,27 @@
       <div id="three-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
 
       <div class="cubic-ui safe-top">
-        <div class="glass-panel" style="padding: 8px 12px; display: flex; gap: 8px; align-items: center; border-radius: 24px; max-width: 95%;">
-          <button class="btnBack glass-btn small-btn" @click="quitCubicMode">🔙</button>
-          <div class="divider"></div>
-          
-          <div style="display:flex; gap:8px;">
-            <div 
-              v-for="c in colors" 
-              :key="c" 
-              :style="{backgroundColor: c, border: c === '#ffffff' ? '1px solid #ccc' : 'none'}"
-              :class="['color-dot', selectedColor === c && !isDeleteMode ? 'active' : '']"
-              @click="switchColor(c)"
-            ></div>
+        <div class="glass-panel" style="padding: 8px 12px; display: flex; gap: 8px; align-items: center; justify-content: space-between; border-radius: 24px; width: 95%; max-width: 600px;">
+          <div style="display:flex; gap:8px; align-items:center;">
+             <button class="btnBack glass-btn small-btn" @click="quitCubicMode">🔙</button>
+             <div class="divider"></div>
+             <div class="toggle-group">
+                <button :class="['toggle-btn', cubicMode==='build'?'active':'']" @click="switchCubicMode('build')">积木</button>
+                <button :class="['toggle-btn', cubicMode==='exam'?'active':'']" @click="switchCubicMode('exam')">截面</button>
+             </div>
           </div>
-
-          <div class="divider"></div>
-
-          <button :class="['btnIcon', isDeleteMode ? 'active' : '']" @click="toggleDeleteMode">🗑️</button>
-          <button :class="['btnIcon', isSliceMode ? 'active' : '']" @click="toggleSliceMode">🔪</button>
-          <button class="btnIcon" @click="clearCubes">🔄</button>
+          
+          <div v-if="cubicMode==='build'" style="display:flex; gap:8px;">
+            <div style="display:flex; gap:4px; margin-right:4px;">
+                <div v-for="c in colors" :key="c" 
+                     :style="{backgroundColor: c, border: c === '#ffffff' ? '1px solid #ccc' : 'none'}"
+                     :class="['color-dot', selectedColor === c && !isDeleteMode ? 'active' : '']"
+                     @click="switchColor(c)"></div>
+            </div>
+            <div class="divider"></div>
+            <button :class="['btnIcon', isDeleteMode ? 'active' : '']" @click="toggleDeleteMode">🗑️</button>
+            <button class="btnIcon" @click="clearCubes">🔄</button>
+          </div>
         </div>
 
         <div class="view-selector glass-panel">
@@ -136,29 +141,117 @@
           <button class="view-btn active-view" @click="setCameraView('iso')">轴</button>
         </div>
 
-        <div v-if="isSliceMode" class="glass-panel slice-panel">
+        <template v-if="cubicMode==='exam'">
+           <div v-if="!isSliceMenuOpen" class="float-trigger glass-btn" @click="isSliceMenuOpen = true">
+              ⚙️ 调整切面
+           </div>
+
+           <div v-else class="exam-panel glass-panel">
+              <div class="panel-header">
+                 <span style="font-weight:700; color:#333;">选择图形</span>
+                 <button class="btnGhost small-btn" style="width:30px; height:24px; line-height:24px; padding:0;" @click="isSliceMenuOpen = false">✕</button>
+              </div>
+              
+              <div class="control-row" style="margin-bottom:12px;">
+                 <select v-model="selectedShapeKey" @change="loadExamShape" class="shape-select">
+                    <option v-for="shape in shapeLib" :key="shape.key" :value="shape.key">{{ shape.name }}</option>
+                 </select>
+              </div>
+
+              <div class="panel-header" style="margin-bottom:8px; border:none; padding-bottom:0;">
+                 <span style="font-weight:700; color:#333; font-size:13px;">切面位置与角度</span>
+              </div>
+
+              <div class="slice-controls">
+                 <div class="slice-row">
+                    <span class="label">位置</span>
+                    <input type="range" min="-8" max="8" step="0.1" v-model.number="examSlice.constant" class="slider">
+                 </div>
+                 <div class="slice-row">
+                    <span class="label">X轴</span>
+                    <input type="range" min="0" max="180" step="1" v-model.number="examSlice.rotX" class="slider">
+                    <span class="val-txt">{{examSlice.rotX}}°</span>
+                 </div>
+                 <div class="slice-row">
+                    <span class="label">Y轴</span>
+                    <input type="range" min="0" max="180" step="1" v-model.number="examSlice.rotY" class="slider">
+                    <span class="val-txt">{{examSlice.rotY}}°</span>
+                 </div>
+                 <div class="slice-row">
+                    <span class="label">Z轴</span>
+                    <input type="range" min="0" max="180" step="1" v-model.number="examSlice.rotZ" class="slider">
+                    <span class="val-txt">{{examSlice.rotZ}}°</span>
+                 </div>
+              </div>
+              
+              <button class="btnGhost small-btn" style="margin-top:10px; font-size:12px; height:32px;" @click="resetExamSlice">↺ 重置切面参数</button>
+           </div>
+        </template>
+
+        <div class="tip-toast" v-if="cubicMode==='build' && !isDeleteMode">点击地面放置，点击方块叠加</div>
+        <div class="tip-toast" v-if="cubicMode==='exam'">拖动滑块观察截面变化，白色为立体，黑色为截面</div>
+      </div>
+    </div>
+
+    <div v-if="viewState==='sliceTrainer'" class="wrap full-height slice-trainer" style="padding:0; overflow:hidden;">
+      <div id="slice-trainer-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
+
+      <div class="slice-trainer-ui safe-top">
+        <div class="glass-panel slice-topbar">
+          <button class="btnBack glass-btn small-btn" @click="quitSliceTrainer">🔙</button>
+          <div class="divider"></div>
+          <div class="slice-select">
+            <span>分类</span>
+            <select v-model.number="sliceCategoryIndex" @change="changeSliceCategory">
+              <option v-for="(cat, idx) in sliceCategories" :key="cat.id" :value="idx">{{ cat.label }}</option>
+            </select>
+          </div>
+          <div class="slice-shape-title">{{ selectedSliceShape.label }}</div>
+        </div>
+
+        <div class="glass-panel slice-shape-list">
+          <button
+            v-for="(item, index) in currentSliceShapes"
+            :key="item.id"
+            :class="['shape-chip', index === sliceShapeIndex ? 'active' : '']"
+            @click="selectSliceShape(index)"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+
+        <button
+          class="slice-control-btn"
+          :class="{ dimmed: !sliceTrainerPanelOpen }"
+          @click="toggleSliceTrainerPanel"
+        >
+          切面调整
+        </button>
+
+        <div v-if="sliceTrainerPanelOpen" class="glass-panel slice-panel trainer-panel">
           <div class="slice-row">
             <span class="slice-label">位置</span>
-            <input type="range" min="-10" max="15" step="0.1" v-model.number="sliceConfig.constant" @input="updateSlicePlane" class="slice-slider">
+            <input type="range" min="-8" max="8" step="0.1" v-model.number="sliceTrainerConfig.constant" @input="updateSliceTrainerPlane" class="slice-slider">
           </div>
           <div class="slice-row">
             <span class="slice-label">X轴倾斜</span>
-            <input type="range" min="-1" max="1" step="0.1" v-model.number="sliceConfig.x" @input="updateSlicePlane" class="slice-slider">
+            <input type="range" min="-1" max="1" step="0.05" v-model.number="sliceTrainerConfig.x" @input="updateSliceTrainerPlane" class="slice-slider">
           </div>
           <div class="slice-row">
             <span class="slice-label">Y轴倾斜</span>
-            <input type="range" min="-1" max="1" step="0.1" v-model.number="sliceConfig.y" @input="updateSlicePlane" class="slice-slider">
+            <input type="range" min="-1" max="1" step="0.05" v-model.number="sliceTrainerConfig.y" @input="updateSliceTrainerPlane" class="slice-slider">
           </div>
           <div class="slice-row">
             <span class="slice-label">Z轴倾斜</span>
-            <input type="range" min="-1" max="1" step="0.1" v-model.number="sliceConfig.z" @input="updateSlicePlane" class="slice-slider">
+            <input type="range" min="-1" max="1" step="0.05" v-model.number="sliceTrainerConfig.z" @input="updateSliceTrainerPlane" class="slice-slider">
           </div>
-          <div style="text-align:center; margin-top:5px;">
-             <button class="btnGhost small-btn" style="height:28px; line-height:28px; font-size:12px;" @click="resetSlice">重置切面</button>
+          <div class="trainer-actions">
+            <button class="btnGhost small-btn" @click="resetSliceTrainer">重置切面</button>
+            <button class="btnPrimary small-btn" @click="toggleSliceTrainerPanel">完成</button>
           </div>
         </div>
 
-        <div class="tip-toast" v-if="!isSliceMode">点击地面放置，点击方块叠加</div>
+        <div class="tip-toast slice-tip">拖动模型可旋转视角，滑动调节切面</div>
       </div>
     </div>
 
@@ -462,9 +555,11 @@ export default {
       toast: { show: false, title: '' },
       modeGroups: MODE_GROUPS, divisorList: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],
       
-      // 3D 模式状态
+      // --- 3D 模式通用状态 ---
+      cubicMode: 'build', // 'build' (积木) | 'exam' (公考截面)
+      
+      // 积木模式状态
       isDeleteMode: false,
-      isSliceMode: false, // 切面模式
       colors: ['#007aff', '#ff9500', '#333333', '#ffffff'], 
       selectedColor: '#007aff',
       
@@ -560,7 +655,6 @@ export default {
     backspace(){ this.input = (this.input || '').slice(0, -1); },
     leftAction(){ if(this.currentModeKey !== 'train'){ this.startGame(); return; } const cur = this.current; const used = (this.now() - this.qStartTs)/1000; const log = this.trainLog.concat([{ q: `${cur.dividend}${cur.symbol}${cur.divisor}`, usedStr: used.toFixed(1) + 's', wrong: this.curWrongTries, skipped: true }]); this.trainSkip++; this.trainLog = log; this._nextQuestion(); },
     
-    // ================== 修改重点：确认答案逻辑 ==================
     confirmAnswer(){
       const { current: cur, input, currentModeKey: mode, activeConfig } = this; 
       if(!input) return; 
@@ -592,22 +686,15 @@ export default {
         return; 
       }
       
-      // >>>>>> 新增：计算误差率逻辑 >>>>>>
       let extraInfo = {};
       const estimateModes = ['tripleDiv', 'divSpecA', 'divSpecB', 'divSpecC'];
       
       if (correct && estimateModes.includes(mode)) {
           const exact = cur.dividend / cur.divisor;
           const error = Math.abs(n - exact) / exact;
-          // 若为整数显示整数，否则保留1位小数
           const exactStr = Number.isInteger(exact) ? String(exact) : exact.toFixed(1);
-          
-          extraInfo = {
-              exactAns: exactStr,
-              errorRate: (error * 100).toFixed(2) + '%'
-          };
+          extraInfo = { exactAns: exactStr, errorRate: (error * 100).toFixed(2) + '%' };
       }
-      // <<<<<< 新增结束 <<<<<<
       
       const results = this.results.concat([{ 
         q: `${cur.dividend}${cur.symbol}${cur.divisor}`, 
@@ -615,7 +702,7 @@ export default {
         yourAns: input, 
         realAns: realAnsDisplay, 
         usedStr: used.toFixed(1) + 's',
-        ...extraInfo // 合并误差信息
+        ...extraInfo
       }]); 
       
       this.results = results; 
@@ -639,7 +726,7 @@ export default {
     closeChart() { this.showChart = false; if(this.chartInstance) { this.chartInstance.dispose(); this.chartInstance = null; } },
 
     // =================================================================
-    // 3D 模块逻辑 (增强：正交相机、下沉视图、任意切面)
+    // 3D 模块逻辑 (增强：双模式切换 + 实心切面)
     // =================================================================
     startCubicMode() { this.viewState = 'cubic'; this.$nextTick(() => { this.initThree(); }); },
     quitCubicMode() { this.cleanup3D(); this.viewState = 'home'; this.isSliceMode = false; },
@@ -653,35 +740,146 @@ export default {
       this.isDeleteMode = !this.isDeleteMode;
       if(this.isDeleteMode) this.isSliceMode = false;
     },
+    quitCubicMode() { this.cleanup3D(); this.viewState = 'home'; },
     
-    // 切换切面模式
-    toggleSliceMode() {
-      this.isSliceMode = !this.isSliceMode;
-      if (this.isSliceMode) {
-        this.isDeleteMode = false;
-        if(this.threeApp.planeHelper) this.threeApp.planeHelper.visible = true;
-        this.threeApp.renderer.localClippingEnabled = true;
-      } else {
-        if(this.threeApp.planeHelper) this.threeApp.planeHelper.visible = false;
-        this.threeApp.renderer.localClippingEnabled = false;
+    // 切换 积木模式 / 截面模式
+    switchCubicMode(mode) {
+      this.cubicMode = mode;
+      this.cleanup3D(); 
+      this.$nextTick(() => {
+         this.initThree(); 
+      });
+    },
+
+    // 积木模式相关操作
+    switchColor(c) { this.selectedColor = c; this.isDeleteMode = false; },
+    toggleDeleteMode() { this.isDeleteMode = !this.isDeleteMode; },
+    
+    // 公考截面模式核心：加载图形与实心渲染
+    loadExamShape() {
+      const { scene } = this.threeApp;
+      // 清空旧对象（保留Ground和GridHelper）
+      this.threeApp.objects = this.threeApp.objects.filter(obj => {
+          if (obj.name === 'ground' || obj.type === 'GridHelper') return true;
+          scene.remove(obj);
+          return false;
+      });
+
+      // 隐藏地面网格（考题通常悬空）
+      const grid = scene.children.find(c => c.type === 'GridHelper');
+      if(grid) grid.visible = false;
+      const ground = scene.getObjectByName('ground');
+      if(ground) ground.visible = false;
+
+      // 创建新图形
+      const def = this.shapeLib.find(s => s.key === this.selectedShapeKey);
+      if(!def) return;
+      
+      const geometry = def.create();
+      
+      // 创建带有实心切面效果的物体组 (Stencil Buffer Tech)
+      const group = this.createStencilGroup(geometry, this.threeApp.clippingPlane);
+      scene.add(group);
+      this.threeApp.objects.push(group);
+      
+      this.updateExamPlane();
+    },
+
+    createStencilGroup(geometry, plane) {
+      const group = new THREE.Group();
+      const baseColor = 0xffffff; // 白模
+      const cutColor = 0x1d1d1f;  // 黑面
+
+      // 1. 基础材质 (外表面)
+      const matBase = new THREE.MeshPhongMaterial({
+        color: baseColor,
+        shininess: 30,
+        clippingPlanes: [plane],
+        clipShadows: true,
+        side: THREE.DoubleSide
+      });
+      const meshBase = new THREE.Mesh(geometry, matBase);
+      group.add(meshBase);
+
+      // 2. 模板写入 (Back)
+      const matStencilBack = new THREE.MeshBasicMaterial({
+        depthWrite: false, depthTest: false, colorWrite: false,
+        side: THREE.BackSide,
+        clippingPlanes: [plane],
+        stencilWrite: true,
+        stencilFunc: THREE.AlwaysStencilFunc,
+        stencilFail: THREE.IncrementWrapStencilOp,
+        stencilZFail: THREE.IncrementWrapStencilOp,
+        stencilZPass: THREE.IncrementWrapStencilOp,
+      });
+      const meshStencilBack = new THREE.Mesh(geometry, matStencilBack);
+      group.add(meshStencilBack);
+
+      // 3. 模板写入 (Front)
+      const matStencilFront = new THREE.MeshBasicMaterial({
+        depthWrite: false, depthTest: false, colorWrite: false,
+        side: THREE.FrontSide,
+        clippingPlanes: [plane],
+        stencilWrite: true,
+        stencilFunc: THREE.AlwaysStencilFunc,
+        stencilFail: THREE.DecrementWrapStencilOp,
+        stencilZFail: THREE.DecrementWrapStencilOp,
+        stencilZPass: THREE.DecrementWrapStencilOp,
+      });
+      const meshStencilFront = new THREE.Mesh(geometry, matStencilFront);
+      group.add(meshStencilFront);
+
+      // 4. 封口平面 (Cap) - 仅在 stencil != 0 时渲染黑色
+      const planeGeom = new THREE.PlaneGeometry(100, 100);
+      const matCap = new THREE.MeshBasicMaterial({
+        color: cutColor,
+        stencilWrite: true,
+        stencilRef: 0,
+        stencilFunc: THREE.NotEqualStencilFunc,
+        stencilFail: THREE.ReplaceStencilOp,
+        stencilZFail: THREE.ReplaceStencilOp,
+        stencilZPass: THREE.ReplaceStencilOp,
+        depthWrite: false
+      });
+      const meshCap = new THREE.Mesh(planeGeom, matCap);
+      meshCap.quaternion.setFromAxisAngle(new THREE.Vector3(1,0,0), Math.PI/2);
+      meshCap.onAfterRender = (renderer) => renderer.clearStencil();
+      
+      group.add(meshCap);
+      this.threeApp.capMesh = meshCap;
+
+      return group;
+    },
+
+    updateExamPlane() {
+      if(!this.threeApp.clippingPlane) return;
+      const { constant, rotX, rotY, rotZ } = this.examSlice;
+      
+      // 欧拉角转法向量
+      const euler = new THREE.Euler(
+        THREE.MathUtils.degToRad(rotX),
+        THREE.MathUtils.degToRad(rotY),
+        THREE.MathUtils.degToRad(rotZ)
+      );
+      const normal = new THREE.Vector3(0, -1, 0); 
+      normal.applyEuler(euler).normalize();
+      
+      // 更新 Three.js 裁剪平面
+      this.threeApp.clippingPlane.normal.copy(normal);
+      this.threeApp.clippingPlane.constant = constant;
+      
+      // 更新封口平面位置
+      if(this.threeApp.capMesh) {
+         const coplanarPoint = new THREE.Vector3().copy(normal).multiplyScalar(-constant);
+         this.threeApp.capMesh.position.copy(coplanarPoint);
+         this.threeApp.capMesh.lookAt(
+             this.threeApp.capMesh.position.clone().add(normal)
+         );
       }
     },
     
-    // 更新切面参数
-    updateSlicePlane() {
-      if (!this.threeApp.clippingPlane) return;
-      const { x, y, z, constant } = this.sliceConfig;
-      // 更新法向量
-      const normal = new THREE.Vector3(x, y, z).normalize();
-      if (normal.length() === 0) normal.set(0, -1, 0); // 防止全0
-      
-      this.threeApp.clippingPlane.normal.copy(normal);
-      this.threeApp.clippingPlane.constant = constant;
-    },
-
-    resetSlice() {
-      this.sliceConfig = { constant: 5, x: 0, y: -1, z: 0 };
-      this.updateSlicePlane();
+    resetExamSlice() {
+        this.examSlice = { constant: 0, rotX: 90, rotY: 0, rotZ: 0 };
     },
 
     // 设置正交视图
@@ -689,9 +887,7 @@ export default {
       if (!this.threeApp.camera || !this.threeApp.controls) return;
       const { camera, controls } = this.threeApp;
       const dist = 20; 
-      
-      // 核心调整：将观察中心点(Target)上移，这会让物体在屏幕中下移
-      const targetY = 6; 
+      const targetY = 0; // 截面模式居中观察
       
       controls.target.set(0, targetY, 0);
 
@@ -703,7 +899,6 @@ export default {
         case 'top': camera.position.set(0, dist + targetY, 0); break;
         case 'iso': camera.position.set(12, 12 + targetY, 12); break;
       }
-      
       camera.lookAt(0, targetY, 0);
       controls.update();
     },
@@ -720,32 +915,24 @@ export default {
 
       // 正交相机
       const aspect = width / height;
-      const d = 18; 
-      const camera = new THREE.OrthographicCamera(
-        -d * aspect, d * aspect, 
-        d, -d,                   
-        1, 1000                  
-      );
+      const d = 14; 
+      const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
       
-      // 初始视角位置 (配合 Target 偏移)
-      const targetY = 6; 
+      const targetY = this.cubicMode === 'build' ? 6 : 0; 
       camera.position.set(12, 12 + targetY, 12); 
       camera.lookAt(0, targetY, 0);
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); 
       renderer.setSize(width, height); 
       renderer.setPixelRatio(window.devicePixelRatio); 
-      renderer.localClippingEnabled = false; // 初始关闭
+      
+      // 开启 stencil 和 localClipping
+      renderer.localClippingEnabled = true; 
       container.appendChild(renderer.domElement);
 
-      // 初始化全局裁剪平面
-      const clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 5);
-      const planeHelper = new THREE.PlaneHelper(clippingPlane, 20, 0xff0000);
-      planeHelper.visible = false;
-      scene.add(planeHelper);
-      
+      // 全局裁剪平面 (初始化)
+      const clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
       this.threeApp.clippingPlane = clippingPlane;
-      this.threeApp.planeHelper = planeHelper;
 
       // 灯光
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
@@ -754,7 +941,7 @@ export default {
       dirLight.position.set(10, 20, 10); 
       scene.add(dirLight);
 
-      // 辅助网格 & 地面
+      // 地面与网格 (积木模式显示)
       const gridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xdddddd); 
       scene.add(gridHelper);
 
@@ -764,12 +951,16 @@ export default {
       const plane = new THREE.Mesh(planeGeometry, planeMaterial); 
       plane.name = 'ground'; 
       scene.add(plane);
+      
+      if(this.cubicMode === 'exam') {
+          gridHelper.visible = false;
+          plane.visible = false;
+      }
 
       // 控制器
       const controls = new OrbitControls(camera, renderer.domElement); 
       controls.enableDamping = true; 
       controls.dampingFactor = 0.05;
-      // 设置控制中心偏上，使物体沉底
       controls.target.set(0, targetY, 0);
       controls.update();
 
@@ -785,7 +976,7 @@ export default {
           const rect = renderer.domElement.getBoundingClientRect(); 
           pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1; 
           pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-          this.handle3DClick(raycaster, pointer, scene, camera, plane);
+          this.handle3DClick(raycaster, pointer, scene, camera);
         }
       });
 
@@ -794,9 +985,11 @@ export default {
       this.threeApp.renderer = renderer;
       this.threeApp.controls = controls;
       this.threeApp.objects = [plane]; 
-      
-      // 初始化已保存的切面配置
-      this.updateSlicePlane();
+
+      // 如果是公考模式，立即加载图形
+      if(this.cubicMode === 'exam') {
+          this.loadExamShape();
+      }
 
       this.animate3D();
     },
@@ -809,7 +1002,9 @@ export default {
       renderer.render(scene, camera); 
     },
 
-    handle3DClick(raycaster, pointer, scene, camera, plane) {
+    handle3DClick(raycaster, pointer, scene, camera) {
+      if(this.cubicMode !== 'build') return; // 仅积木模式响应点击
+      
       raycaster.setFromCamera(pointer, camera); 
       const intersects = raycaster.intersectObjects(this.threeApp.objects, false);
 
@@ -828,7 +1023,6 @@ export default {
           // 放置逻辑
           const voxelPos = new THREE.Vector3().copy(intersect.point).addScaledVector(intersect.face.normal, 0.5);
           voxelPos.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5);
-          
           if (voxelPos.y < 0) return;
           this.addCubeAt(scene, voxelPos);
         }
@@ -837,29 +1031,14 @@ export default {
 
     addCubeAt(scene, position) {
       const geometry = new THREE.BoxGeometry(1, 1, 1); 
-      
-      // 材质加入 clippingPlanes
-      const material = new THREE.MeshLambertMaterial({ 
-        color: this.selectedColor,
-        polygonOffset: true,
-        polygonOffsetFactor: 1, 
-        polygonOffsetUnits: 1,
-        clippingPlanes: [this.threeApp.clippingPlane] 
-      }); 
-      
+      const material = new THREE.MeshLambertMaterial({ color: this.selectedColor }); 
       const cube = new THREE.Mesh(geometry, material); 
       cube.position.copy(position);
       
       const isDarkBlock = (this.selectedColor === '#333333');
       const edgeColor = isDarkBlock ? 0xffffff : 0x000000;
-      
       const edges = new THREE.EdgesGeometry(geometry); 
-      // 边线材质也需要裁剪
-      const lineMaterial = new THREE.LineBasicMaterial({ 
-        color: edgeColor,
-        clippingPlanes: [this.threeApp.clippingPlane] 
-      });
-      const line = new THREE.LineSegments(edges, lineMaterial); 
+      const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor })); 
       cube.add(line);
 
       scene.add(cube); 
@@ -870,7 +1049,7 @@ export default {
       const { scene, objects } = this.threeApp; 
       for (let i = objects.length - 1; i >= 0; i--) { 
         const obj = objects[i]; 
-        if (obj.name !== 'ground') { 
+        if (obj.name !== 'ground' && obj.type !== 'Group') { // Group是公考切面对象，不清除
           scene.remove(obj); 
           obj.geometry.dispose(); 
           obj.material.dispose(); 
@@ -1451,44 +1630,14 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .tip-toast { margin-top: 10px; background: rgba(0,0,0,0.6); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; backdrop-filter: blur(4px); }
 
 /* Color Dot */
-.color-dot {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.5);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-}
+.color-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
 .color-dot:active { transform: scale(0.9); }
-.color-dot.active {
-  transform: scale(1.1);
-  border-color: #fff;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(255,255,255,0.8);
-}
+.color-dot.active { transform: scale(1.1); border-color: #fff; box-shadow: 0 0 0 2px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(255,255,255,0.8); }
 
-/* View Selector Styles */
-.view-selector {
-  margin-top: 8px;
-  padding: 6px;
-  display: flex; 
-  gap: 6px;
-  border-radius: 20px;
-  flex-wrap: wrap; 
-  justify-content: center;
-}
-.view-btn {
-  background: rgba(255,255,255,0.5);
-  border: 1px solid rgba(0,0,0,0.05);
-  border-radius: 12px;
-  padding: 6px 14px; 
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-}
-.view-btn:active, .view-btn.active-view {
-  background: #007aff;
-  color: white;
-}
+/* View Selector */
+.view-selector { margin-top: 8px; padding: 6px; display: flex; gap: 6px; border-radius: 20px; flex-wrap: wrap; justify-content: center; }
+.view-btn { background: rgba(255,255,255,0.5); border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #333; }
+.view-btn:active, .view-btn.active-view { background: #007aff; color: white; }
 
 /* Slice Panel Styles */
 .slice-panel {
