@@ -43,6 +43,9 @@
            <div class="modeItem" style="flex: 1 0 100%; background: rgba(88, 86, 214, 0.1); border-color: rgba(88, 86, 214, 0.2);" @click="startCubicMode">
               <span class="modeTitle" style="color: #5856d6;">🧊 立体拼合 / 积木训练</span>
            </div>
+           <div class="modeItem" style="flex: 1 0 100%; background: rgba(0, 122, 255, 0.08); border-color: rgba(0, 122, 255, 0.2);" @click="startSliceTrainer">
+              <span class="modeTitle" style="color: #007aff;">✂️ 立体切面训练</span>
+           </div>
         </div>
 
         <button class="btnPrimary glass-primary main-action-btn homeStartBtn" @click="startGame">开始练习</button>
@@ -156,6 +159,119 @@
         </div>
 
         <div class="tip-toast" v-if="!isSliceMode">点击地面放置，点击方块叠加</div>
+      </div>
+    </div>
+
+    <div v-if="viewState==='sliceTrainer'" class="wrap full-height slice-trainer" style="padding:0; overflow:hidden;">
+      <div id="slice-trainer-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
+
+      <div class="slice-trainer-ui safe-top">
+        <div class="glass-panel slice-topbar">
+          <button class="btnBack glass-btn small-btn" @click="quitSliceTrainer">🔙</button>
+          <div class="divider"></div>
+          <div class="slice-select">
+            <span>分类</span>
+            <select v-model.number="sliceCategoryIndex" @change="changeSliceCategory">
+              <option v-for="(cat, idx) in sliceCategories" :key="cat.id" :value="idx">{{ cat.label }}</option>
+            </select>
+          </div>
+          <div class="slice-shape-title">{{ selectedSliceShape.label }}</div>
+          <button class="slice-toggle-btn" @click="toggleSlicePlaneVisible">
+            {{ slicePlaneVisible ? '隐藏切面' : '显示切面' }}
+          </button>
+        </div>
+
+        <div class="glass-panel slice-shape-list">
+          <button
+            v-for="(item, index) in currentSliceShapes"
+            :key="item.id"
+            :class="['shape-chip', index === sliceShapeIndex ? 'active' : '']"
+            @click="selectSliceShape(index)"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+
+        <button
+          class="slice-control-btn"
+          :class="{ dimmed: !sliceTrainerPanelOpen }"
+          @click="toggleSliceTrainerPanel"
+        >
+          切面调整
+        </button>
+
+        <div v-if="sliceTrainerPanelOpen" class="glass-panel slice-panel trainer-panel">
+          <div class="slice-row">
+            <span class="slice-label">位置</span>
+            <div class="slice-input-group">
+              <button class="step-btn" @click="nudgeSlice('constant', -0.1)">-</button>
+              <input
+                type="number"
+                min="-8"
+                max="8"
+                step="0.1"
+                v-model.number="sliceTrainerConfig.constant"
+                @input="normalizeSliceValue('constant')"
+                class="slice-number"
+              >
+              <button class="step-btn" @click="nudgeSlice('constant', 0.1)">+</button>
+            </div>
+          </div>
+          <div class="slice-row">
+            <span class="slice-label">X轴倾斜</span>
+            <div class="slice-input-group">
+              <button class="step-btn" @click="nudgeSlice('x', -0.05)">-</button>
+              <input
+                type="number"
+                min="-1"
+                max="1"
+                step="0.05"
+                v-model.number="sliceTrainerConfig.x"
+                @input="normalizeSliceValue('x')"
+                class="slice-number"
+              >
+              <button class="step-btn" @click="nudgeSlice('x', 0.05)">+</button>
+            </div>
+          </div>
+          <div class="slice-row">
+            <span class="slice-label">Y轴倾斜</span>
+            <div class="slice-input-group">
+              <button class="step-btn" @click="nudgeSlice('y', -0.05)">-</button>
+              <input
+                type="number"
+                min="-1"
+                max="1"
+                step="0.05"
+                v-model.number="sliceTrainerConfig.y"
+                @input="normalizeSliceValue('y')"
+                class="slice-number"
+              >
+              <button class="step-btn" @click="nudgeSlice('y', 0.05)">+</button>
+            </div>
+          </div>
+          <div class="slice-row">
+            <span class="slice-label">Z轴倾斜</span>
+            <div class="slice-input-group">
+              <button class="step-btn" @click="nudgeSlice('z', -0.05)">-</button>
+              <input
+                type="number"
+                min="-1"
+                max="1"
+                step="0.05"
+                v-model.number="sliceTrainerConfig.z"
+                @input="normalizeSliceValue('z')"
+                class="slice-number"
+              >
+              <button class="step-btn" @click="nudgeSlice('z', 0.05)">+</button>
+            </div>
+          </div>
+          <div class="trainer-actions">
+            <button class="btnGhost small-btn" @click="resetSliceTrainer">重置切面</button>
+            <button class="btnPrimary small-btn" @click="toggleSliceTrainerPanel">完成</button>
+          </div>
+        </div>
+
+        <div class="tip-toast slice-tip">拖动模型可旋转视角，滑动调节切面</div>
       </div>
     </div>
 
@@ -280,6 +396,7 @@
 import * as echarts from 'echarts';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { SOLID_SLICE_BANK } from './data/solidSliceBank.js';
 
 // =================================================================
 // 核心逻辑层 (原 math.js 和 gameModes.js 内容整合)
@@ -357,6 +474,19 @@ export default {
         x: 0,
         y: -1, 
         z: 0
+      },
+
+      // 立体切面训练
+      sliceCategories: SOLID_SLICE_BANK,
+      sliceCategoryIndex: 0,
+      sliceShapeIndex: 0,
+      sliceTrainerPanelOpen: false,
+      slicePlaneVisible: false,
+      sliceTrainerConfig: {
+        constant: 1.5,
+        x: 0.4,
+        y: -0.8,
+        z: 0.2
       }
     }
   },
@@ -378,7 +508,16 @@ export default {
          return `正确：${correctCount}/${totalCount}｜总用时：${totalSec.toFixed(1)}s`;
        }
     },
-    isSmallFont() { return this.activeConfig.isSmallFont || (this.currentModeKey === 'fourSum' || this.currentModeKey === 'tripleMix'); }
+    isSmallFont() { return this.activeConfig.isSmallFont || (this.currentModeKey === 'fourSum' || this.currentModeKey === 'tripleMix'); },
+    currentSliceCategory() {
+      return this.sliceCategories[this.sliceCategoryIndex] || this.sliceCategories[0];
+    },
+    currentSliceShapes() {
+      return this.currentSliceCategory?.items || [];
+    },
+    selectedSliceShape() {
+      return this.currentSliceShapes[this.sliceShapeIndex] || this.currentSliceShapes[0] || { label: '' };
+    }
   },
   mounted() {
     const history = localStorage.getItem('calc_history');
@@ -387,9 +526,11 @@ export default {
   },
   beforeUnmount() {
     this.cleanup3D(); 
+    this.cleanupSliceTrainer();
   },
   created() {
     this.threeApp = { scene: null, camera: null, renderer: null, controls: null, raycaster: null, pointer: null, objects: [], animationId: null, clippingPlane: null, planeHelper: null };
+    this.sliceApp = { scene: null, camera: null, renderer: null, controls: null, animationId: null, mesh: null, clippingPlane: null, slicePlaneMesh: null, sliceCapMesh: null, stencilGroup: null };
   },
   methods: {
     now() { return Date.now(); },
@@ -502,6 +643,8 @@ export default {
     // =================================================================
     startCubicMode() { this.viewState = 'cubic'; this.$nextTick(() => { this.initThree(); }); },
     quitCubicMode() { this.cleanup3D(); this.viewState = 'home'; this.isSliceMode = false; },
+    startSliceTrainer() { this.viewState = 'sliceTrainer'; this.$nextTick(() => { this.initSliceTrainer(); }); },
+    quitSliceTrainer() { this.cleanupSliceTrainer(); this.viewState = 'home'; },
     switchColor(c) { 
       this.selectedColor = c; 
       this.isDeleteMode = false; 
@@ -743,6 +886,482 @@ export default {
         if (container) container.innerHTML = ''; 
       } 
       this.threeApp = { scene: null, camera: null, renderer: null, controls: null, objects: [] }; 
+    },
+
+    // =================================================================
+    // 立体切面训练模块
+    // =================================================================
+    changeSliceCategory() {
+      this.sliceShapeIndex = 0;
+      this.loadSliceShape();
+    },
+    selectSliceShape(index) {
+      this.sliceShapeIndex = index;
+      this.loadSliceShape();
+    },
+    toggleSliceTrainerPanel() {
+      this.sliceTrainerPanelOpen = !this.sliceTrainerPanelOpen;
+    },
+    toggleSlicePlaneVisible() {
+      this.slicePlaneVisible = !this.slicePlaneVisible;
+      if (this.sliceApp.renderer) {
+        this.sliceApp.renderer.localClippingEnabled = this.slicePlaneVisible;
+      }
+      if (this.sliceApp.slicePlaneMesh) {
+        this.sliceApp.slicePlaneMesh.visible = this.slicePlaneVisible;
+      }
+      if (this.sliceApp.sliceCapMesh) {
+        this.sliceApp.sliceCapMesh.visible = this.slicePlaneVisible;
+      }
+      if (this.sliceApp.stencilGroup) {
+        this.sliceApp.stencilGroup.visible = this.slicePlaneVisible;
+      }
+      this.updateSliceTrainerPlane();
+    },
+    resetSliceTrainer() {
+      this.sliceTrainerConfig = { constant: 1.5, x: 0.4, y: -0.8, z: 0.2 };
+      this.updateSliceTrainerPlane();
+    },
+    normalizeSliceValue(field) {
+      const limits = {
+        constant: { min: -8, max: 8 },
+        x: { min: -1, max: 1 },
+        y: { min: -1, max: 1 },
+        z: { min: -1, max: 1 }
+      };
+      const range = limits[field];
+      if (!range) return;
+      const value = Number(this.sliceTrainerConfig[field]);
+      if (Number.isNaN(value)) return;
+      const clamped = Math.min(range.max, Math.max(range.min, value));
+      this.sliceTrainerConfig[field] = clamped;
+      this.updateSliceTrainerPlane();
+    },
+    nudgeSlice(field, delta) {
+      const current = Number(this.sliceTrainerConfig[field]) || 0;
+      this.sliceTrainerConfig[field] = current + delta;
+      this.normalizeSliceValue(field);
+    },
+    updateSliceTrainerPlane() {
+      if (!this.sliceApp.clippingPlane) return;
+      const { x, y, z, constant } = this.sliceTrainerConfig;
+      const normal = new THREE.Vector3(x, y, z).normalize();
+      if (normal.length() === 0) normal.set(0, -1, 0);
+      this.sliceApp.clippingPlane.normal.copy(normal);
+      this.sliceApp.clippingPlane.constant = constant;
+      this.updateSlicePlaneMesh();
+    },
+    updateSlicePlaneMesh() {
+      if (!this.sliceApp.slicePlaneMesh || !this.sliceApp.clippingPlane) return;
+      const plane = this.sliceApp.clippingPlane;
+      const planePoint = new THREE.Vector3();
+      plane.coplanarPoint(planePoint);
+      this.sliceApp.slicePlaneMesh.position.copy(planePoint);
+      if (this.sliceApp.sliceCapMesh) {
+        this.sliceApp.sliceCapMesh.position.copy(planePoint);
+      }
+      const quat = new THREE.Quaternion();
+      quat.setFromUnitVectors(new THREE.Vector3(0, 0, 1), plane.normal.clone().normalize());
+      this.sliceApp.slicePlaneMesh.quaternion.copy(quat);
+      if (this.sliceApp.sliceCapMesh) {
+        this.sliceApp.sliceCapMesh.quaternion.copy(quat);
+      }
+    },
+    initSliceTrainer() {
+      const container = document.getElementById('slice-trainer-container');
+      if (!container) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color('#f6f6f9');
+      scene.fog = new THREE.Fog('#f6f6f9', 20, 60);
+
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.set(10, 10, 12);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.localClippingEnabled = this.slicePlaneVisible;
+      container.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.target.set(0, 0.5, 0);
+      controls.update();
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(10, 20, 10);
+      scene.add(dirLight);
+
+      const gridHelper = new THREE.GridHelper(20, 20, 0xaaaaaa, 0xe2e2e2);
+      gridHelper.position.y = -4;
+      scene.add(gridHelper);
+
+      const baseNormal = new THREE.Vector3(
+        this.sliceTrainerConfig.x,
+        this.sliceTrainerConfig.y,
+        this.sliceTrainerConfig.z
+      ).normalize();
+      if (baseNormal.length() === 0) baseNormal.set(0, -1, 0);
+      const clippingPlane = new THREE.Plane(baseNormal, this.sliceTrainerConfig.constant);
+      const slicePlaneGeometry = new THREE.PlaneGeometry(20, 20);
+      const slicePlaneMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.15,
+        side: THREE.DoubleSide
+      });
+      const slicePlaneMesh = new THREE.Mesh(slicePlaneGeometry, slicePlaneMaterial);
+      slicePlaneMesh.visible = this.slicePlaneVisible;
+      scene.add(slicePlaneMesh);
+
+      const sliceCapMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        side: THREE.DoubleSide,
+        stencilWrite: true,
+        stencilRef: 0,
+        stencilFunc: THREE.NotEqualStencilFunc,
+        stencilFail: THREE.ReplaceStencilOp,
+        stencilZFail: THREE.ReplaceStencilOp,
+        stencilZPass: THREE.ReplaceStencilOp
+      });
+      const sliceCapMesh = new THREE.Mesh(slicePlaneGeometry, sliceCapMaterial);
+      sliceCapMesh.renderOrder = 2;
+      sliceCapMesh.visible = this.slicePlaneVisible;
+      scene.add(sliceCapMesh);
+
+      this.sliceApp = { scene, camera, renderer, controls, animationId: null, mesh: null, clippingPlane, slicePlaneMesh, sliceCapMesh, stencilGroup: null };
+      this.loadSliceShape();
+      this.updateSliceTrainerPlane();
+      this.animateSliceTrainer();
+    },
+    animateSliceTrainer() {
+      const { scene, camera, renderer, controls } = this.sliceApp;
+      if (!renderer) return;
+      this.sliceApp.animationId = requestAnimationFrame(this.animateSliceTrainer);
+      controls.update();
+      renderer.render(scene, camera);
+    },
+    cleanupSliceTrainer() {
+      if (this.sliceApp.animationId) cancelAnimationFrame(this.sliceApp.animationId);
+      if (this.sliceApp.renderer) {
+        this.sliceApp.renderer.dispose();
+        const container = document.getElementById('slice-trainer-container');
+        if (container) container.innerHTML = '';
+      }
+      this.sliceApp = { scene: null, camera: null, renderer: null, controls: null, animationId: null, mesh: null, clippingPlane: null, slicePlaneMesh: null, sliceCapMesh: null, stencilGroup: null };
+      this.sliceTrainerPanelOpen = false;
+    },
+    loadSliceShape() {
+      if (!this.sliceApp.scene) return;
+      if (this.sliceApp.mesh) {
+        this.sliceApp.scene.remove(this.sliceApp.mesh);
+      }
+      if (this.sliceApp.stencilGroup) {
+        this.sliceApp.scene.remove(this.sliceApp.stencilGroup);
+      }
+
+      const shape = this.selectedSliceShape;
+      const mesh = this.buildSliceMesh(shape);
+      if (mesh) {
+        this.sliceApp.mesh = mesh;
+        mesh.traverse((child) => {
+          if (child.isMesh) child.renderOrder = 3;
+        });
+        this.sliceApp.scene.add(mesh);
+        this.sliceApp.stencilGroup = this.createSliceStencilGroup(mesh);
+        this.sliceApp.stencilGroup.visible = this.slicePlaneVisible;
+        this.sliceApp.scene.add(this.sliceApp.stencilGroup);
+      }
+    },
+    createSliceStencilGroup(targetMesh) {
+      const group = new THREE.Group();
+      targetMesh.updateMatrixWorld(true);
+
+      targetMesh.traverse((child) => {
+        if (!child.isMesh) return;
+        const geometry = child.geometry;
+
+        const baseMaterial = new THREE.MeshBasicMaterial();
+        baseMaterial.depthWrite = false;
+        baseMaterial.depthTest = false;
+        baseMaterial.colorWrite = false;
+        baseMaterial.stencilWrite = true;
+        baseMaterial.stencilFunc = THREE.AlwaysStencilFunc;
+
+        const backMaterial = baseMaterial.clone();
+        backMaterial.side = THREE.BackSide;
+        backMaterial.clippingPlanes = [this.sliceApp.clippingPlane];
+        backMaterial.stencilFail = THREE.IncrementWrapStencilOp;
+        backMaterial.stencilZFail = THREE.IncrementWrapStencilOp;
+        backMaterial.stencilZPass = THREE.IncrementWrapStencilOp;
+
+        const frontMaterial = baseMaterial.clone();
+        frontMaterial.side = THREE.FrontSide;
+        frontMaterial.clippingPlanes = [this.sliceApp.clippingPlane];
+        frontMaterial.stencilFail = THREE.DecrementWrapStencilOp;
+        frontMaterial.stencilZFail = THREE.DecrementWrapStencilOp;
+        frontMaterial.stencilZPass = THREE.DecrementWrapStencilOp;
+
+        const backMesh = new THREE.Mesh(geometry, backMaterial);
+        backMesh.matrixAutoUpdate = false;
+        backMesh.matrix.copy(child.matrixWorld);
+
+        const frontMesh = new THREE.Mesh(geometry, frontMaterial);
+        frontMesh.matrixAutoUpdate = false;
+        frontMesh.matrix.copy(child.matrixWorld);
+
+        group.add(backMesh, frontMesh);
+      });
+
+      group.renderOrder = 1;
+      return group;
+    },
+    buildSliceMesh(shape) {
+      if (!shape) return null;
+      const material = new THREE.MeshLambertMaterial({
+        color: 0xffffff,
+        clippingPlanes: [this.sliceApp.clippingPlane]
+      });
+      const edgeMaterial = new THREE.LineBasicMaterial({
+        color: 0x111111,
+        clippingPlanes: [this.sliceApp.clippingPlane]
+      });
+
+      const buildMesh = (geometry) => {
+        const mesh = new THREE.Mesh(geometry, material);
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(edges, edgeMaterial);
+        mesh.add(line);
+        return mesh;
+      };
+
+      const group = new THREE.Group();
+      const { type, params } = shape;
+
+      const addPart = (geom, position = [0, 0, 0], rotation = [0, 0, 0]) => {
+        const part = buildMesh(geom);
+        part.position.set(...position);
+        part.rotation.set(...rotation);
+        group.add(part);
+      };
+
+      switch (type) {
+        case 'box': {
+          const geometry = new THREE.BoxGeometry(params.w, params.h, params.d);
+          return buildMesh(geometry);
+        }
+        case 'roundedBox': {
+          const geometry = new THREE.BoxGeometry(params.w, params.h, params.d, 4, 4, 4);
+          geometry.computeVertexNormals();
+          return buildMesh(geometry);
+        }
+        case 'prism': {
+          const geometry = new THREE.CylinderGeometry(params.radius, params.radius, params.height, params.segments);
+          return buildMesh(geometry);
+        }
+        case 'cylinder': {
+          const geometry = new THREE.CylinderGeometry(params.radiusTop, params.radiusBottom, params.height, 32);
+          return buildMesh(geometry);
+        }
+        case 'cone': {
+          const geometry = new THREE.ConeGeometry(params.radius, params.height, 32);
+          return buildMesh(geometry);
+        }
+        case 'frustum': {
+          const geometry = new THREE.CylinderGeometry(params.radiusTop, params.radiusBottom, params.height, 32);
+          return buildMesh(geometry);
+        }
+        case 'sphere': {
+          const geometry = new THREE.SphereGeometry(params.radius, 32, 24);
+          return buildMesh(geometry);
+        }
+        case 'hemisphere': {
+          const geometry = new THREE.SphereGeometry(params.radius, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+          return buildMesh(geometry);
+        }
+        case 'ellipsoid': {
+          const geometry = new THREE.SphereGeometry(params.radius, 32, 24);
+          const mesh = buildMesh(geometry);
+          mesh.scale.set(params.scale.x, params.scale.y, params.scale.z);
+          return mesh;
+        }
+        case 'torus': {
+          const geometry = new THREE.TorusGeometry(params.radius, params.tube, 16, 60);
+          return buildMesh(geometry);
+        }
+        case 'pyramid': {
+          const geometry = new THREE.ConeGeometry(params.radius, params.height, params.segments);
+          return buildMesh(geometry);
+        }
+        case 'polyhedron': {
+          const { name, radius } = params;
+          if (name === 'tetrahedron') return buildMesh(new THREE.TetrahedronGeometry(radius));
+          if (name === 'octahedron') return buildMesh(new THREE.OctahedronGeometry(radius));
+          if (name === 'dodecahedron') return buildMesh(new THREE.DodecahedronGeometry(radius));
+          return buildMesh(new THREE.IcosahedronGeometry(radius));
+        }
+        case 'capsule': {
+          const geometry = new THREE.CapsuleGeometry(params.radius, params.length, 8, 16);
+          return buildMesh(geometry);
+        }
+        case 'doubleCone': {
+          const geometry = new THREE.ConeGeometry(params.radius, params.height, 32);
+          const top = buildMesh(geometry);
+          const bottom = buildMesh(geometry);
+          top.position.y = params.height * 0.25;
+          bottom.position.y = -params.height * 0.25;
+          bottom.rotation.x = Math.PI;
+          const combo = new THREE.Group();
+          combo.add(top, bottom);
+          return combo;
+        }
+        case 'tilted': {
+          const base = this.buildSliceMesh({
+            type: params.baseType,
+            params
+          });
+          if (base) {
+            base.rotation.z = params.tilt;
+          }
+          return base;
+        }
+        case 'stacked': {
+          const levels = params.levels || 3;
+          const totalHeight = params.height || 4;
+          const stepHeight = totalHeight / levels;
+          for (let i = 0; i < levels; i++) {
+            const width = 3.8 - i * 0.6;
+            const depth = 3.2 - i * 0.5;
+            const geometry = new THREE.BoxGeometry(width, stepHeight, depth);
+            addPart(geometry, [0, -2 + stepHeight * i + stepHeight / 2, 0]);
+          }
+          return group;
+        }
+        case 'composite': {
+          switch (params.variant) {
+            case 'l-shape': {
+              addPart(new THREE.BoxGeometry(4, 2, 2), [-1, -1, 0]);
+              addPart(new THREE.BoxGeometry(2, 4, 2), [1, 0, 0]);
+              return group;
+            }
+            case 't-shape': {
+              addPart(new THREE.BoxGeometry(4, 1.5, 2), [0, 0.8, 0]);
+              addPart(new THREE.BoxGeometry(1.6, 3.8, 2), [0, -0.8, 0]);
+              return group;
+            }
+            case 'notched': {
+              addPart(new THREE.BoxGeometry(4, 3, 3), [0, 0, 0]);
+              addPart(new THREE.BoxGeometry(2, 2, 3), [-1, 1, 0]);
+              return group;
+            }
+            case 'offset-cylinder': {
+              addPart(new THREE.CylinderGeometry(1.6, 1.6, 4, 32), [-1, 0, 0]);
+              addPart(new THREE.CylinderGeometry(1.2, 1.2, 3, 32), [1, 0.5, 0]);
+              return group;
+            }
+            case 'arch': {
+              addPart(new THREE.BoxGeometry(5, 2.5, 2.5), [0, -0.5, 0]);
+              addPart(new THREE.CylinderGeometry(1.3, 1.3, 2.5, 32), [0, -0.5, 0], [0, 0, Math.PI / 2]);
+              return group;
+            }
+            case 'bridge': {
+              addPart(new THREE.BoxGeometry(5, 1.6, 2.4), [0, 1, 0]);
+              addPart(new THREE.BoxGeometry(1.2, 3.2, 2.4), [-1.9, -0.2, 0]);
+              addPart(new THREE.BoxGeometry(1.2, 3.2, 2.4), [1.9, -0.2, 0]);
+              return group;
+            }
+            case 'cone-cylinder': {
+              addPart(new THREE.CylinderGeometry(2, 2, 2.4, 32), [0, -1.2, 0]);
+              addPart(new THREE.ConeGeometry(2, 2.4, 32), [0, 1.2, 0]);
+              return group;
+            }
+            case 'double-cylinder': {
+              addPart(new THREE.CylinderGeometry(1.6, 1.6, 4, 32), [-1.2, 0, 0]);
+              addPart(new THREE.CylinderGeometry(1.2, 1.2, 4, 32), [1.2, 0, 0]);
+              return group;
+            }
+            case 'box-cylinder': {
+              addPart(new THREE.BoxGeometry(3.6, 3.6, 2), [-0.8, 0, 0]);
+              addPart(new THREE.CylinderGeometry(1.4, 1.4, 3.6, 32), [1.4, 0, 0]);
+              return group;
+            }
+            case 'sphere-cap': {
+              addPart(new THREE.SphereGeometry(2.4, 32, 24, 0, Math.PI * 2, 0, Math.PI * 0.7), [0, -0.2, 0]);
+              addPart(new THREE.CylinderGeometry(1.6, 1.6, 1.2, 32), [0, -2.1, 0]);
+              return group;
+            }
+            case 'slanted-cone': {
+              const geometry = new THREE.ConeGeometry(2.2, 3.6, 32);
+              addPart(geometry, [0, 0, 0], [0.3, 0, 0.2]);
+              return group;
+            }
+            case 'offset-pyramid': {
+              const base = buildMesh(new THREE.ConeGeometry(2.4, 3.6, 4));
+              base.position.set(0.6, 0, 0);
+              group.add(base);
+              return group;
+            }
+            case 'slot': {
+              addPart(new THREE.BoxGeometry(4.4, 1.6, 2.4), [0, 0.8, 0]);
+              addPart(new THREE.BoxGeometry(1.6, 3.2, 2.4), [-1.4, -0.4, 0]);
+              addPart(new THREE.BoxGeometry(1.6, 3.2, 2.4), [1.4, -0.4, 0]);
+              return group;
+            }
+            case 'skew-prism': {
+              const geometry = new THREE.BoxGeometry(4, 3, 3);
+              addPart(geometry, [0, 0, 0], [0, 0.2, 0.3]);
+              return group;
+            }
+            case 'half-cylinder': {
+              const geometry = new THREE.CylinderGeometry(2, 2, 4, 32, 1, false, 0, Math.PI);
+              addPart(geometry, [0, 0, 0], [0, 0, Math.PI / 2]);
+              return group;
+            }
+            case 'half-cone': {
+              const geometry = new THREE.ConeGeometry(2.2, 4, 32, 1, false, 0, Math.PI);
+              addPart(geometry, [0, 0, 0], [0, 0, Math.PI / 2]);
+              return group;
+            }
+            case 'half-torus': {
+              const geometry = new THREE.TorusGeometry(2.2, 0.7, 16, 60, Math.PI);
+              addPart(geometry, [0, 0, 0], [Math.PI / 2, 0, 0]);
+              return group;
+            }
+            case 'wedge': {
+              const geometry = new THREE.BoxGeometry(4, 3, 3);
+              geometry.translate(0, 0.5, 0);
+              addPart(geometry, [0, 0, 0], [0.35, 0, 0]);
+              return group;
+            }
+            case 'offset-arch': {
+              addPart(new THREE.BoxGeometry(4.5, 2.4, 2.4), [0.6, -0.4, 0]);
+              addPart(new THREE.CylinderGeometry(1.1, 1.1, 2.4, 32), [-0.8, -0.4, 0], [0, 0, Math.PI / 2]);
+              return group;
+            }
+            case 'cross': {
+              addPart(new THREE.BoxGeometry(4, 1.4, 2), [0, 0, 0]);
+              addPart(new THREE.BoxGeometry(1.4, 4, 2), [0, 0, 0]);
+              return group;
+            }
+            case 'stair-arch': {
+              addPart(new THREE.BoxGeometry(4.6, 1.6, 2.4), [0, 1.2, 0]);
+              addPart(new THREE.BoxGeometry(3.2, 1.6, 2.4), [0, 0, 0]);
+              addPart(new THREE.CylinderGeometry(1.2, 1.2, 2.4, 32), [0, -0.8, 0], [0, 0, Math.PI / 2]);
+              return group;
+            }
+            default:
+              return group;
+          }
+        }
+        default:
+          return null;
+      }
     }
   }
 }
@@ -881,6 +1500,132 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
   gap: 8px;
   width: 90%;
   max-width: 300px;
+}
+.slice-trainer { background: #f6f6f9; }
+.slice-trainer-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: max(60px, calc(env(safe-area-inset-top) + 10px)) 12px 14px;
+  box-sizing: border-box;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.slice-trainer-ui > * { pointer-events: auto; }
+.slice-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  width: 95%;
+}
+.slice-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #555;
+}
+.slice-select select {
+  border: none;
+  background: rgba(255,255,255,0.7);
+  border-radius: 10px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.slice-shape-title {
+  margin-left: auto;
+  font-weight: 700;
+  font-size: 13px;
+  color: #111;
+}
+.slice-toggle-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(17,17,17,0.9);
+  color: #fff;
+  margin-left: 8px;
+}
+.slice-shape-list {
+  width: 95%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 18px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.shape-chip {
+  border: none;
+  border-radius: 12px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.6);
+  color: #333;
+}
+.shape-chip.active {
+  background: #111;
+  color: #fff;
+}
+.slice-control-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  transition: opacity 0.2s;
+}
+.slice-control-btn.dimmed {
+  opacity: 0.45;
+}
+.trainer-panel {
+  width: 95%;
+  max-width: 320px;
+}
+.trainer-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+.slice-tip { margin-top: 0; }
+.slice-input-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.slice-number {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+  text-align: center;
+  background: rgba(255,255,255,0.85);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+}
+.step-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.08);
+  color: #111;
+  font-weight: 700;
 }
 .slice-row {
   display: flex;
