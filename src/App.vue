@@ -74,28 +74,27 @@
         </div>
       </div>
       
-      <div class="game-body">
-        <div class="gameMain">
-          <div class="card qCard glass-panel">
-            <div :class="['qText', isSmallFont ? 'qText-small' : '']">{{qText}}</div>
-            <div class="qNote">{{activeConfig.hintNote || activeConfig.hint || '精确到整数'}}</div>
-            <div class="ansBox glass-input">答案：{{input ? input : '—'}}</div>
-            <div class="hint">{{uiHint}}</div>
-          </div>
+      <div class="gameMain">
+        <div class="card qCard glass-panel">
+          <div :class="['qText', isSmallFont ? 'qText-small' : '']">{{qText}}</div>
+          
+          <div class="qNote">{{activeConfig.hintNote || activeConfig.hint || '精确到整数'}}</div>
+          <div class="ansBox glass-input">答案：{{input ? input : '—'}}</div>
+          <div class="hint">{{uiHint}}</div>
         </div>
-        
-        <div class="keypad card glass-panel">
-          <div class="fnRow">
-            <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
-            <button class="kFn style-clear" @click="clearInput">清空</button>
-            <button class="kFn style-del" @click="backspace">退格</button>
-          </div>
-          <div class="grid">
-            <button v-for="item in [1,2,3,4,5,6,7,8,9]" :key="item" class="k glass-key" @click="pressDigit(item)">{{item}}</button>
-            <button class="k glass-key" @click="pressDot">.</button>
-            <button class="k glass-key" @click="pressDigit(0)">0</button>
-            <button class="k confirm glass-key-confirm" @click="confirmAnswer">确认</button>
-          </div>
+      </div>
+      
+      <div class="keypad card glass-panel">
+        <div class="fnRow">
+          <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
+          <button class="kFn style-clear" @click="clearInput">清空</button>
+          <button class="kFn style-del" @click="backspace">退格</button>
+        </div>
+        <div class="grid">
+          <button v-for="item in [1,2,3,4,5,6,7,8,9]" :key="item" class="k glass-key" @click="pressDigit(item)">{{item}}</button>
+          <button class="k glass-key" @click="pressDot">.</button>
+          <button class="k glass-key" @click="pressDigit(0)">0</button>
+          <button class="k confirm glass-key-confirm" @click="confirmAnswer">确认</button>
         </div>
       </div>
     </div>
@@ -276,7 +275,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // =================================================================
-// 核心逻辑层 (保持原有逻辑不变)
+// 核心逻辑层
 // =================================================================
 
 const shuffle = (arr) => {
@@ -435,7 +434,7 @@ export default {
     closeChart() { this.showChart = false; if(this.chartInstance) { this.chartInstance.dispose(); this.chartInstance = null; } },
 
     // =================================================================
-    // 3D 模块逻辑 (保持原有逻辑不变)
+    // 3D 模块逻辑 (增强：正交相机、下沉视图、任意切面)
     // =================================================================
     startCubicMode() { this.viewState = 'cubic'; this.$nextTick(() => { this.initThree(); }); },
     quitCubicMode() { this.cleanup3D(); this.viewState = 'home'; this.isSliceMode = false; },
@@ -478,11 +477,13 @@ export default {
       this.updateSlicePlane();
     },
 
-    // 设置正交视图
+    // 设置正交视图 (关键：targetY 偏移)
     setCameraView(type) {
       if (!this.threeApp.camera || !this.threeApp.controls) return;
       const { camera, controls } = this.threeApp;
       const dist = 20; 
+      
+      // 核心调整：将观察中心点(Target)上移，这会让物体在屏幕中下移
       const targetY = 6; 
       
       controls.target.set(0, targetY, 0);
@@ -519,6 +520,7 @@ export default {
         1, 1000                  
       );
       
+      // 初始视角位置 (配合 Target 偏移)
       const targetY = 6; 
       camera.position.set(12, 12 + targetY, 12); 
       camera.lookAt(0, targetY, 0);
@@ -526,9 +528,10 @@ export default {
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); 
       renderer.setSize(width, height); 
       renderer.setPixelRatio(window.devicePixelRatio); 
-      renderer.localClippingEnabled = false; 
+      renderer.localClippingEnabled = false; // 初始关闭
       container.appendChild(renderer.domElement);
 
+      // 初始化全局裁剪平面
       const clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 5);
       const planeHelper = new THREE.PlaneHelper(clippingPlane, 20, 0xff0000);
       planeHelper.visible = false;
@@ -537,12 +540,14 @@ export default {
       this.threeApp.clippingPlane = clippingPlane;
       this.threeApp.planeHelper = planeHelper;
 
+      // 灯光
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
       scene.add(ambientLight);
       const dirLight = new THREE.DirectionalLight(0xffffff, 0.7); 
       dirLight.position.set(10, 20, 10); 
       scene.add(dirLight);
 
+      // 辅助网格 & 地面
       const gridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xdddddd); 
       scene.add(gridHelper);
 
@@ -553,12 +558,15 @@ export default {
       plane.name = 'ground'; 
       scene.add(plane);
 
+      // 控制器
       const controls = new OrbitControls(camera, renderer.domElement); 
       controls.enableDamping = true; 
       controls.dampingFactor = 0.05;
+      // 设置控制中心偏上，使物体沉底
       controls.target.set(0, targetY, 0);
       controls.update();
 
+      // 交互事件
       const raycaster = new THREE.Raycaster(); 
       const pointer = new THREE.Vector2();
       let downTime = 0;
@@ -580,6 +588,7 @@ export default {
       this.threeApp.controls = controls;
       this.threeApp.objects = [plane]; 
       
+      // 初始化已保存的切面配置
       this.updateSlicePlane();
 
       this.animate3D();
@@ -609,8 +618,10 @@ export default {
              intersect.object.material.dispose();
           }
         } else {
+          // 放置逻辑
           const voxelPos = new THREE.Vector3().copy(intersect.point).addScaledVector(intersect.face.normal, 0.5);
           voxelPos.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5);
+          
           if (voxelPos.y < 0) return;
           this.addCubeAt(scene, voxelPos);
         }
@@ -619,6 +630,8 @@ export default {
 
     addCubeAt(scene, position) {
       const geometry = new THREE.BoxGeometry(1, 1, 1); 
+      
+      // 材质加入 clippingPlanes
       const material = new THREE.MeshLambertMaterial({ 
         color: this.selectedColor,
         polygonOffset: true,
@@ -634,6 +647,7 @@ export default {
       const edgeColor = isDarkBlock ? 0xffffff : 0x000000;
       
       const edges = new THREE.EdgesGeometry(geometry); 
+      // 边线材质也需要裁剪
       const lineMaterial = new THREE.LineBasicMaterial({ 
         color: edgeColor,
         clippingPlanes: [this.threeApp.clippingPlane] 
@@ -708,54 +722,31 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .btnDanger { width: 100%; height: 48px; line-height: 48px; border-radius: 16px; background: rgba(255, 59, 48, 0.1); color: #ff3b30; font-size: 20px; font-weight: 700; border: 1px solid rgba(255, 59, 48, 0.2); }
 .btnDanger:active { background: rgba(255, 59, 48, 0.2); }
 .main-action-btn { font-size: 20px !important; height: 54px !important; line-height: 54px !important; }
-
-/* === 游戏界面核心布局 (新) === */
-.gameRoot { height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
-.safe-top { padding-top: max(44px, env(safe-area-inset-top)); padding-bottom: 12px; height: auto; box-sizing: content-box; display: flex; align-items: center; gap: 12px; margin-bottom: 5px; flex-shrink: 0; }
+.gameRoot { min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 0; }
+.safe-top { padding-top: max(44px, env(safe-area-inset-top)); padding-bottom: 12px; height: auto; box-sizing: content-box; display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
+.safe-header { padding-top: max(44px, env(safe-area-inset-top)); margin-bottom: 20px; }
 .btnBack { width: 80px; height: 44px; line-height: 44px; border-radius: 14px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); font-weight: 700; font-size: 16px; margin: 0; color: #1c1c1e; backdrop-filter: blur(10px); }
 .topStats { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: #333; }
 .glass-pill { background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.03); backdrop-filter: blur(10px); }
-
-/* 布局容器：控制横竖屏 Flex 方向 */
-.game-body { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
-
-/* 题目区域 */
-.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
-.qCard { height: 100%; max-height: 400px; display: flex; flex-direction: column; justify-content: center; padding: 2vh 20px; text-align: center; }
-.qText { font-size: clamp(40px, 10vh, 64px); font-weight: 800; margin-top: 0; color: #1c1c1e; letter-spacing: -2px; line-height: 1.1; }
-.qText-small { font-size: clamp(30px, 6vh, 52px) !important; letter-spacing: -1px !important; white-space: nowrap; margin-top: 10px; }
+.gameMain { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.qCard { text-align: center; padding: 30px 20px; }
+.qText { font-size: 64px; font-weight: 800; margin-top: 0; color: #1c1c1e; letter-spacing: -2px; }
 .qNote { margin-top: 8px; font-size: 16px; color: #8e8e93; font-weight: 500; }
-.ansBox { margin-top: auto; margin-bottom: auto; padding: 1.5vh 15px; border-radius: 20px; background: rgba(255,255,255,0.5); font-size: clamp(32px, 5vh, 44px); font-weight: 800; min-height: 0; color: #007aff; box-shadow: inset 0 2px 6px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03); }
+.ansBox { margin-top: 20px; padding: 15px; border-radius: 20px; background: rgba(255,255,255,0.5); font-size: 44px; font-weight: 800; min-height: 44px; color: #007aff; box-shadow: inset 0 2px 6px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03); }
 .hint { margin-top: 15px; color: #8e8e93; font-size: 15px; font-weight: 600; }
-
-/* 键盘区域 */
-.keypad { flex-shrink: 0; border-radius: 28px; overflow: hidden; clip-path: inset(0 0 0 0 round 28px); margin-bottom: 0; }
+.keypad { border-radius: 28px; overflow: hidden; clip-path: inset(0 0 0 0 round 28px); margin-bottom: calc( 6px + env(safe-area-inset-bottom)); }
 .fnRow { display: flex; gap: 9px; margin-bottom: 9px; }
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-
-/* 按钮自适应 */
-.kFn { flex: 1; height: clamp(45px, 8vh, 65px); line-height: 1; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: clamp(16px, 4vw, 20px); font-weight: 900; margin: 0; color: #fff; border: 1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
-.k { width: 100%; height: clamp(42px, 9vh, 70px); line-height: 1; display: flex; align-items: center; justify-content: center; font-size: clamp(24px, 6vw, 30px); margin: 0; border-radius: 14px; background: rgba(255,255,255,0.85); border: 1px solid rgba(0,0,0,0.03); font-weight: 900; color: #000; box-shadow: 0 4px 0 rgba(0,0,0,0.04); transition: all 0.1s; }
-.k:active { transform: translateY(4px); box-shadow: none; background: #fff; }
-
+.kFn { flex: 1; height: 65px; line-height: 65px; border-radius: 14px; font-size: 20px; font-weight: 900; margin: 0; color: #fff; border: 1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
 .style-skip { background: #34c759; border-color: #248a3d; } 
 .style-clear { background: #ff9500; border-color: #e08600; } 
 .style-del { background: #ff3b30; border-color: #d63329; } 
-.glass-key-confirm { background: #34c759; color: #fff; border:none; font-size: clamp(22px, 5vw, 28px); box-shadow: 0 4px 0 #248a3d; border-radius: 11px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.k { width: 100%; height: 70px; line-height: 70px; border-radius: 14px; background: rgba(255,255,255,0.85); border: 1px solid rgba(0,0,0,0.03); font-size: 30px; font-weight: 900; margin: 0; color: #000; box-shadow: 0 4px 0 rgba(0,0,0,0.04); transition: all 0.1s; }
+.k:active { transform: translateY(4px); box-shadow: none; background: #fff; }
+.glass-key-confirm { background: #34c759; color: #fff; border:none; font-size: 28px; box-shadow: 0 4px 0 #248a3d; border-radius: 11px; }
 .glass-key-confirm:active { background: #28a745; box-shadow: none; transform: translateY(4px); }
-
-/* 横屏适配 */
-@media (orientation: landscape) {
-  .game-body { flex-direction: row; align-items: center; gap: 20px; padding: 0 20px 10px; }
-  .gameMain { height: 100%; }
-  .qCard { justify-content: space-evenly; }
-  .keypad { width: 45%; max-width: 400px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
-  .k { height: clamp(40px, 14vh, 60px); }
-  .kFn { height: clamp(35px, 12vh, 55px); }
-}
-
-/* 其他样式保持不变 */
-.safe-header { padding-top: max(44px, env(safe-area-inset-top)); margin-bottom: 20px; }
+.k.wide { grid-column: 1 / 2; }
+.k.wide2 { grid-column: 2 / 4; }
 .chart-container { background: rgba(255,255,255,0.4); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.5); }
 .chart-tabs { display: flex; gap: 4px; overflow-x: auto; padding: 4px; margin-bottom: 12px; background: rgba(118, 118, 128, 0.12); border-radius: 12px; scrollbar-width: none; }
 .chart-tabs::-webkit-scrollbar { display: none; }
@@ -766,6 +757,8 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .hover-row:active { background: rgba(0,0,0,0.03); border-radius: 12px; }
 .rowLeft { flex: 1; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
 .rowRight { flex-shrink: 0; display: flex; align-items: center; text-align: right; justify-content: flex-end; }
+.qText-small { font-size: 52px !important; letter-spacing: -1px !important; white-space: nowrap; margin-top: 10px; overflow: visible; }
+
 .cubic-ui { position: absolute; top: 0; left: 0; width: 100%; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; padding-top: max(60px, calc(env(safe-area-inset-top) + 10px)); box-sizing: border-box; pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 .cubic-ui > * { pointer-events: auto; }
 .small-btn { width: auto !important; height: 36px !important; line-height: 36px !important; padding: 0 16px !important; font-size: 14px !important; }
@@ -773,15 +766,87 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .btnIcon.active { background: #007aff; color: white; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
 .divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); margin: 0 5px; }
 .tip-toast { margin-top: 10px; background: rgba(0,0,0,0.6); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; backdrop-filter: blur(4px); }
-.color-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+
+/* Color Dot */
+.color-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.5);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
 .color-dot:active { transform: scale(0.9); }
-.color-dot.active { transform: scale(1.1); border-color: #fff; box-shadow: 0 0 0 2px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(255,255,255,0.8); }
-.view-selector { margin-top: 8px; padding: 6px; display: flex; gap: 6px; border-radius: 20px; flex-wrap: wrap; justify-content: center; }
-.view-btn { background: rgba(255,255,255,0.5); border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #333; }
-.view-btn:active, .view-btn.active-view { background: #007aff; color: white; }
-.slice-panel { margin-top: 8px; padding: 12px; border-radius: 16px; display: flex; flex-direction: column; gap: 8px; width: 90%; max-width: 300px; }
-.slice-row { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; color: #333; }
-.slice-label { width: 50px; text-align: right; }
-.slice-slider { flex: 1; -webkit-appearance: none; height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; outline: none; }
-.slice-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #007aff; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.color-dot.active {
+  transform: scale(1.1);
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(255,255,255,0.8);
+}
+
+/* View Selector Styles */
+.view-selector {
+  margin-top: 8px;
+  padding: 6px;
+  display: flex; 
+  gap: 6px;
+  border-radius: 20px;
+  flex-wrap: wrap; 
+  justify-content: center;
+}
+.view-btn {
+  background: rgba(255,255,255,0.5);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 12px;
+  padding: 6px 14px; 
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+.view-btn:active, .view-btn.active-view {
+  background: #007aff;
+  color: white;
+}
+
+/* Slice Panel Styles */
+.slice-panel {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 90%;
+  max-width: 300px;
+}
+.slice-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+.slice-label {
+  width: 50px;
+  text-align: right;
+}
+.slice-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 2px;
+  outline: none;
+}
+.slice-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #007aff;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
 </style>
+
