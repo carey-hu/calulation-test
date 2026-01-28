@@ -1032,17 +1032,8 @@ export default {
     },
     toggleSlicePlaneVisible() {
       this.slicePlaneVisible = !this.slicePlaneVisible;
-      if (this.sliceApp.renderer) {
-        this.sliceApp.renderer.localClippingEnabled = this.slicePlaneVisible;
-      }
       if (this.sliceApp.slicePlaneMesh) {
         this.sliceApp.slicePlaneMesh.visible = this.slicePlaneVisible;
-      }
-      if (this.sliceApp.sliceCapMesh) {
-        this.sliceApp.sliceCapMesh.visible = this.slicePlaneVisible;
-      }
-      if (this.sliceApp.stencilGroup) {
-        this.sliceApp.stencilGroup.visible = this.slicePlaneVisible;
       }
       this.updateSliceTrainerPlane();
     },
@@ -1143,7 +1134,7 @@ export default {
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, stencil: true });
       renderer.setSize(width, height);
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.localClippingEnabled = this.slicePlaneVisible;
+      renderer.localClippingEnabled = true;
       container.appendChild(renderer.domElement);
 
       const controls = new OrbitControls(camera, renderer.domElement);
@@ -1198,7 +1189,7 @@ export default {
       });
       const sliceCapMesh = new THREE.Mesh(slicePlaneGeometry, sliceCapMaterial);
       sliceCapMesh.renderOrder = 4;
-      sliceCapMesh.visible = this.slicePlaneVisible;
+      sliceCapMesh.visible = true;
       sliceCapMesh.onAfterRender = (renderer) => renderer.clearStencil();
       scene.add(sliceCapMesh);
 
@@ -1313,7 +1304,7 @@ export default {
         });
         this.sliceApp.scene.add(mesh);
         this.sliceApp.stencilGroup = this.createSliceStencilGroup(mesh);
-        this.sliceApp.stencilGroup.visible = this.slicePlaneVisible;
+        this.sliceApp.stencilGroup.visible = true;
         this.sliceApp.scene.add(this.sliceApp.stencilGroup);
       }
     },
