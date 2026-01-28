@@ -167,13 +167,32 @@ export function useGameState() {
     } else {
       correct = parseInt(input.value) === cur.ans
     }
+
+    // --- 新增：计算精确答案和误差率 ---
+    let extraInfo = {}
+    const estimateModes = ['tripleDiv', 'divSpecA', 'divSpecB', 'divSpecC']
+    // 只有在回答正确，且属于指定估算模式时才计算
+    if (correct && estimateModes.includes(currentModeKey.value)) {
+        const exact = cur.dividend / cur.divisor
+        const userVal = n // 用户输入的数值
+        const error = Math.abs(userVal - exact) / exact
+        
+        // 精确值保留逻辑：如果是整数显示整数，否则保留1位小数
+        const exactStr = Number.isInteger(exact) ? String(exact) : exact.toFixed(1)
+        
+        extraInfo = {
+            exactAns: exactStr,
+            errorRate: (error * 100).toFixed(2) + '%'
+        }
+    }
     
     return {
       correct,
       realAnsDisplay,
       usedTime: used,
       question: `${cur.dividend}${cur.symbol}${cur.divisor}`,
-      yourAnswer: input.value
+      yourAnswer: input.value,
+      ...extraInfo // 合并额外信息
     }
   }
   
@@ -199,7 +218,9 @@ export function useGameState() {
       ok: result.correct,
       yourAns: result.yourAnswer,
       realAns: result.realAnsDisplay,
-      usedStr: result.usedTime.toFixed(1) + 's'
+      usedStr: result.usedTime.toFixed(1) + 's',
+      exactAns: result.exactAns, // 保存精确答案
+      errorRate: result.errorRate // 保存误差率
     })
   }
   

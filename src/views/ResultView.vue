@@ -7,7 +7,6 @@
     
     <div class="card full-flex glass-panel">
       <div class="result-scroll">
-        <!-- 训练模式 -->
         <template v-if="isTrainMode">
           <div v-for="(item, index) in trainLog" :key="index" class="row">
             <span class="row-left">{{ index + 1 }}. {{ item.q }}</span>
@@ -20,14 +19,20 @@
           </div>
         </template>
         
-        <!-- 其他模式 -->
         <template v-else>
           <div v-for="(item, index) in results" :key="index" class="row">
             <span class="row-left">{{ index + 1 }}. {{ item.q }} = {{ item.yourAns }}</span>
             <span class="row-right">
-              <span style="margin-right:4px; font-size:13px; color:#666;">{{ item.usedStr }}</span>
-              <span>{{ item.ok ? '✅' : '❌' }}</span>
-              <span v-if="!item.ok" class="wrong-ans">({{ item.realAns }})</span>
+              <div class="result-detail-box">
+                <div class="result-main-line">
+                  <span style="margin-right:4px; font-size:13px; color:#666;">{{ item.usedStr }}</span>
+                  <span>{{ item.ok ? '✅' : '❌' }}</span>
+                  <span v-if="!item.ok" class="wrong-ans">({{ item.realAns }})</span>
+                </div>
+                <div v-if="item.ok && item.exactAns" class="result-sub-line">
+                  准:{{ item.exactAns }} 误:{{ item.errorRate }}
+                </div>
+              </div>
             </span>
           </div>
         </template>
@@ -148,10 +153,29 @@ defineEmits(['home', 'restart', 'backToHistory'])
 
 .row-right {
   flex-shrink: 0;
+  /* 修改为 flex 容器以支持内部布局 */
   display: flex;
   align-items: center;
   text-align: right;
   justify-content: flex-end;
+}
+
+.result-detail-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.result-main-line {
+  display: flex;
+  align-items: center;
+}
+
+.result-sub-line {
+  font-size: 11px;
+  color: #007aff; /* 蓝色字体显示额外信息 */
+  margin-top: 2px;
+  font-weight: 500;
 }
 
 .wrong-ans {
