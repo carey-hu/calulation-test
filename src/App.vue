@@ -204,6 +204,14 @@
             </select>
           </div>
           <div class="slice-shape-title">{{ selectedSliceShape.label }}</div>
+          <button class="slice-action-btn" @click="setSliceFrontView">切面正视</button>
+          <button
+            class="slice-action-btn"
+            :class="{ active: sliceGestureMode }"
+            @click="toggleSliceGestureMode"
+          >
+            {{ sliceGestureMode ? '手势调整中' : '手势调整' }}
+          </button>
           <button class="slice-toggle-btn" @click="toggleSlicePlaneVisible">
             {{ slicePlaneVisible ? '隐藏切面' : '显示切面' }}
           </button>
@@ -299,7 +307,9 @@
           </div>
         </div>
 
-        <div class="tip-toast slice-tip">拖动模型可旋转视角，滑动调节切面</div>
+        <div class="tip-toast slice-tip">
+          {{ sliceGestureMode ? '双指拖动可调节切面倾斜，捏合可移动切面' : '拖动模型可旋转视角，滑动调节切面' }}
+        </div>
       </div>
     </div>
 
@@ -512,6 +522,7 @@ export default {
       sliceShapeIndex: 0,
       sliceTrainerPanelOpen: false,
       slicePlaneVisible: false,
+      sliceGestureMode: false,
       sliceTrainerConfig: {
         constant: 1.5,
         x: 0.4,
@@ -1016,6 +1027,12 @@ export default {
     toggleSliceTrainerPanel() {
       this.sliceTrainerPanelOpen = !this.sliceTrainerPanelOpen;
     },
+    toggleSliceGestureMode() {
+      this.sliceGestureMode = !this.sliceGestureMode;
+      if (this.sliceApp.controls) {
+        this.sliceApp.controls.enabled = !this.sliceGestureMode;
+      }
+    },
     toggleSlicePlaneVisible() {
       this.slicePlaneVisible = !this.slicePlaneVisible;
       if (this.sliceApp.renderer) {
@@ -1031,6 +1048,19 @@ export default {
         this.sliceApp.stencilGroup.visible = this.slicePlaneVisible;
       }
       this.updateSliceTrainerPlane();
+    },
+    setSliceFrontView() {
+      const { camera, controls, clippingPlane } = this.sliceApp;
+      if (!camera || !controls || !clippingPlane) return;
+      const target = new THREE.Vector3(0, 0.5, 0);
+      const normal = clippingPlane.normal.clone().normalize();
+      if (normal.length() === 0) normal.set(0, 0, 1);
+      const distance = 12;
+      camera.position.copy(target.clone().add(normal.multiplyScalar(distance)));
+      camera.up.set(0, 1, 0);
+      camera.lookAt(target);
+      controls.target.copy(target);
+      controls.update();
     },
     resetSliceTrainer() {
       this.sliceTrainerConfig = { constant: 1.5, x: 0.4, y: -0.8, z: 0.2 };
@@ -1081,6 +1111,25 @@ export default {
         this.sliceApp.sliceCapMesh.quaternion.copy(quat);
       }
     },
+    applySliceGestureDelta({ deltaX, deltaY, deltaDistance, pointerCount }) {
+      const tiltScale = 0.005;
+      const moveScale = 0.02;
+      if (pointerCount >= 2) {
+        this.sliceTrainerConfig.x += -deltaY * tiltScale;
+        this.sliceTrainerConfig.y += deltaX * tiltScale;
+        if (typeof deltaDistance === 'number') {
+          this.sliceTrainerConfig.constant += deltaDistance * moveScale;
+        }
+        this.normalizeSliceValue('x');
+        this.normalizeSliceValue('y');
+        this.normalizeSliceValue('constant');
+      } else {
+        this.sliceTrainerConfig.constant += -deltaY * moveScale;
+        this.sliceTrainerConfig.z += deltaX * tiltScale;
+        this.normalizeSliceValue('constant');
+        this.normalizeSliceValue('z');
+      }
+    },
     initSliceTrainer() {
       const container = document.getElementById('slice-trainer-container');
       if (!container) return;
@@ -1104,6 +1153,7 @@ export default {
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.target.set(0, 0.5, 0);
+      controls.enabled = !this.sliceGestureMode;
       controls.update();
 
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -1135,10 +1185,13 @@ export default {
       scene.add(slicePlaneMesh);
 
       const sliceCapMaterial = new THREE.MeshBasicMaterial({
-        color: 0x000000,
+        color: 0x111111,
         side: THREE.DoubleSide,
         depthWrite: true,
         depthTest: true,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1,
         stencilWrite: true,
         stencilRef: 0,
         stencilFunc: THREE.NotEqualStencilFunc,
@@ -1147,11 +1200,82 @@ export default {
         stencilZPass: THREE.ReplaceStencilOp
       });
       const sliceCapMesh = new THREE.Mesh(slicePlaneGeometry, sliceCapMaterial);
-      sliceCapMesh.renderOrder = 2;
+      sliceCapMesh.renderOrder = 4;
       sliceCapMesh.visible = this.slicePlaneVisible;
       scene.add(sliceCapMesh);
 
       this.sliceApp = { scene, camera, renderer, controls, animationId: null, mesh: null, clippingPlane, slicePlaneMesh, sliceCapMesh, stencilGroup: null };
+      const gestureState = {
+        pointers: new Map(),
+        lastMidpoint: null,
+        lastDistance: null,
+        lastPointer: null
+      };
+
+      const handlePointerDown = (event) => {
+        if (!this.sliceGestureMode) return;
+        renderer.domElement.setPointerCapture(event.pointerId);
+        gestureState.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (gestureState.pointers.size === 1) {
+          gestureState.lastPointer = { x: event.clientX, y: event.clientY };
+          gestureState.lastMidpoint = null;
+          gestureState.lastDistance = null;
+        } else if (gestureState.pointers.size === 2) {
+          const points = Array.from(gestureState.pointers.values());
+          gestureState.lastMidpoint = {
+            x: (points[0].x + points[1].x) / 2,
+            y: (points[0].y + points[1].y) / 2
+          };
+          gestureState.lastDistance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+        }
+      };
+
+      const handlePointerMove = (event) => {
+        if (!this.sliceGestureMode) return;
+        if (!gestureState.pointers.has(event.pointerId)) return;
+        gestureState.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (gestureState.pointers.size === 1 && gestureState.lastPointer) {
+          const deltaX = event.clientX - gestureState.lastPointer.x;
+          const deltaY = event.clientY - gestureState.lastPointer.y;
+          gestureState.lastPointer = { x: event.clientX, y: event.clientY };
+          this.applySliceGestureDelta({ deltaX, deltaY, pointerCount: 1 });
+        } else if (gestureState.pointers.size >= 2) {
+          const points = Array.from(gestureState.pointers.values());
+          const midpoint = {
+            x: (points[0].x + points[1].x) / 2,
+            y: (points[0].y + points[1].y) / 2
+          };
+          const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+          const lastMidpoint = gestureState.lastMidpoint || midpoint;
+          const lastDistance = gestureState.lastDistance ?? distance;
+          const deltaX = midpoint.x - lastMidpoint.x;
+          const deltaY = midpoint.y - lastMidpoint.y;
+          const deltaDistance = distance - lastDistance;
+          gestureState.lastMidpoint = midpoint;
+          gestureState.lastDistance = distance;
+          this.applySliceGestureDelta({ deltaX, deltaY, deltaDistance, pointerCount: 2 });
+        }
+      };
+
+      const handlePointerEnd = (event) => {
+        if (!this.sliceGestureMode) return;
+        gestureState.pointers.delete(event.pointerId);
+        if (gestureState.pointers.size === 1) {
+          const remaining = Array.from(gestureState.pointers.values())[0];
+          gestureState.lastPointer = remaining ? { ...remaining } : null;
+          gestureState.lastMidpoint = null;
+          gestureState.lastDistance = null;
+        } else if (gestureState.pointers.size === 0) {
+          gestureState.lastPointer = null;
+          gestureState.lastMidpoint = null;
+          gestureState.lastDistance = null;
+        }
+      };
+
+      renderer.domElement.addEventListener('pointerdown', handlePointerDown);
+      renderer.domElement.addEventListener('pointermove', handlePointerMove);
+      renderer.domElement.addEventListener('pointerup', handlePointerEnd);
+      renderer.domElement.addEventListener('pointercancel', handlePointerEnd);
       this.loadSliceShape();
       this.updateSliceTrainerPlane();
       this.animateSliceTrainer();
@@ -1610,6 +1734,7 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
   padding: 8px 12px;
   border-radius: 18px;
   width: 95%;
+  flex-wrap: wrap;
 }
 .slice-select {
   display: flex;
@@ -1640,6 +1765,19 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
   background: rgba(17,17,17,0.9);
   color: #fff;
   margin-left: 8px;
+}
+.slice-action-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(0,122,255,0.12);
+  color: #007aff;
+}
+.slice-action-btn.active {
+  background: rgba(0,122,255,0.9);
+  color: #fff;
 }
 .slice-shape-list {
   width: 95%;
