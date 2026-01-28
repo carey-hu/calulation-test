@@ -198,24 +198,6 @@
                 <button class="btnGhost small-btn" @click="showShapeMenu = !showShapeMenu" style="font-size:13px; color:#5856d6; font-weight:700;">
                   📂 题库 ({{ currentShapeName }})
                 </button>
-                <div v-if="showShapeMenu" class="shape-menu glass-panel">
-                  <div class="shape-group-title">基础柱体/多面体</div>
-                  <div class="shape-grid">
-                    <div v-for="s in examShapes.basic" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
-                  </div>
-                  <div class="shape-group-title">曲面体 (锥/球)</div>
-                  <div class="shape-grid">
-                    <div v-for="s in examShapes.curved" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
-                  </div>
-                  <div class="shape-group-title">进阶 (挖空/组合)</div>
-                  <div class="shape-grid">
-                    <div v-for="s in examShapes.composite" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
-                  </div>
-                  <div class="shape-group-title">特殊造型</div>
-                  <div class="shape-grid">
-                    <div v-for="s in examShapes.special" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
-                  </div>
-                </div>
              </div>
              <div class="divider"></div>
              <button class="view-btn" style="background:#000; color:#fff; border:none;" @click="lookAtSection">👀 正视切面</button>
@@ -238,11 +220,32 @@
           <button class="view-btn" @click="setCameraView('front')">正</button>
           <button class="view-btn" @click="setCameraView('left')">左</button>
           <button class="view-btn" @click="setCameraView('top')">俯</button>
-          <button class="view-btn active-view" @click="setCameraView('iso')">轴</button>
+          <button class="view-btn" @click="setCameraView('iso')">轴</button>
         </div>
         
         <div class="tip-toast" v-if="cubicMode === 'block'">点击地面放置，点击方块叠加</div>
         <div class="tip-toast" v-if="cubicMode === 'section'" style="background:rgba(88,86,214,0.85);">请调节下方滑块观察截面变化</div>
+      </div>
+
+      <div v-if="showShapeMenu && cubicMode === 'section'" class="shape-menu-container">
+        <div class="shape-menu glass-panel">
+          <div class="shape-group-title">基础柱体/多面体</div>
+          <div class="shape-grid">
+            <div v-for="s in examShapes.basic" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+          </div>
+          <div class="shape-group-title">曲面体 (锥/球)</div>
+          <div class="shape-grid">
+            <div v-for="s in examShapes.curved" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+          </div>
+          <div class="shape-group-title">进阶 (挖空/组合)</div>
+          <div class="shape-grid">
+            <div v-for="s in examShapes.composite" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+          </div>
+          <div class="shape-group-title">特殊造型</div>
+          <div class="shape-grid">
+            <div v-for="s in examShapes.special" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
+          </div>
+        </div>
       </div>
 
       <div v-if="cubicMode === 'section'" :class="['slice-panel-container', sliceMenuCollapsed ? 'collapsed' : '']">
@@ -520,7 +523,7 @@ export default {
     this.threeApp = { 
       scene: null, camera: null, renderer: null, controls: null, 
       raycaster: null, pointer: null, objects: [], animationId: null, 
-      clippingPlane: null, planeHelper: null, examGroup: null, capMesh: null 
+      clippingPlane: null, planeHelper: null, examGroup: null, capMesh: null, gridHelper: null 
     };
   },
   watch: {
@@ -625,6 +628,10 @@ export default {
         if(mode === 'section') {
           // 截面模式默认加载一个基础正方体
           this.loadExamShape(this.examShapes.basic[0]);
+        }
+        // 更新网格状态
+        if(this.threeApp.gridHelper) {
+          this.threeApp.gridHelper.visible = (mode === 'block');
         }
       }); 
     },
@@ -740,9 +747,11 @@ export default {
       dirLight.position.set(10, 20, 10); 
       scene.add(dirLight);
 
-      // 辅助线 (网格) - 已移除
-      // const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xe5e5e5); 
-      // scene.add(gridHelper);
+      // 辅助线 (网格)
+      const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xe5e5e5); 
+      gridHelper.visible = (this.cubicMode === 'block'); // 仅在拼合模式显示
+      scene.add(gridHelper);
+      this.threeApp.gridHelper = gridHelper;
       
       const planeGeometry = new THREE.PlaneGeometry(20, 20); 
       planeGeometry.rotateX(-Math.PI / 2);
@@ -964,19 +973,28 @@ export default {
 <style scoped>
 /* 保持原有样式，新增/修改部分如下 */
 
-.shape-menu {
+/* 题库菜单容器 - 独立悬浮，避免被上方工具栏截断 */
+.shape-menu-container {
   position: absolute;
-  top: 45px;
-  left: 0;
-  width: 260px; /* 加宽以容纳更多 */
+  top: 60px; /* 位于顶部工具栏下方 */
+  left: 10px;
+  z-index: 50; /* 确保在最上层 */
+  pointer-events: auto; /* 允许点击 */
+}
+
+.shape-menu {
+  width: 260px; 
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 20;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
+  /* 修复: 菜单背景色增加不透明度 */
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
+
 .shape-group-title {
   font-size: 12px;
   color: #8e8e93;
@@ -991,7 +1009,7 @@ export default {
   gap: 6px;
 }
 .shape-item {
-  background: rgba(255,255,255,0.8);
+  background: rgba(240,240,245,0.8);
   padding: 8px 4px;
   font-size: 13px;
   text-align: center;
