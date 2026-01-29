@@ -292,6 +292,9 @@ import * as echarts from 'echarts';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+// === 引入 CSG 核心模块 (确保已 npm install three-bvh-csg three-mesh-bvh) ===
+import { SUBTRACTION, Brush, Evaluator } from 'three-bvh-csg';
+
 // ... (核心逻辑层代码保持不变，省略以聚焦重点) ...
 const shuffle = (arr) => {
   for(let i=arr.length-1;i>0;i--){ 
@@ -366,12 +369,7 @@ const createHollowPrism = () => {
   // 外轮廓 (CCW)
   shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
   const hole = new THREE.Path();
-  // 内孔洞 (CW) - 顺序: 左下 -> 左上 -> 右上 -> 右下 -> 左下
-  // 修正：这是顺时针 (x,y): (-2,-2) -> (-2,2) [dy>0] -> (2,2) [dx>0] -> (2,-2) [dy<0] -> (-2,-2) [dx<0] ?? 
-  // 实际上 Canvas 坐标系与 ThreeJS 坐标系 Y 轴方向可能影响理解。
-  // ThreeJS XY平面: Y向上。
-  // CCW: (-4,-4)->(4,-4)->(4,4)->(-4,4) (右->上->左->下)
-  // CW:  (-2,-2)->(-2,2)->(2,2)->(2,-2) (上->右->下->左)
+  // 内孔洞 (CW)
   hole.moveTo(-2, -2); hole.lineTo(-2, 2); hole.lineTo(2, 2); hole.lineTo(2, -2); hole.lineTo(-2, -2);
   shape.holes.push(hole);
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
@@ -665,7 +663,8 @@ export default {
     this.threeApp = { 
       scene: null, camera: null, renderer: null, controls: null, 
       raycaster: null, pointer: null, objects: [], animationId: null, 
-      clippingPlane: null, planeHelper: null, examGroup: null, capMesh: null, gridHelper: null 
+      examGroup: null, gridHelper: null,
+      csg: null // 新增：存储 CSG 计算器状态
     };
   },
   watch: {
@@ -788,28 +787,57 @@ export default {
     switchColor(c) { this.selectedColor = c; this.isDeleteMode = false; },
     toggleDeleteMode() { this.isDeleteMode = !this.isDeleteMode; },
     
-    updateRendererClipping() {
-       if(!this.threeApp.renderer) return;
-       // 仅在截面模式启用裁剪
-       const isSection = (this.cubicMode === 'section');
-       this.threeApp.renderer.localClippingEnabled = isSection;
-       if(this.threeApp.planeHelper) this.threeApp.planeHelper.visible = isSection;
-       if(this.threeApp.capMesh) this.threeApp.capMesh.visible = isSection;
-    },
-    
+    // CSG 模式下，每次 UI 变动都会调用这个方法
     updateSlicePlane() {
-      if (!this.threeApp.clippingPlane) return;
+      if (!this.threeApp.csg || !this.threeApp.scene) return;
+      const { baseBrush, cutterBrush, evaluator } = this.threeApp.csg;
       const { constant, rotX, rotY, rotZ } = this.sliceConfig;
+
+      // 1. 重置切刀
+      cutterBrush.position.set(0, 0, 0);
+      cutterBrush.rotation.set(0, 0, 0);
+      cutterBrush.updateMatrixWorld();
+
+      // 2. 计算切刀位置
+      // 我们的逻辑是：保留平面下方/后方的，切掉上方的。
+      // 切刀应该放在平面法线方向，且距离原点 "constant" 处
       
       const euler = new THREE.Euler(
         THREE.MathUtils.degToRad(rotX), 
         THREE.MathUtils.degToRad(rotY), 
         THREE.MathUtils.degToRad(rotZ)
       );
+      // 法线指向我们要切掉的方向
       const normal = new THREE.Vector3(0, -1, 0).applyEuler(euler).normalize();
       
-      this.threeApp.clippingPlane.normal.copy(normal);
-      this.threeApp.clippingPlane.constant = constant;
+      // 切刀是一个巨大的盒子(50x50x50)，我们需要让盒子的一个面贴合切面
+      const cutterSize = 25; // 盒子边长的一半
+      // 偏移量 = 法线 * (距离 - 半个盒子大小) -> 这样盒子的边缘正好落在 "constant" 平面上
+      const offset = normal.clone().multiplyScalar(constant - cutterSize);
+      
+      cutterBrush.position.copy(offset);
+      cutterBrush.lookAt(offset.clone().add(normal)); // 对齐方向
+      cutterBrush.updateMatrixWorld();
+      
+      baseBrush.updateMatrixWorld();
+
+      // 3. 执行 CSG 减法 (Base - Cutter)
+      const resultMesh = evaluator.evaluate(baseBrush, cutterBrush, SUBTRACTION);
+      
+      // 4. 设置材质
+      resultMesh.material = [
+          baseBrush.material,  // 外部白色
+          cutterBrush.material // 截面黑色
+      ];
+
+      // 5. 更新场景
+      if (this.threeApp.examGroup) {
+          this.threeApp.scene.remove(this.threeApp.examGroup);
+          if (this.threeApp.examGroup.geometry) this.threeApp.examGroup.geometry.dispose();
+      }
+      
+      this.threeApp.examGroup = resultMesh;
+      this.threeApp.scene.add(resultMesh);
     },
 
     resetSlice() {
@@ -817,13 +845,21 @@ export default {
     },
 
     lookAtSection() {
-      if (!this.threeApp.clippingPlane || !this.threeApp.controls || !this.threeApp.camera) return;
-      const normal = this.threeApp.clippingPlane.normal.clone();
+      if (!this.threeApp.controls || !this.threeApp.camera) return;
+      
+      // 计算当前切面的法线
+      const { rotX, rotY, rotZ } = this.sliceConfig;
+      const euler = new THREE.Euler(
+        THREE.MathUtils.degToRad(rotX), 
+        THREE.MathUtils.degToRad(rotY), 
+        THREE.MathUtils.degToRad(rotZ)
+      );
+      const normal = new THREE.Vector3(0, -1, 0).applyEuler(euler).normalize();
+
       const target = this.threeApp.controls.target.clone();
       const dist = 20; 
       
-      // 相机移动到切面法线方向
-      // Clipping Plane normal points OUT of the kept side.
+      // 移动相机到法线方向
       const eyePos = target.clone().add(normal.multiplyScalar(-dist));
       
       this.threeApp.camera.position.copy(eyePos);
@@ -867,20 +903,11 @@ export default {
       camera.position.set(12, 12, 12); 
       camera.lookAt(0, 0, 0);
 
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, stencil: true }); 
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); 
       renderer.setSize(width, height); 
       renderer.setPixelRatio(window.devicePixelRatio); 
-      renderer.localClippingEnabled = (this.cubicMode === 'section'); 
+      // CSG 不需要 localClippingEnabled
       container.appendChild(renderer.domElement);
-
-      // 全局裁剪平面
-      const clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-      const planeHelper = new THREE.PlaneHelper(clippingPlane, 15, 0xff0000);
-      planeHelper.visible = (this.cubicMode === 'section');
-      scene.add(planeHelper);
-      
-      this.threeApp.clippingPlane = clippingPlane;
-      this.threeApp.planeHelper = planeHelper;
 
       // 灯光
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
@@ -891,7 +918,7 @@ export default {
 
       // 辅助线 (网格)
       const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xe5e5e5); 
-      gridHelper.visible = (this.cubicMode === 'block'); // 仅在拼合模式显示
+      gridHelper.visible = (this.cubicMode === 'block'); 
       scene.add(gridHelper);
       this.threeApp.gridHelper = gridHelper;
       
@@ -901,24 +928,6 @@ export default {
       const plane = new THREE.Mesh(planeGeometry, planeMaterial); 
       plane.name = 'ground'; 
       scene.add(plane);
-
-      // === 创建全局 Cap Mesh (盖子) ===
-      const capGeom = new THREE.PlaneGeometry(100, 100);
-      const capMat = new THREE.MeshBasicMaterial({
-        color: 0x111111, 
-        stencilWrite: true,
-        stencilRef: 0,
-        stencilFunc: THREE.NotEqualStencilFunc, 
-        stencilFail: THREE.ReplaceStencilOp,
-        stencilZFail: THREE.ReplaceStencilOp,
-        stencilZPass: THREE.ReplaceStencilOp,
-        side: THREE.DoubleSide 
-      });
-      const capMesh = new THREE.Mesh(capGeom, capMat);
-      capMesh.renderOrder = 1; // <--- 关键修改：从 2 改为 1
-      capMesh.visible = false;
-      scene.add(capMesh);
-      this.threeApp.capMesh = capMesh;
 
       const controls = new OrbitControls(camera, renderer.domElement); 
       controls.enableDamping = true; 
@@ -944,7 +953,7 @@ export default {
       this.threeApp.controls = controls;
       this.threeApp.objects = [plane]; 
 
-      this.updateSlicePlane(); 
+      // 不再调用 updateSlicePlane，因为现在它依赖 CSG 初始化
       this.animate3D();
     },
 
@@ -952,89 +961,46 @@ export default {
        this.clearCubes(); 
        this.showShapeMenu = false;
        this.currentShapeName = shapeConf.name;
-
-       // 强制重置参数
        this.resetSlice();
-       this.updateRendererClipping();
 
-       if(this.threeApp.examGroup) {
-         this.threeApp.scene.remove(this.threeApp.examGroup);
-         this.threeApp.examGroup = null;
-       }
-
-       const geometry = shapeConf.create();
+       // 1. 创建原始几何体 (Base)
+       const baseGeometry = shapeConf.create();
+       baseGeometry.computeBoundingBox();
+       baseGeometry.center();
        
-       // Center Geometry
-       geometry.computeBoundingBox();
-       geometry.center();
-
-       const plane = this.threeApp.clippingPlane;
-       const group = new THREE.Group();
-
-       // 1. 背面模版
-       const matStencilBack = new THREE.MeshBasicMaterial({
-         depthWrite: false, depthTest: false, colorWrite: false,
-         stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc,
-         side: THREE.BackSide,
-         clippingPlanes: [plane],
-         stencilFail: THREE.IncrementWrapStencilOp,
-         stencilZFail: THREE.IncrementWrapStencilOp,
-         stencilZPass: THREE.IncrementWrapStencilOp,
+       // CSG 材质：DoubleSide 确保切开后能看到内部
+       const baseMaterial = new THREE.MeshStandardMaterial({
+           color: 0xFFFFFF,
+           metalness: 0.1,
+           roughness: 0.75,
+           side: THREE.DoubleSide
        });
-       const meshStencilBack = new THREE.Mesh(geometry, matStencilBack);
-       meshStencilBack.renderOrder = 0; 
-       group.add(meshStencilBack);
+       
+       // 创建 Brush
+       const baseBrush = new Brush(baseGeometry, baseMaterial);
+       
+       // 2. 创建切刀 (Cutter) - 50x50x50 的大黑块
+       const cutterGeometry = new THREE.BoxGeometry(50, 50, 50); 
+       const cutterMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
+       const cutterBrush = new Brush(cutterGeometry, cutterMaterial);
 
-       // 2. 正面模版
-       const matStencilFront = new THREE.MeshBasicMaterial({
-         depthWrite: false, depthTest: false, colorWrite: false,
-         stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc,
-         side: THREE.FrontSide,
-         clippingPlanes: [plane],
-         stencilFail: THREE.DecrementWrapStencilOp,
-         stencilZFail: THREE.DecrementWrapStencilOp,
-         stencilZPass: THREE.DecrementWrapStencilOp,
-       });
-       const meshStencilFront = new THREE.Mesh(geometry, matStencilFront);
-       meshStencilFront.renderOrder = 0; 
-       group.add(meshStencilFront);
+       // 3. 初始化 Evaluator
+       this.threeApp.csg = {
+           baseBrush: baseBrush,
+           cutterBrush: cutterBrush,
+           evaluator: new Evaluator()
+       };
+       this.threeApp.csg.evaluator.useGroups = true; // 启用材质分组
 
-       // 3. 视觉层
-       const matBase = new THREE.MeshStandardMaterial({
-         color: 0xFFFFFF,
-         metalness: 0.1,
-         roughness: 0.75,
-         clippingPlanes: [plane],
-         side: THREE.FrontSide,
-         stencilWrite: false 
-       });
-       const meshBase = new THREE.Mesh(geometry, matBase);
-       meshBase.renderOrder = 2; // <--- 关键修改：从 1 改为 2
-       group.add(meshBase);
-
-       this.threeApp.scene.add(group);
-       this.threeApp.examGroup = group;
+       // 触发初次计算
+       this.updateSlicePlane();
     },
 
     animate3D() { 
-      const { scene, camera, renderer, controls, clippingPlane, capMesh } = this.threeApp; 
+      const { scene, camera, renderer, controls } = this.threeApp; 
       if (!renderer) return; 
       
       this.threeApp.animationId = requestAnimationFrame(this.animate3D); 
-      
-      // Cap Mesh 同步
-      if (capMesh && this.cubicMode === 'section') {
-         const n = clippingPlane.normal;
-         const c = clippingPlane.constant;
-         capMesh.position.copy(n).clone().multiplyScalar(-c);
-         const target = capMesh.position.clone().add(n);
-         capMesh.lookAt(target);
-         capMesh.visible = true;
-      } else if (capMesh) {
-         capMesh.visible = false;
-      }
-
-      renderer.clearStencil(); 
       controls.update(); 
       renderer.render(scene, camera); 
     },
@@ -1097,7 +1063,6 @@ export default {
          scene.remove(this.threeApp.examGroup);
          this.threeApp.examGroup = null;
       }
-      // 不重置 cubicMode，仅清理对象
     },
     cleanup3D() { 
       if (this.threeApp.animationId) { cancelAnimationFrame(this.threeApp.animationId); } 
