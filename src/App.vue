@@ -301,11 +301,8 @@
 import * as echarts from 'echarts';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
-// === 引入 CSG 核心模块 ===
 import { SUBTRACTION, Brush, Evaluator } from 'three-bvh-csg';
 
-// ... (核心逻辑层代码保持不变，省略以聚焦重点) ...
 const shuffle = (arr) => {
   for(let i=arr.length-1;i>0;i--){ 
     const j = Math.floor(Math.random()*(i+1)); 
@@ -356,17 +353,11 @@ const MODE_GROUPS = {
   spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB', 'divSpecC'] }
 };
 
-// =================================================================
-// 扩展的公务员考试立体图形库
-// =================================================================
-
 // 1. 空心圆柱 (圆管)
 const createHollowCylinder = () => {
   const shape = new THREE.Shape();
-  // 外轮廓：逆时针 (false)
   shape.absarc(0, 0, 4, 0, Math.PI * 2, false);
   const hole = new THREE.Path();
-  // 内孔洞：顺时针 (true) - 关键修复
   hole.absarc(0, 0, 2, 0, Math.PI * 2, true);
   shape.holes.push(hole);
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
@@ -375,10 +366,8 @@ const createHollowCylinder = () => {
 // 2. 空心方柱 (方管)
 const createHollowPrism = () => {
   const shape = new THREE.Shape();
-  // 外轮廓 (CCW)
   shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
   const hole = new THREE.Path();
-  // 内孔洞 (CW)
   hole.moveTo(-2, -2); hole.lineTo(-2, 2); hole.lineTo(2, 2); hole.lineTo(2, -2); hole.lineTo(-2, -2);
   shape.holes.push(hole);
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
@@ -387,10 +376,8 @@ const createHollowPrism = () => {
 // 3. 回字型 (Frame / 框体)
 const createFrameShape = () => {
   const shape = new THREE.Shape();
-  // CCW Outer
   shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
   const hole = new THREE.Path();
-  // CW Inner
   hole.moveTo(-3, -3); hole.lineTo(-3, 3); hole.lineTo(3, 3); hole.lineTo(3, -3); hole.lineTo(-3, -3);
   shape.holes.push(hole);
   return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false });
@@ -399,7 +386,6 @@ const createFrameShape = () => {
 // 4. 凹型体 (U型槽)
 const createUShape = () => {
   const shape = new THREE.Shape();
-  // CCW 绘制
   shape.moveTo(-3, -3);
   shape.lineTo(3, -3);
   shape.lineTo(3, 3);
@@ -475,7 +461,6 @@ const createCubeWithHole = () => {
    const shape = new THREE.Shape();
    shape.moveTo(-3,-3); shape.lineTo(3,-3); shape.lineTo(3,3); shape.lineTo(-3,3);
    const hole = new THREE.Path();
-   // CW Hole
    hole.absarc(0,0,2,0,Math.PI*2,true);
    shape.holes.push(hole);
    return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 64 });
@@ -484,9 +469,8 @@ const createCubeWithHole = () => {
 // 10. 圆柱挖方孔
 const createCylinderWithRectHole = () => {
   const shape = new THREE.Shape();
-  shape.absarc(0, 0, 4, 0, Math.PI * 2, false); // CCW
+  shape.absarc(0, 0, 4, 0, Math.PI * 2, false); 
   const hole = new THREE.Path();
-  // CW Hole
   hole.moveTo(-1.5, -1.5);
   hole.lineTo(-1.5, 1.5);
   hole.lineTo(1.5, 1.5);
@@ -499,21 +483,17 @@ const createCylinderWithRectHole = () => {
 // 11. 拱门造型
 const createArchShape = () => {
   const shape = new THREE.Shape();
-  // Outer CCW
   shape.moveTo(-3, 0);
   shape.lineTo(3, 0);
   shape.lineTo(3, 4);
   shape.absarc(0, 4, 3, 0, Math.PI, false); 
   shape.lineTo(-3, 4);
-  
-  // Inner Hole CW
   const hole = new THREE.Path();
   hole.moveTo(-1.5, 0);
   hole.lineTo(-1.5, 3);
   hole.absarc(0, 3, 1.5, Math.PI, 0, true);
   hole.lineTo(1.5, 0);
   hole.lineTo(-1.5, 0);
-  
   shape.holes.push(hole);
   return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false, curveSegments: 32 });
 };
@@ -529,15 +509,15 @@ const createTrapezoidPrism = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
 };
 
-// 13. 半圆柱 (Semi-Cylinder)
+// 13. 半圆柱
 const createSemiCylinder = () => {
   const shape = new THREE.Shape();
-  shape.absarc(0, 0, 4, 0, Math.PI, false); // CCW arc
+  shape.absarc(0, 0, 4, 0, Math.PI, false); 
   shape.lineTo(-4, 0);
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 32 });
 };
 
-// 14. 扇形柱 (Sector Prism)
+// 14. 扇形柱
 const createSectorPrism = () => {
   const shape = new THREE.Shape();
   shape.moveTo(0, 0);
@@ -613,7 +593,6 @@ const EXAM_SHAPES = {
 export default {
   data() {
     return {
-      // ... (原有 data) ...
       viewState: 'home', currentModeKey: 'train', selectedDivisor: 0,
       pool: [], idx: 0, current: null, input: '', uiHint: 'Ready?', totalText: '0:00.0', progressText: '1/81', qText: '—', leftText: '跳过', 
       totalStartTs: 0, qStartTs: 0, timer: null, trainWrong: 0, trainSkip: 0, curWrongTries: 0, trainLog: [], results: [], 
@@ -622,7 +601,7 @@ export default {
       modeGroups: MODE_GROUPS, divisorList: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],
       
       // 3D 模式状态
-      cubicMode: 'block', // 'block' | 'section'
+      cubicMode: 'block',
       isDeleteMode: false,
       showShapeMenu: false, 
       sliceMenuCollapsed: false, 
@@ -673,7 +652,7 @@ export default {
       scene: null, camera: null, renderer: null, controls: null, 
       raycaster: null, pointer: null, objects: [], animationId: null, 
       examGroup: null, gridHelper: null,
-      csg: null, sliceHelper: null // 新增：sliceHelper 用于显示透明切面
+      csg: null, sliceHelper: null
     };
   },
   watch: {
@@ -764,82 +743,62 @@ export default {
     renderChart(targetModeName) { const chartDom = document.getElementById('accChart'); if(!chartDom) return; if(this.chartInstance) this.chartInstance.dispose(); this.chartInstance = echarts.init(chartDom); const allData = JSON.parse(JSON.stringify(this.historyList)).reverse(); const filteredData = allData.filter(item => item.modeName === targetModeName); const dateList = []; const accuracyList = []; const timeList = []; filteredData.forEach(item => { let accuracy = 0; if(item.mode === 'train') { let wrong = 0; if(item.detail && item.detail.length > 0) { wrong = item.detail.filter(x => x.wrong > 0).length; } else { const match = item.summary.match(/错(\d+)/); if(match) wrong = parseInt(match[1]); } accuracy = ((81 - wrong) / 81) * 100; } else { if(item.detail && item.detail.length > 0) { const correctCount = item.detail.filter(x => x.ok).length; accuracy = (correctCount / item.detail.length) * 100; } else { const match = item.summary.match(/(\d+)%/); if(match) accuracy = parseInt(match[1]); } } let duration = 0; if(item.duration) { duration = parseFloat(item.duration.replace('s', '')); } dateList.push(item.timeStr); accuracyList.push(accuracy.toFixed(0)); timeList.push(duration.toFixed(1)); }); if(dateList.length === 0) { this.chartInstance.setOption({ title: { text: '该模式暂无数据', left: 'center', top: 'center', textStyle: { color: '#999' } } }); return; } const option = { grid: { top: 30, bottom: 20, left: 30, right: 30, containLabel: true }, tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: dateList, axisLabel: { color: '#333', fontSize: 10, interval: 'auto', hideOverlap: true } }, yAxis: [ { type: 'value', min: 0, max: 100, position: 'left', splitLine: { show:true, lineStyle: { type: 'dashed', opacity: 0.1 } }, axisLabel: {color: '#007aff', formatter: '{value}%'} }, { type: 'value', position: 'right', splitLine: { show: false }, axisLabel: {color: '#ff3b30', formatter: '{value}s'} } ], series: [ { name: '正确率', type: 'line', yAxisIndex: 0, smooth: true, lineStyle: { color: '#007aff', width: 3 }, itemStyle: { color: '#007aff' }, data: accuracyList }, { name: '耗时', type: 'line', yAxisIndex: 1, smooth: true, lineStyle: { color: '#ff3b30', width: 2, type: 'dashed' }, itemStyle: { color: '#ff3b30' }, data: timeList } ] }; this.chartInstance.setOption(option); },
     closeChart() { this.showChart = false; if(this.chartInstance) { this.chartInstance.dispose(); this.chartInstance = null; } },
 
-    // =================================================================
-    // 3D 模块 (拼合 & 截面 双模式)
-    // =================================================================
+    // 3D 模块
     startCubicMode(mode = 'block') {
       this.cubicMode = mode;
       this.viewState = 'cubic'; 
       this.sliceMenuCollapsed = false;
       this.resetSlice();
-      
       this.$nextTick(() => { 
         this.initThree(); 
         if(mode === 'section') {
-          // 截面模式默认加载一个基础正方体
           this.loadExamShape(this.examShapes.basic[0]);
         }
-        // 更新网格状态
         if(this.threeApp.gridHelper) {
           this.threeApp.gridHelper.visible = (mode === 'block');
         }
       }); 
     },
-
     quitCubicMode() { 
       this.cleanup3D(); 
       this.viewState = 'home'; 
       this.isDeleteMode = false; 
       this.showShapeMenu = false; 
     },
-
     switchColor(c) { this.selectedColor = c; this.isDeleteMode = false; },
     toggleDeleteMode() { this.isDeleteMode = !this.isDeleteMode; },
     
-    // CSG 模式下，每次 UI 变动都会调用这个方法
     updateSlicePlane() {
       if (!this.threeApp.csg || !this.threeApp.scene) return;
       const { baseBrush, cutterBrush, evaluator } = this.threeApp.csg;
       const { constant, rotX, rotY, rotZ } = this.sliceConfig;
 
-      // 1. 重置切刀
       cutterBrush.position.set(0, 0, 0);
       cutterBrush.rotation.set(0, 0, 0);
       cutterBrush.updateMatrixWorld();
 
-      // 2. 计算切刀位置
-      // 我们的逻辑是：保留平面下方/后方的，切掉上方的。
-      // 切刀应该放在平面法线方向，且距离原点 "constant" 处
-      
       const euler = new THREE.Euler(
         THREE.MathUtils.degToRad(rotX), 
         THREE.MathUtils.degToRad(rotY), 
         THREE.MathUtils.degToRad(rotZ)
       );
-      // 法线指向我们要切掉的方向
       const normal = new THREE.Vector3(0, -1, 0).applyEuler(euler).normalize();
-      
-      // 切刀是一个巨大的盒子(50x50x50)，我们需要让盒子的一个面贴合切面
-      const cutterSize = 25; // 盒子边长的一半
-      // 偏移量 = 法线 * (距离 - 半个盒子大小) -> 这样盒子的边缘正好落在 "constant" 平面上
+      const cutterSize = 25; 
       const offset = normal.clone().multiplyScalar(constant - cutterSize);
       
       cutterBrush.position.copy(offset);
-      cutterBrush.lookAt(offset.clone().add(normal)); // 对齐方向
+      cutterBrush.lookAt(offset.clone().add(normal)); 
       cutterBrush.updateMatrixWorld();
       
       baseBrush.updateMatrixWorld();
 
-      // 3. 执行 CSG 减法 (Base - Cutter)
       const resultMesh = evaluator.evaluate(baseBrush, cutterBrush, SUBTRACTION);
       
-      // 4. 设置材质
       resultMesh.material = [
-          baseBrush.material,  // 外部白色
-          cutterBrush.material // 截面黑色
+          baseBrush.material,
+          cutterBrush.material 
       ];
 
-      // 5. 更新场景
       if (this.threeApp.examGroup) {
           this.threeApp.scene.remove(this.threeApp.examGroup);
           if (this.threeApp.examGroup.geometry) this.threeApp.examGroup.geometry.dispose();
@@ -848,11 +807,9 @@ export default {
       this.threeApp.examGroup = resultMesh;
       this.threeApp.scene.add(resultMesh);
 
-      // 6. [新增] 更新透明切面显示
       if (this.threeApp.sliceHelper) {
          const h = this.threeApp.sliceHelper;
          h.visible = true;
-         // 辅助平面位置就在切面的位置：法线 * 距离
          const planePos = normal.clone().multiplyScalar(constant);
          h.position.copy(planePos);
          h.lookAt(planePos.clone().add(normal));
@@ -865,8 +822,6 @@ export default {
 
     lookAtSection() {
       if (!this.threeApp.controls || !this.threeApp.camera) return;
-      
-      // 计算当前切面的法线
       const { rotX, rotY, rotZ } = this.sliceConfig;
       const euler = new THREE.Euler(
         THREE.MathUtils.degToRad(rotX), 
@@ -877,8 +832,6 @@ export default {
 
       const target = this.threeApp.controls.target.clone();
       const dist = 20; 
-      
-      // 移动相机到法线方向
       const eyePos = target.clone().add(normal.multiplyScalar(-dist));
       
       this.threeApp.camera.position.copy(eyePos);
@@ -915,7 +868,6 @@ export default {
       scene.background = new THREE.Color('#f2f2f7'); 
       scene.fog = new THREE.Fog('#f2f2f7', 30, 80);
 
-      // 正交相机
       const aspect = width / height;
       const d = 16; 
       const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
@@ -925,17 +877,14 @@ export default {
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); 
       renderer.setSize(width, height); 
       renderer.setPixelRatio(window.devicePixelRatio); 
-      // CSG 不需要 localClippingEnabled
       container.appendChild(renderer.domElement);
 
-      // 灯光
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
       scene.add(ambientLight);
       const dirLight = new THREE.DirectionalLight(0xffffff, 0.8); 
       dirLight.position.set(10, 20, 10); 
       scene.add(dirLight);
 
-      // 辅助线 (网格)
       const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xe5e5e5); 
       gridHelper.visible = (this.cubicMode === 'block'); 
       scene.add(gridHelper);
@@ -948,14 +897,13 @@ export default {
       plane.name = 'ground'; 
       scene.add(plane);
 
-      // [新增] 辅助切面 (透明红色) - 大小改为 15x15，更紧凑
       const sliceGeo = new THREE.PlaneGeometry(15, 15);
       const sliceMat = new THREE.MeshBasicMaterial({
-         color: 0xff3b30, // iOS 红色
-         opacity: 0.1,    // 很淡的透明度
+         color: 0xff3b30, 
+         opacity: 0.1,    
          transparent: true,
          side: THREE.DoubleSide,
-         depthWrite: false, // 防止遮挡深度计算
+         depthWrite: false,
       });
       const sliceHelper = new THREE.Mesh(sliceGeo, sliceMat);
       sliceHelper.visible = false; 
@@ -986,7 +934,6 @@ export default {
       this.threeApp.controls = controls;
       this.threeApp.objects = [plane]; 
 
-      // 不再调用 updateSlicePlane，因为现在它依赖 CSG 初始化
       this.animate3D();
     },
 
@@ -996,12 +943,10 @@ export default {
        this.currentShapeName = shapeConf.name;
        this.resetSlice();
 
-       // 1. 创建原始几何体 (Base)
        const baseGeometry = shapeConf.create();
        baseGeometry.computeBoundingBox();
        baseGeometry.center();
        
-       // CSG 材质：DoubleSide 确保切开后能看到内部
        const baseMaterial = new THREE.MeshStandardMaterial({
            color: 0xFFFFFF,
            metalness: 0.1,
@@ -1009,30 +954,24 @@ export default {
            side: THREE.DoubleSide
        });
        
-       // 创建 Brush
        const baseBrush = new Brush(baseGeometry, baseMaterial);
-       
-       // 2. 创建切刀 (Cutter) - 50x50x50 的大黑块
        const cutterGeometry = new THREE.BoxGeometry(50, 50, 50); 
        const cutterMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
        const cutterBrush = new Brush(cutterGeometry, cutterMaterial);
 
-       // 3. 初始化 Evaluator
        this.threeApp.csg = {
            baseBrush: baseBrush,
            cutterBrush: cutterBrush,
            evaluator: new Evaluator()
        };
-       this.threeApp.csg.evaluator.useGroups = true; // 启用材质分组
+       this.threeApp.csg.evaluator.useGroups = true; 
 
-       // 触发初次计算
        this.updateSlicePlane();
     },
 
     animate3D() { 
       const { scene, camera, renderer, controls } = this.threeApp; 
       if (!renderer) return; 
-      
       this.threeApp.animationId = requestAnimationFrame(this.animate3D); 
       controls.update(); 
       renderer.render(scene, camera); 
@@ -1066,7 +1005,6 @@ export default {
 
     addCubeAt(scene, position) {
       const geometry = new THREE.BoxGeometry(1, 1, 1); 
-      // 拼合模式不需要 clipping
       const material = new THREE.MeshLambertMaterial({ color: this.selectedColor }); 
       
       const cube = new THREE.Mesh(geometry, material); 
@@ -1096,7 +1034,6 @@ export default {
          scene.remove(this.threeApp.examGroup);
          this.threeApp.examGroup = null;
       }
-      // 隐藏辅助平面
       if (this.threeApp.sliceHelper) {
          this.threeApp.sliceHelper.visible = false;
       }
@@ -1115,17 +1052,15 @@ export default {
 </script>
 
 <style scoped>
-/* 保持原有样式，新增/修改部分如下 */
-
-/* 题库菜单容器 - 独立悬浮，避免被上方工具栏截断 */
 .shape-menu-container {
   position: absolute;
-  top: 60px; /* 位于顶部工具栏下方 */
+  top: 60px;
   left: 10px;
-  z-index: 50; /* 确保在最上层 */
-  pointer-events: auto; /* 允许点击 */
+  z-index: 50; 
+  pointer-events: auto; 
 }
 
+/* 修改：添加圆角和隐藏滚动条 */
 .shape-menu {
   width: 260px; 
   padding: 12px;
@@ -1134,10 +1069,12 @@ export default {
   gap: 8px;
   max-height: 400px;
   overflow-y: auto;
-  /* 修复: 菜单背景色增加不透明度 */
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  border-radius: 24px;
+  scrollbar-width: none; 
 }
+.shape-menu::-webkit-scrollbar { display: none; }
 
 .shape-group-title {
   font-size: 12px;
@@ -1169,7 +1106,6 @@ export default {
   transform: scale(0.95);
 }
 
-/* 半隐式切面面板 */
 .slice-panel-container {
   position: absolute;
   bottom: 20px; 
@@ -1245,7 +1181,6 @@ export default {
   cursor: pointer;
 }
 
-/* ... (原有 CSS) ... */
 .homeStartBtn{ margin-top: 14px; }
 .page { height: 100vh; min-height: 100vh; background: radial-gradient(at 0% 0%, hsla(210,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(260,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(300,100%,94%,1) 0, transparent 50%), radial-gradient(at 0% 100%, hsla(180,100%,94%,1) 0, transparent 50%); background-color: #f2f2f7; color: #1c1c1e; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.08); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; box-sizing: border-box; position: relative; overflow: hidden; }
 .mesh-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
@@ -1258,46 +1193,42 @@ export default {
 .toast-content { background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); color: #fff; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
 .wrap { padding: 20px 16px 24px; box-sizing: border-box; position: relative; z-index: 1; }
 
-/* === 关键布局修改：Home 页面三段式逻辑 === */
 .homeWrap { 
   flex: 1; 
   display: flex; 
   flex-direction: column; 
   justify-content: flex-start; 
-  overflow: hidden; /* 禁止 wrap 滚动，交给 scroll-content */
+  overflow: hidden; 
   padding-top: max(60px, env(safe-area-inset-top)); 
-  padding-bottom: 0; /* 底部由 fixed 区域接管 */
+  padding-bottom: 0; 
 }
 
-/* 头部区域 */
 .header-area { 
-  margin-bottom: 10px; /* 减小间距 */
+  margin-bottom: 10px; 
   text-align: center; 
   flex-shrink: 0; 
 }
 
-/* 中间：固定白框区域 */
+/* 修改：去除 overflow 以修复阴影问题，增加 margin-bottom 拉大间距 */
 .menu-area-fixed {
-  flex: 1; /* 占据剩余空间 */
-  overflow: hidden;
-  padding: 0 4px; /* 两侧留一点缝隙 */
-  margin-bottom: 10px;
+  flex: 1;
+  overflow: visible; 
+  padding: 0 16px; 
+  margin-bottom: 24px; 
   display: flex;
   flex-direction: column;
 }
 
-/* 白框卡片本身 */
 .full-menu-card {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-radius: 24px;
-  margin-bottom: 0 !important; /* 去掉原有卡片边距 */
-  padding: 0 !important; /* 清除默认padding，交给内部容器 */
+  margin-bottom: 0 !important; 
+  padding: 0 !important; 
 }
 
-/* 内部滚动容器 */
 .menu-scroll-container {
   flex: 1;
   overflow-y: auto;
@@ -1307,22 +1238,18 @@ export default {
 }
 .menu-scroll-container::-webkit-scrollbar { display: none; }
 
-/* 底部：固定操作区域 */
 .fixed-bottom {
   flex-shrink: 0;
-  padding: 0 16px 24px 16px; /* 增加左右内边距，确保卡片不贴边 */
+  padding: 0 16px 24px 16px; 
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
   z-index: 10;
 }
 
 .bottom-panel {
   padding: 16px;
-  border-radius: 24px !important; /* 强制圆角 */
-  /* 可选：如果你希望底部卡片有明显的悬浮感 */
-  /* margin: 0 10px; */ 
+  border-radius: 24px !important; 
 }
 
-/* ...原有的其他CSS... */
 .full-height { flex: 1; display: flex; flex-direction: column; height: 100vh; }
 .full-flex { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 20px; }
 .title { font-size: 34px; font-weight: 900; margin: 0 0 6px; color: #000; letter-spacing: -0.5px; }
