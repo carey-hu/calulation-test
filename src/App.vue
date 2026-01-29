@@ -13,8 +13,8 @@
     <div v-if="viewState==='home'" class="wrap homeWrap">
       
       <div class="header-area">
-        <div class="title">è®¡ç®—åŠ©æ‰‹</div>
-        <div class="subtitle">ä¸“é¡¹ç»ƒä¹ ï¼šè¿›ä½åŠ ã€é€€ä½å‡ã€å¤§ä¹ä¹é™¤æ³•</div>
+        <div class="title">¼ÆËãÖúÊÖ</div>
+        <div class="subtitle">×¨ÏîÁ·Ï°£º½øÎ»¼Ó¡¢ÍËÎ»¼õ¡¢´ó¾Å¾Å³ı·¨</div>
       </div>
 
       <div class="menu-area-fixed">
@@ -25,7 +25,7 @@
               
               <div v-if="groupKey === 'divSelect'" style="margin-bottom: 10px;">
                   <button class="btnGhost glass-btn" style="margin-top:0; height:45px; line-height:45px; font-size:16px;" @click="toSelectDivisor">
-                  è¿›å…¥é™¤æ•°é€‰æ‹©æ¨¡å¼
+                  ½øÈë³ıÊıÑ¡ÔñÄ£Ê½
                 </button>
               </div>
 
@@ -41,13 +41,13 @@
               </div>
             </template>
             
-            <div class="rowLabel">ç©ºé—´æ€ç»´ä¸“é¡¹ (å…¬è€ƒè¡Œæµ‹)</div>
+            <div class="rowLabel">¿Õ¼äË¼Î¬×¨Ïî (¹«¿¼ĞĞ²â)</div>
             <div class="modeRow">
                <div class="modeItem" style="flex: 1 0 45%; background: rgba(0,122,255,0.08); border-color: rgba(0,122,255,0.2);" @click="startCubicMode('block')">
-                  <span class="modeTitle" style="color: #007aff;">ğŸ§± ç«‹ä½“æ‹¼åˆ</span>
+                  <span class="modeTitle" style="color: #007aff;">?? Á¢ÌåÆ´ºÏ</span>
                </div>
                <div class="modeItem" style="flex: 1 0 45%; background: rgba(88,86,214,0.1); border-color: rgba(88,86,214,0.2);" @click="startCubicMode('section')">
-                  <span class="modeTitle" style="color: #5856d6;">ğŸ”ª ç«‹ä½“æˆªé¢</span>
+                  <span class="modeTitle" style="color: #5856d6;">?? Á¢Ìå½ØÃæ</span>
                </div>
             </div>
             <div style="height: 10px;"></div>
@@ -57,8 +57,8 @@
 
       <div class="fixed-bottom">
         <div class="glass-panel bottom-panel">
-          <button class="btnPrimary main-action-btn" @click="startGame">å¼€å§‹ç»ƒä¹ </button>
-          <button class="btnHistory main-action-btn" @click="openHistory">å†å²è®°å½•</button>
+          <button class="btnPrimary main-action-btn" @click="startGame">¿ªÊ¼Á·Ï°</button>
+          <button class="btnHistory main-action-btn" @click="openHistory">ÀúÊ·¼ÇÂ¼</button>
         </div>
       </div>
 
@@ -66,44 +66,44 @@
 
     <div v-if="viewState==='selectDivisor'" class="wrap homeWrap">
       <div class="header-area">
-        <div class="title">é€‰æ‹©é™¤æ•°</div>
-        <div class="subtitle">ç‚¹å‡»ä¸‹æ–¹æ•°å­—å¼€å§‹ç»ƒä¹ å•†é¦–ä½</div>
+        <div class="title">Ñ¡Ôñ³ıÊı</div>
+        <div class="subtitle">µã»÷ÏÂ·½Êı×Ö¿ªÊ¼Á·Ï°ÉÌÊ×Î»</div>
       </div>
       <div class="card glass-panel" style="flex:1; overflow-y:auto;">
         <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px;">
           <button v-for="item in divisorList" :key="item" class="k glass-key" style="font-size:20px; height:50px; line-height:50px;" @click="selectDivisorAndStart(item)">{{item}}</button>
         </div>
-        <button class="btnGhost glass-btn main-action-btn" style="margin-top: 20px;" @click="goHome">è¿”å›ä¸»é¡µ</button>
+        <button class="btnGhost glass-btn main-action-btn" style="margin-top: 20px;" @click="goHome">·µ»ØÖ÷Ò³</button>
       </div>
     </div>
 
     <div v-if="viewState==='game'" class="wrap gameRoot">
       <div class="topbar safe-top">
-        <button class="btnBack glass-btn" @click="goHome">è¿”å›</button>
+        <button class="btnBack glass-btn" @click="goHome">·µ»Ø</button>
         <div class="topStats">
           <div class="stat glass-pill">{{progressText}}</div>
-          <div class="stat glass-pill timer">â± {{totalText}}</div>
+          <div class="stat glass-pill timer">? {{totalText}}</div>
         </div>
       </div>
       <div class="gameMain">
         <div class="card qCard glass-panel">
           <div :class="['qText', isSmallFont ? 'qText-small' : '']">{{qText}}</div>
-          <div class="qNote">{{activeConfig.hintNote || activeConfig.hint || 'ç²¾ç¡®åˆ°æ•´æ•°'}}</div>
-          <div class="ansBox glass-input">ç­”æ¡ˆï¼š{{input ? input : 'â€”'}}</div>
+          <div class="qNote">{{activeConfig.hintNote || activeConfig.hint || '¾«È·µ½ÕûÊı'}}</div>
+          <div class="ansBox glass-input">´ğ°¸£º{{input ? input : '¡ª'}}</div>
           <div class="hint">{{uiHint}}</div>
         </div>
       </div>
       <div class="keypad card glass-panel">
         <div class="fnRow">
           <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
-          <button class="kFn style-clear" @click="clearInput">æ¸…ç©º</button>
-          <button class="kFn style-del" @click="backspace">é€€æ ¼</button>
+          <button class="kFn style-clear" @click="clearInput">Çå¿Õ</button>
+          <button class="kFn style-del" @click="backspace">ÍË¸ñ</button>
         </div>
         <div class="grid">
           <button v-for="item in [1,2,3,4,5,6,7,8,9]" :key="item" class="k glass-key" @click="pressDigit(item)">{{item}}</button>
           <button class="k glass-key" @click="pressDot">.</button>
           <button class="k glass-key" @click="pressDigit(0)">0</button>
-          <button class="k confirm glass-key-confirm" @click="confirmAnswer">ç¡®è®¤</button>
+          <button class="k confirm glass-key-confirm" @click="confirmAnswer">È·ÈÏ</button>
         </div>
       </div>
     </div>
@@ -119,7 +119,7 @@
             <div v-for="(item, index) in trainLog" :key="index" class="row">
               <span class="rowLeft">{{index+1}}. {{item.q}}</span>
               <span class="rowRight">
-                <span :style="{ color: parseFloat(item.usedStr) > 2 ? '#ff3b30' : 'inherit' }">{{item.usedStr}}</span> / é”™{{item.wrong}}{{item.skipped?'(è·³)':''}}
+                <span :style="{ color: parseFloat(item.usedStr) > 2 ? '#ff3b30' : 'inherit' }">{{item.usedStr}}</span> / ´í{{item.wrong}}{{item.skipped?'(Ìø)':''}}
               </span>
             </div>
           </template>
@@ -129,11 +129,11 @@
               <span class="rowRight" style="display:flex; flex-direction:column; align-items:flex-end;">
                   <div>
                       <span style="margin-right:4px; font-size:13px; color:#666;">{{item.usedStr}}</span>
-                      <span>{{item.ok ? 'âœ…' : 'âŒ'}}</span>
+                      <span>{{item.ok ? '?' : '?'}}</span>
                       <span v-if="!item.ok" style="color:#ff3b30; font-size:13px; margin-left:2px; font-weight:700;">({{item.realAns}})</span>
                   </div>
                   <div v-if="item.ok && item.exactAns" style="font-size:11px; color:#007aff; margin-top:2px; font-weight:500;">
-                      å‡†:{{ item.exactAns }} è¯¯:{{ item.errorRate }}
+                      ×¼:{{ item.exactAns }} Îó:{{ item.errorRate }}
                   </div>
               </span>
             </div>
@@ -141,11 +141,11 @@
         </div>
         <div style="margin-top: 15px;">
           <div v-if="isHistoryReview">
-            <button class="btnPrimary glass-primary main-action-btn" @click="backToHistory">è¿”å›åˆ—è¡¨</button>
+            <button class="btnPrimary glass-primary main-action-btn" @click="backToHistory">·µ»ØÁĞ±í</button>
           </div>
           <div v-else>
-            <button class="btnPrimary glass-primary main-action-btn" @click="goHome">è¿”å›ä¸»é¡µ</button>
-            <button class="btnGhost glass-btn main-action-btn" @click="startGame" style="margin-top:10px;">å†æ¥ä¸€å±€</button>
+            <button class="btnPrimary glass-primary main-action-btn" @click="goHome">·µ»ØÖ÷Ò³</button>
+            <button class="btnGhost glass-btn main-action-btn" @click="startGame" style="margin-top:10px;">ÔÙÀ´Ò»¾Ö</button>
           </div>
         </div>
       </div>
@@ -153,8 +153,8 @@
 
     <div v-if="viewState==='history'" class="wrap full-height">
       <div class="header-area safe-header">
-        <div class="title">å†å²è®°å½•</div>
-        <div class="subtitle">ä»…ä¿ç•™æœ€è¿‘5000æ¡è®­ç»ƒæ•°æ®</div>
+        <div class="title">ÀúÊ·¼ÇÂ¼</div>
+        <div class="subtitle">½ö±£Áô×î½ü5000ÌõÑµÁ·Êı¾İ</div>
       </div>
       <div class="card full-flex glass-panel">
         <div v-if="showChart" class="chart-container glass-inner">
@@ -162,16 +162,16 @@
              <div v-for="m in availableModes" :key="m" :class="['chart-tab-item', chartTab === m ? 'active' : '']" @click="switchChartTab(m)">{{ m }}</div>
            </div>
            <div id="accChart" style="width: 100%; height: 220px;"></div>
-           <button class="btnGhost small" style="margin-top:5px; font-size:13px;" @click="closeChart">æ”¶èµ·å›¾è¡¨</button>
+           <button class="btnGhost small" style="margin-top:5px; font-size:13px;" @click="closeChart">ÊÕÆğÍ¼±í</button>
         </div>
         <div v-else>
-           <button class="btnGhost glass-btn" style="height:44px; line-height:44px; font-size:16px; margin-bottom:15px; color:#007aff;" @click="initChart">ğŸ“Š æŒ‰æ¨¡å—åˆ†æè¶‹åŠ¿</button>
+           <button class="btnGhost glass-btn" style="height:44px; line-height:44px; font-size:16px; margin-bottom:15px; color:#007aff;" @click="initChart">?? °´Ä£¿é·ÖÎöÇ÷ÊÆ</button>
         </div>
         <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:0 8px; font-weight:700; color:#8e8e93; font-size:13px;">
-           <span>æ—¶é—´ / æ¨¡å¼</span><span>æˆç»© / è€—æ—¶</span>
+           <span>Ê±¼ä / Ä£Ê½</span><span>³É¼¨ / ºÄÊ±</span>
         </div>
         <div class="resultScroll">
-          <div v-if="historyList.length === 0" style="text-align:center; padding: 20px; color:rgba(0,0,0,0.4);">æš‚æ— è®°å½•ï¼Œå¿«å»ç»ƒä¹ å§ï¼</div>
+          <div v-if="historyList.length === 0" style="text-align:center; padding: 20px; color:rgba(0,0,0,0.4);">ÔİÎŞ¼ÇÂ¼£¬¿ìÈ¥Á·Ï°°É£¡</div>
           <div v-else>
             <div v-for="(item, index) in historyList" :key="item.ts" class="row hover-row" @click="viewHistoryDetail(index)" style="cursor:pointer;">
               <div class="rowLeft" style="display:flex; flex-direction:column;">
@@ -186,10 +186,10 @@
           </div>
         </div>
         <div style="margin-top: 15px; display:flex; flex-direction: column; gap:10px;">
-          <button v-if="historyList.length > 1000" class="btnGhost glass-btn" style="margin:0; height: 40px; font-size: 16px; color: #ff3b30; background: rgba(255,59,48,0.08); border-color: rgba(255,59,48,0.2);" @click="clearOldest">ğŸ—‘ï¸ æ¸…ç†æœ€æ—©çš„ 1000 æ¡</button>
+          <button v-if="historyList.length > 1000" class="btnGhost glass-btn" style="margin:0; height: 40px; font-size: 16px; color: #ff3b30; background: rgba(255,59,48,0.08); border-color: rgba(255,59,48,0.2);" @click="clearOldest">??? ÇåÀí×îÔçµÄ 1000 Ìõ</button>
           <div style="display:flex; gap:10px;">
-            <button class="btnDanger glass-btn main-action-btn" style="margin:0; flex:1;" @click="clearHistory">æ¸…ç©ºå…¨éƒ¨</button>
-            <button class="btnPrimary glass-primary main-action-btn" style="margin:0; flex:1;" @click="closeHistory">è¿”å›ä¸»é¡µ</button>
+            <button class="btnDanger glass-btn main-action-btn" style="margin:0; flex:1;" @click="clearHistory">Çå¿ÕÈ«²¿</button>
+            <button class="btnPrimary glass-primary main-action-btn" style="margin:0; flex:1;" @click="closeHistory">·µ»ØÖ÷Ò³</button>
           </div>
         </div>
       </div>
@@ -200,17 +200,17 @@
 
       <div class="cubic-ui safe-top">
         <div class="glass-panel" style="padding: 8px 12px; display: flex; gap: 8px; align-items: center; border-radius: 24px; max-width: 98%; overflow-x: auto;">
-          <button class="btnBack glass-btn small-btn" @click="quitCubicMode">ğŸ”™</button>
+          <button class="btnBack glass-btn small-btn" @click="quitCubicMode">??</button>
           <div class="divider"></div>
 
           <template v-if="cubicMode === 'section'">
              <div style="position:relative;">
                 <button class="btnGhost small-btn" @click="showShapeMenu = !showShapeMenu" style="font-size:13px; color:#5856d6; font-weight:700;">
-                  ğŸ“‚ é¢˜åº“ ({{ currentShapeName }})
+                  ?? Ìâ¿â ({{ currentShapeName }})
                 </button>
              </div>
              <div class="divider"></div>
-             <button class="view-btn" style="background:#000; color:#fff; border:none;" @click="lookAtSection">ğŸ‘€ æ­£è§†åˆ‡é¢</button>
+             <button class="view-btn" style="background:#000; color:#fff; border:none;" @click="lookAtSection">?? ÕıÊÓÇĞÃæ</button>
           </template>
 
           <template v-else>
@@ -221,41 +221,41 @@
                 @click="switchColor(c)"></div>
             </div>
             <div class="divider"></div>
-            <button :class="['btnIcon', isDeleteMode ? 'active' : '']" @click="toggleDeleteMode">ğŸ—‘ï¸</button>
-            <button class="btnIcon" @click="clearCubes">ğŸ”„</button>
+            <button :class="['btnIcon', isDeleteMode ? 'active' : '']" @click="toggleDeleteMode">???</button>
+            <button class="btnIcon" @click="clearCubes">??</button>
           </template>
         </div>
 
         <div class="view-selector glass-panel">
-          <button class="view-btn" @click="setCameraView('front')">æ­£</button>
-          <button class="view-btn" @click="setCameraView('left')">å·¦</button>
-          <button class="view-btn" @click="setCameraView('top')">ä¿¯</button>
-          <button class="view-btn active-view" @click="setCameraView('iso')">è½´</button>
+          <button class="view-btn" @click="setCameraView('front')">Õı</button>
+          <button class="view-btn" @click="setCameraView('left')">×ó</button>
+          <button class="view-btn" @click="setCameraView('top')">¸©</button>
+          <button class="view-btn active-view" @click="setCameraView('iso')">Öá</button>
         </div>
         
-        <div class="tip-toast" v-if="cubicMode === 'block'">ç‚¹å‡»åœ°é¢æ”¾ç½®ï¼Œç‚¹å‡»æ–¹å—å åŠ </div>
-        <div class="tip-toast" v-if="cubicMode === 'section'" style="background:rgba(88,86,214,0.85);">è¯·è°ƒèŠ‚ä¸‹æ–¹æ»‘å—è§‚å¯Ÿæˆªé¢å˜åŒ–</div>
+        <div class="tip-toast" v-if="cubicMode === 'block'">µã»÷µØÃæ·ÅÖÃ£¬µã»÷·½¿éµş¼Ó</div>
+        <div class="tip-toast" v-if="cubicMode === 'section'" style="background:rgba(88,86,214,0.85);">Çëµ÷½ÚÏÂ·½»¬¿é¹Û²ì½ØÃæ±ä»¯</div>
       </div>
 
       <div v-if="showShapeMenu && cubicMode === 'section'" class="shape-menu-container">
         <div class="shape-menu glass-panel">
-          <div class="shape-group-title">åŸºç¡€æŸ±ä½“/å¤šé¢ä½“</div>
+          <div class="shape-group-title">»ù´¡ÖùÌå/¶àÃæÌå</div>
           <div class="shape-grid">
             <div v-for="s in examShapes.basic" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
-          <div class="shape-group-title">æ›²é¢ä½“ (é”¥/å°/çƒ)</div>
+          <div class="shape-group-title">ÇúÃæÌå (×¶/Ì¨/Çò)</div>
           <div class="shape-grid">
             <div v-for="s in examShapes.curved" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
-          <div class="shape-group-title">é«˜é¢‘æŒ–ç©º (ä¿®å¤ç‰ˆ)</div>
+          <div class="shape-group-title">¸ßÆµÍÚ¿Õ (ĞŞ¸´°æ)</div>
           <div class="shape-grid">
             <div v-for="s in examShapes.hollow" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
-          <div class="shape-group-title">ç»„åˆä¸æ‹¼æ¥</div>
+          <div class="shape-group-title">×éºÏÓëÆ´½Ó</div>
           <div class="shape-grid">
             <div v-for="s in examShapes.composite" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
-          <div class="shape-group-title">å¼‚å½¢æ„é€ </div>
+          <div class="shape-group-title">ÒìĞÎ¹¹Ôì</div>
           <div class="shape-grid">
             <div v-for="s in examShapes.special" :key="s.name" class="shape-item" @click="loadExamShape(s)">{{ s.name }}</div>
           </div>
@@ -265,29 +265,29 @@
       <div v-if="cubicMode === 'section'" :class="['slice-panel-container', sliceMenuCollapsed ? 'collapsed' : '']">
         <div class="glass-panel slice-panel-content">
             <div class="panel-header" @click="sliceMenuCollapsed = !sliceMenuCollapsed">
-              <span>ğŸ“ åˆ‡é¢è°ƒèŠ‚</span>
-              <span style="font-size:12px; color:#666;">{{ sliceMenuCollapsed ? 'å±•å¼€' : 'æ”¶èµ·' }}</span>
+              <span>?? ÇĞÃæµ÷½Ú</span>
+              <span style="font-size:12px; color:#666;">{{ sliceMenuCollapsed ? 'Õ¹¿ª' : 'ÊÕÆğ' }}</span>
             </div>
             
             <div v-if="!sliceMenuCollapsed" class="controls-body">
               <div class="slice-row">
-                <span class="slice-label">ä½ç§»</span>
+                <span class="slice-label">Î»ÒÆ</span>
                 <input type="range" min="-8" max="8" step="0.1" v-model.number="sliceConfig.constant" class="slice-slider">
               </div>
               <div class="slice-row">
-                <span class="slice-label">Xæ—‹è½¬</span>
+                <span class="slice-label">XĞı×ª</span>
                 <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotX" class="slice-slider">
               </div>
               <div class="slice-row">
-                <span class="slice-label">Yæ—‹è½¬</span>
+                <span class="slice-label">YĞı×ª</span>
                 <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotY" class="slice-slider">
               </div>
               <div class="slice-row">
-                <span class="slice-label">Zæ—‹è½¬</span>
+                <span class="slice-label">ZĞı×ª</span>
                 <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotZ" class="slice-slider">
               </div>
               <div style="display:flex; gap:10px; margin-top:5px;">
-                  <button class="btnGhost small-btn" style="flex:1; font-size:12px;" @click="resetSlice">é‡ç½®ä½ç½®</button>
+                  <button class="btnGhost small-btn" style="flex:1; font-size:12px;" @click="resetSlice">ÖØÖÃÎ»ÖÃ</button>
               </div>
             </div>
         </div>
@@ -315,45 +315,45 @@ const buildBasePool = () => {
   const arr = []; 
   for(let d=11; d<=19; d++){ 
     for(let q=1; q<=9; q++){ 
-      arr.push({ dividend: d*q, divisor: d, ans: q, symbol: 'Ã·' }); 
+      arr.push({ dividend: d*q, divisor: d, ans: q, symbol: '¡Â' }); 
     } 
   } 
   return arr;
 };
 
-// æ¸¸æˆæ¨¡å¼å®šä¹‰
+// ÓÎÏ·Ä£Ê½¶¨Òå
 const GAME_MODES = {
-  'train': { name: 'è®­ç»ƒ', title: 'åŸºç¡€è®­ç»ƒå®Œæˆï¼', hintNote: 'ç²¾ç¡®åˆ°æ•´æ•°', gen: () => shuffle(buildBasePool()) },
-  'speed': { name: 'ç«é€Ÿ', title: 'ç«é€Ÿå®Œæˆï¼', hintNote: 'ç²¾ç¡®åˆ°æ•´æ•°', gen: () => shuffle(buildBasePool()).slice(0, 10) },
-  'first': { name: 'é¦–ä½(éšæœº)', title: 'å•†é¦–ä½å®Œæˆï¼', hintNote: 'ç›®æ ‡ï¼šè¾“å…¥å•†çš„ç¬¬ä¸€ä½æ•°å­—', gen: (n) => { const pool=[]; for(let i=0;i<n;i++){ const dr=11+Math.floor(Math.random()*9); const dd=100+Math.floor(Math.random()*900); const fd=parseInt(String(Math.floor(dd/dr))[0],10); pool.push({dividend:dd,divisor:dr,ans:fd,symbol:'Ã·'}); } return pool; } },
-  'firstSpec': { name: 'å•†é¦–ä½ä¸“é¡¹', title: 'å•†é¦–ä½ä¸“é¡¹å®Œæˆï¼', gen: (n, ex) => { const d=ex.divisor||12; const pool=[]; for(let i=0;i<n;i++){ const dd=Math.floor(Math.random()*(999-d+1))+d; const fq=Math.floor(dd/d); const fd=parseInt(String(fq)[0],10); pool.push({dividend:dd,divisor:d,ans:fd,symbol:'Ã·'}); } return pool; } },
-  'plus': { name: 'è¿›ä½åŠ ', title: 'ä¸€ä½æ•°è¿›ä½åŠ å®Œæˆï¼', hintNote: 'åªå¡«ä¸ªä½å°¾æ•°', gen: (n) => { const p=[]; for(let i=0;i<n;i++){ let a,b; do{a=Math.floor(Math.random()*9)+1;b=Math.floor(Math.random()*9)+1;a1=a%10;b1=b%10;}while(a+b<10); p.push({dividend:a,divisor:b,ans:(a+b)%10,symbol:'+'});} return p;} },
-  'minus': { name: 'é€€ä½å‡', title: 'ä¸€ä½æ•°é€€ä½å‡å®Œæˆï¼', hintNote: 'åªå¡«ä¸ªä½å°¾æ•°', gen: (n) => { const p=[]; for(let i=0;i<n;i++){ let a,b; do{a=Math.floor(Math.random()*9)+1;b=Math.floor(Math.random()*9)+1;}while(a>=b); p.push({dividend:a,divisor:b,ans:(10+a-b),symbol:'-'});} return p;} },
-  'doublePlus': { name: 'åŒè¿›ä½åŠ ', title: 'åŒè¿›ä½åŠ å®Œæˆï¼', hintNote: 'ä¸ªä½åä½å‡éœ€è¿›ä½', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,a1,a2,b1,b2; do{a=Math.floor(Math.random()*90)+10;b=Math.floor(Math.random()*90)+10;a1=Math.floor(a/10);a2=a%10;b1=Math.floor(b/10);b2=b%10;}while(a2+b2<10||a1+b1<10); p.push({dividend:a,divisor:b,ans:a+b,symbol:'+'});} return p;} },
-  'doubleMinus': { name: 'åŒé€€ä½å‡', title: 'åŒé€€ä½å‡å®Œæˆï¼', hintNote: 'ä¸ªä½é€€ï¼Œåä½ä¸é€€', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,a1,a2,b1,b2; do{a=Math.floor(Math.random()*90)+10;b=Math.floor(Math.random()*90)+10;a1=Math.floor(a/10);a2=a%10;b1=Math.floor(b/10);b2=b%10;}while(!(a2<b2&&a1-1>=b1)); p.push({dividend:a,divisor:b,ans:a-b,symbol:'-'});} return p;} },
-  'fourSum': { name: 'å››æ•°ç›¸åŠ ', title: 'å››æ•°ç›¸åŠ å®Œæˆï¼', hintNote: 'è®¡ç®—å‡†ç¡®å’Œ', isSmallFont:true, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*90)+10;const b=Math.floor(Math.random()*90)+10;const c=Math.floor(Math.random()*90)+10;const d=Math.floor(Math.random()*90)+10; p.push({dividend:`${a}+${b}+${c}`,divisor:d,ans:a+b+c+d,symbol:'+'});} return p;} },
-  'triplePlus': { name: 'ä¸‰è¿›ä½åŠ ', title: 'ä¸‰è¿›ä½åŠ å®Œæˆï¼', hintNote: 'ä¸ªä½åä½ç™¾ä½å‡éœ€è¿›ä½', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,a1,a2,a3,b1,b2,b3; do{a=Math.floor(Math.random()*900)+100;b=Math.floor(Math.random()*900)+100;a1=Math.floor(a/100);a2=Math.floor((a%100)/10);a3=a%10;b1=Math.floor(b/100);b2=Math.floor((b%100)/10);b3=b%10;}while(a3+b3<10||a2+b2<10||a1+b1<10); p.push({dividend:a,divisor:b,ans:a+b,symbol:'+'});} return p;} },
-  'tripleMinus': { name: 'ä¸‰é€€ä½å‡', title: 'ä¸‰é€€ä½å‡å®Œæˆï¼', hintNote: 'ä¸ªåé€€ï¼Œç™¾ä¸é€€', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,a1,a2,a3,b1,b2,b3; do{a=Math.floor(Math.random()*900)+100;b=Math.floor(Math.random()*900)+100;a1=Math.floor(a/100);a2=Math.floor((a%100)/10);a3=a%10;b1=Math.floor(b/100);b2=Math.floor((b%100)/10);b3=b%10;}while(!(a3<b3&&(a2-1)<b2&&(a1-1)>=b1)); p.push({dividend:a,divisor:b,ans:a-b,symbol:'-'});} return p;} },
-  'tripleAnyPlus': { name: 'ä»»æ„åŠ ', title: 'ä»»æ„ä¸‰æ•°åŠ å®Œæˆï¼', hintNote: 'ä»»æ„ä¸‰ä½æ•°åŠ æ³•', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*900)+100; p.push({dividend:a,divisor:b,ans:a+b,symbol:'+'});} return p;} },
-  'tripleAnyMinus': { name: 'ä»»æ„å‡', title: 'ä»»æ„ä¸‰æ•°å‡å®Œæˆï¼', hintNote: 'ä»»æ„ä¸‰ä½æ•°å‡æ³•', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a=Math.floor(Math.random()*900)+100;let b=Math.floor(Math.random()*900)+100;if(a<b)[a,b]=[b,a]; p.push({dividend:a,divisor:b,ans:a-b,symbol:'-'});} return p;} },
-  'tripleMix': { name: 'åŠ å‡æ··åˆ', title: 'ä¸‰æ•°åŠ å‡æ··åˆå®Œæˆï¼', hintNote: 'ä¸‰æ•°åŠ å‡æ··åˆ (ç»“æœä¸ºæ­£)', isSmallFont:true, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,c,op1,op2,ans; do{a=Math.floor(Math.random()*900)+100;b=Math.floor(Math.random()*900)+100;c=Math.floor(Math.random()*900)+100;op1=Math.random()>0.5?'+':'-';op2=Math.random()>0.5?'+':'-';let step1=(op1==='+')?(a+b):(a-b);ans=(op2==='+')?(step1+c):(step1-c);}while(ans<0); p.push({dividend:`${a}${op1}${b}`,divisor:c,ans:ans,symbol:op2});} return p;} },
-  'tripleMult': { name: 'ä¸‰ä¹˜ä¸€', title: 'ä¸‰ä¹˜ä¸€å®Œæˆï¼', hintNote: 'è®¡ç®—å‡†ç¡®ç§¯', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*8)+2; p.push({dividend:a,divisor:b,ans:a*b,symbol:'Ã—'});} return p;} },
-  'tripleDiv': { name: 'ä¸‰é™¤ä¸€', title: 'ä¸‰é™¤ä¸€å®Œæˆï¼', hintNote: 'è‹¥ä¸ºå°æ•°ï¼Œå¡«ç›¸é‚»æ•´æ•°å‡å¯¹', check: (v, t) => { if(Number.isInteger(t)){ return {ok:v===t,display:t}; }else{ const f=Math.floor(t),c=Math.ceil(t); return {ok:(v===f||v===c),display:`${f}æˆ–${c} (${t.toFixed(2)})`}; } }, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*8)+2; p.push({dividend:a,divisor:b,ans:a/b,symbol:'Ã·'});} return p;} },
-  'divSpecA': { name: 'åå‘æ”¾ç¼©', title: 'åå‘æ”¾ç¼©å®Œæˆï¼', hintNote: 'é™¤æ•°111-199 (è¯¯å·®3%å†…)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*(199-111+1))+111;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'Ã·'});} return p;} },
-  'divSpecB': { name: 'å¹³ç§»æ³•', title: 'å¹³ç§»æ³•å®Œæˆï¼', hintNote: 'å•†90-111 (è¯¯å·®3%å†…)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; let c=0; while(c<n){ const dr=Math.floor(Math.random()*900)+100;const tq=Math.floor(Math.random()*(111-90+1))+90;const dd=dr*tq+Math.floor(Math.random()*dr); if(dd>=10000&&dd<=99999){ p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'Ã·'}); c++;} } return p;} },
-  'divSpecC': { name: 'ä»»æ„äº”é™¤ä¸‰', title: 'ä»»æ„äº”é™¤ä¸‰å®Œæˆï¼', hintNote: 'äº”ä½æ•°é™¤ä»¥ä¸‰ä½æ•° (è¯¯å·®3%å†…)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*900)+100;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'Ã·'});} return p;} }
+  'train': { name: 'ÑµÁ·', title: '»ù´¡ÑµÁ·Íê³É£¡', hintNote: '¾«È·µ½ÕûÊı', gen: () => shuffle(buildBasePool()) },
+  'speed': { name: '¾ºËÙ', title: '¾ºËÙÍê³É£¡', hintNote: '¾«È·µ½ÕûÊı', gen: () => shuffle(buildBasePool()).slice(0, 10) },
+  'first': { name: 'Ê×Î»(Ëæ»ú)', title: 'ÉÌÊ×Î»Íê³É£¡', hintNote: 'Ä¿±ê£ºÊäÈëÉÌµÄµÚÒ»Î»Êı×Ö', gen: (n) => { const pool=[]; for(let i=0;i<n;i++){ const dr=11+Math.floor(Math.random()*9); const dd=100+Math.floor(Math.random()*900); const fd=parseInt(String(Math.floor(dd/dr))[0],10); pool.push({dividend:dd,divisor:dr,ans:fd,symbol:'¡Â'}); } return pool; } },
+  'firstSpec': { name: 'ÉÌÊ×Î»×¨Ïî', title: 'ÉÌÊ×Î»×¨ÏîÍê³É£¡', gen: (n, ex) => { const d=ex.divisor||12; const pool=[]; for(let i=0;i<n;i++){ const dd=Math.floor(Math.random()*(999-d+1))+d; const fq=Math.floor(dd/d); const fd=parseInt(String(fq)[0],10); pool.push({dividend:dd,divisor:d,ans:fd,symbol:'¡Â'}); } return pool; } },
+  'plus': { name: '½øÎ»¼Ó', title: 'Ò»Î»Êı½øÎ»¼ÓÍê³É£¡', hintNote: 'Ö»Ìî¸öÎ»Î²Êı', gen: (n) => { const p=[]; for(let i=0;i<n;i++){ let a,b; do{a=Math.floor(Math.random()*9)+1;b=Math.floor(Math.random()*9)+1;a1=a%10;b1=b%10;}while(a+b<10); p.push({dividend:a,divisor:b,ans:(a+b)%10,symbol:'+'});} return p;} },
+  'minus': { name: 'ÍËÎ»¼õ', title: 'Ò»Î»ÊıÍËÎ»¼õÍê³É£¡', hintNote: 'Ö»Ìî¸öÎ»Î²Êı', gen: (n) => { const p=[]; for(let i=0;i<n;i++){ let a,b; do{a=Math.floor(Math.random()*9)+1;b=Math.floor(Math.random()*9)+1;}while(a>=b); p.push({dividend:a,divisor:b,ans:(10+a-b),symbol:'-'});} return p;} },
+  'doublePlus': { name: 'Ë«½øÎ»¼Ó', title: 'Ë«½øÎ»¼ÓÍê³É£¡', hintNote: '¸öÎ»Ê®Î»¾ùĞè½øÎ»', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,a1,a2,b1,b2; do{a=Math.floor(Math.random()*90)+10;b=Math.floor(Math.random()*90)+10;a1=Math.floor(a/10);a2=a%10;b1=Math.floor(b/10);b2=b%10;}while(a2+b2<10||a1+b1<10); p.push({dividend:a,divisor:b,ans:a+b,symbol:'+'});} return p;} },
+  'doubleMinus': { name: 'Ë«ÍËÎ»¼õ', title: 'Ë«ÍËÎ»¼õÍê³É£¡', hintNote: '¸öÎ»ÍË£¬Ê®Î»²»ÍË', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,a1,a2,b1,b2; do{a=Math.floor(Math.random()*90)+10;b=Math.floor(Math.random()*90)+10;a1=Math.floor(a/10);a2=a%10;b1=Math.floor(b/10);b2=b%10;}while(!(a2<b2&&a1-1>=b1)); p.push({dividend:a,divisor:b,ans:a-b,symbol:'-'});} return p;} },
+  'fourSum': { name: 'ËÄÊıÏà¼Ó', title: 'ËÄÊıÏà¼ÓÍê³É£¡', hintNote: '¼ÆËã×¼È·ºÍ', isSmallFont:true, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*90)+10;const b=Math.floor(Math.random()*90)+10;const c=Math.floor(Math.random()*90)+10;const d=Math.floor(Math.random()*90)+10; p.push({dividend:`${a}+${b}+${c}`,divisor:d,ans:a+b+c+d,symbol:'+'});} return p;} },
+  'triplePlus': { name: 'Èı½øÎ»¼Ó', title: 'Èı½øÎ»¼ÓÍê³É£¡', hintNote: '¸öÎ»Ê®Î»°ÙÎ»¾ùĞè½øÎ»', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,a1,a2,a3,b1,b2,b3; do{a=Math.floor(Math.random()*900)+100;b=Math.floor(Math.random()*900)+100;a1=Math.floor(a/100);a2=Math.floor((a%100)/10);a3=a%10;b1=Math.floor(b/100);b2=Math.floor((b%100)/10);b3=b%10;}while(a3+b3<10||a2+b2<10||a1+b1<10); p.push({dividend:a,divisor:b,ans:a+b,symbol:'+'});} return p;} },
+  'tripleMinus': { name: 'ÈıÍËÎ»¼õ', title: 'ÈıÍËÎ»¼õÍê³É£¡', hintNote: '¸öÊ®ÍË£¬°Ù²»ÍË', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,a1,a2,a3,b1,b2,b3; do{a=Math.floor(Math.random()*900)+100;b=Math.floor(Math.random()*900)+100;a1=Math.floor(a/100);a2=Math.floor((a%100)/10);a3=a%10;b1=Math.floor(b/100);b2=Math.floor((b%100)/10);b3=b%10;}while(!(a3<b3&&(a2-1)<b2&&(a1-1)>=b1)); p.push({dividend:a,divisor:b,ans:a-b,symbol:'-'});} return p;} },
+  'tripleAnyPlus': { name: 'ÈÎÒâ¼Ó', title: 'ÈÎÒâÈıÊı¼ÓÍê³É£¡', hintNote: 'ÈÎÒâÈıÎ»Êı¼Ó·¨', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*900)+100; p.push({dividend:a,divisor:b,ans:a+b,symbol:'+'});} return p;} },
+  'tripleAnyMinus': { name: 'ÈÎÒâ¼õ', title: 'ÈÎÒâÈıÊı¼õÍê³É£¡', hintNote: 'ÈÎÒâÈıÎ»Êı¼õ·¨', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a=Math.floor(Math.random()*900)+100;let b=Math.floor(Math.random()*900)+100;if(a<b)[a,b]=[b,a]; p.push({dividend:a,divisor:b,ans:a-b,symbol:'-'});} return p;} },
+  'tripleMix': { name: '¼Ó¼õ»ìºÏ', title: 'ÈıÊı¼Ó¼õ»ìºÏÍê³É£¡', hintNote: 'ÈıÊı¼Ó¼õ»ìºÏ (½á¹ûÎªÕı)', isSmallFont:true, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,c,op1,op2,ans; do{a=Math.floor(Math.random()*900)+100;b=Math.floor(Math.random()*900)+100;c=Math.floor(Math.random()*900)+100;op1=Math.random()>0.5?'+':'-';op2=Math.random()>0.5?'+':'-';let step1=(op1==='+')?(a+b):(a-b);ans=(op2==='+')?(step1+c):(step1-c);}while(ans<0); p.push({dividend:`${a}${op1}${b}`,divisor:c,ans:ans,symbol:op2});} return p;} },
+  'tripleMult': { name: 'Èı³ËÒ»', title: 'Èı³ËÒ»Íê³É£¡', hintNote: '¼ÆËã×¼È·»ı', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*8)+2; p.push({dividend:a,divisor:b,ans:a*b,symbol:'¡Á'});} return p;} },
+  'tripleDiv': { name: 'Èı³ıÒ»', title: 'Èı³ıÒ»Íê³É£¡', hintNote: 'ÈôÎªĞ¡Êı£¬ÌîÏàÁÚÕûÊı¾ù¶Ô', check: (v, t) => { if(Number.isInteger(t)){ return {ok:v===t,display:t}; }else{ const f=Math.floor(t),c=Math.ceil(t); return {ok:(v===f||v===c),display:`${f}»ò${c} (${t.toFixed(2)})`}; } }, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*8)+2; p.push({dividend:a,divisor:b,ans:a/b,symbol:'¡Â'});} return p;} },
+  'divSpecA': { name: '·´Ïò·ÅËõ', title: '·´Ïò·ÅËõÍê³É£¡', hintNote: '³ıÊı111-199 (Îó²î3%ÄÚ)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*(199-111+1))+111;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'¡Â'});} return p;} },
+  'divSpecB': { name: 'Æ½ÒÆ·¨', title: 'Æ½ÒÆ·¨Íê³É£¡', hintNote: 'ÉÌ90-111 (Îó²î3%ÄÚ)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; let c=0; while(c<n){ const dr=Math.floor(Math.random()*900)+100;const tq=Math.floor(Math.random()*(111-90+1))+90;const dd=dr*tq+Math.floor(Math.random()*dr); if(dd>=10000&&dd<=99999){ p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'¡Â'}); c++;} } return p;} },
+  'divSpecC': { name: 'ÈÎÒâÎå³ıÈı', title: 'ÈÎÒâÎå³ıÈıÍê³É£¡', hintNote: 'ÎåÎ»Êı³ıÒÔÈıÎ»Êı (Îó²î3%ÄÚ)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*900)+100;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'¡Â'});} return p;} }
 };
 
 const MODE_GROUPS = {
-  basic: { label: 'å¤§ä¹ä¹/é™¤æ³•', modes: ['train', 'speed', 'first'] },
-  divSelect: { label: 'å•†é¦–ä½ä¸“é¡¹', modes: [] }, 
-  single: { label: 'ä¸€ä½æ•°ä¸“é¡¹ (ä»…å¡«å°¾æ•°)', modes: ['plus', 'minus'] },
-  double: { label: 'ä¸¤ä½æ•°ä¸“é¡¹ (å®Œæ•´ç­”æ¡ˆ)', modes: ['doublePlus', 'doubleMinus', 'fourSum'] },
-  triple: { label: 'ä¸‰ä½æ•°ä¸“é¡¹ (å®Œæ•´ç­”æ¡ˆ)', modes: ['triplePlus', 'tripleMinus', 'tripleAnyPlus', 'tripleAnyMinus', 'tripleMix', 'tripleMult', 'tripleDiv'] },
-  spec: { label: 'äº”é™¤ä¸‰ä¸“é¡¹ (å…è®¸3%è¯¯å·®)', modes: ['divSpecA', 'divSpecB', 'divSpecC'] }
+  basic: { label: '´ó¾Å¾Å/³ı·¨', modes: ['train', 'speed', 'first'] },
+  divSelect: { label: 'ÉÌÊ×Î»×¨Ïî', modes: [] }, 
+  single: { label: 'Ò»Î»Êı×¨Ïî (½öÌîÎ²Êı)', modes: ['plus', 'minus'] },
+  double: { label: 'Á½Î»Êı×¨Ïî (ÍêÕû´ğ°¸)', modes: ['doublePlus', 'doubleMinus', 'fourSum'] },
+  triple: { label: 'ÈıÎ»Êı×¨Ïî (ÍêÕû´ğ°¸)', modes: ['triplePlus', 'tripleMinus', 'tripleAnyPlus', 'tripleAnyMinus', 'tripleMix', 'tripleMult', 'tripleDiv'] },
+  spec: { label: 'Îå³ıÈı×¨Ïî (ÔÊĞí3%Îó²î)', modes: ['divSpecA', 'divSpecB', 'divSpecC'] }
 };
 
-// 1. ç©ºå¿ƒåœ†æŸ± (åœ†ç®¡)
+// 1. ¿ÕĞÄÔ²Öù (Ô²¹Ü)
 const createHollowCylinder = () => {
   const shape = new THREE.Shape();
   shape.absarc(0, 0, 4, 0, Math.PI * 2, false);
@@ -363,7 +363,7 @@ const createHollowCylinder = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
 };
 
-// 2. ç©ºå¿ƒæ–¹æŸ± (æ–¹ç®¡)
+// 2. ¿ÕĞÄ·½Öù (·½¹Ü)
 const createHollowPrism = () => {
   const shape = new THREE.Shape();
   shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
@@ -373,7 +373,7 @@ const createHollowPrism = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
 };
 
-// 3. å›å­—å‹ (Frame / æ¡†ä½“)
+// 3. »Ø×ÖĞÍ (Frame / ¿òÌå)
 const createFrameShape = () => {
   const shape = new THREE.Shape();
   shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
@@ -383,7 +383,7 @@ const createFrameShape = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false });
 };
 
-// 4. å‡¹å‹ä½“ (Uå‹æ§½)
+// 4. °¼ĞÍÌå (UĞÍ²Û)
 const createUShape = () => {
   const shape = new THREE.Shape();
   shape.moveTo(-3, -3);
@@ -398,7 +398,7 @@ const createUShape = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
 };
 
-// 5. Lå‹ä½“
+// 5. LĞÍÌå
 const createLShape = () => {
   const shape = new THREE.Shape();
   shape.moveTo(0, 0);
@@ -411,7 +411,7 @@ const createLShape = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
 };
 
-// 6. åå­—ä½“
+// 6. Ê®×ÖÌå
 const createCrossShape = () => {
   const shape = new THREE.Shape();
   const w = 2, l = 6;
@@ -430,7 +430,7 @@ const createCrossShape = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false });
 };
 
-// 7. ç¼ºè§’æ­£æ–¹ä½“
+// 7. È±½ÇÕı·½Ìå
 const createNotchedCube = () => {
   const shape = new THREE.Shape();
   shape.moveTo(-3, -3);
@@ -441,7 +441,7 @@ const createNotchedCube = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
 };
 
-// 8. Tå‹ä½“
+// 8. TĞÍÌå
 const createTShape = () => {
   const shape = new THREE.Shape();
   shape.moveTo(-1.5, -4);
@@ -456,7 +456,7 @@ const createTShape = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 3, bevelEnabled: false });
 };
 
-// 9. æ­£æ–¹ä½“æŒ–åœ†å­”
+// 9. Õı·½ÌåÍÚÔ²¿×
 const createCubeWithHole = () => {
    const shape = new THREE.Shape();
    shape.moveTo(-3,-3); shape.lineTo(3,-3); shape.lineTo(3,3); shape.lineTo(-3,3);
@@ -466,7 +466,7 @@ const createCubeWithHole = () => {
    return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 64 });
 };
 
-// 10. åœ†æŸ±æŒ–æ–¹å­”
+// 10. Ô²ÖùÍÚ·½¿×
 const createCylinderWithRectHole = () => {
   const shape = new THREE.Shape();
   shape.absarc(0, 0, 4, 0, Math.PI * 2, false); 
@@ -480,7 +480,7 @@ const createCylinderWithRectHole = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
 };
 
-// 11. æ‹±é—¨é€ å‹
+// 11. ¹°ÃÅÔìĞÍ
 const createArchShape = () => {
   const shape = new THREE.Shape();
   shape.moveTo(-3, 0);
@@ -498,7 +498,7 @@ const createArchShape = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false, curveSegments: 32 });
 };
 
-// 12. æ¢¯å½¢æŸ±
+// 12. ÌİĞÎÖù
 const createTrapezoidPrism = () => {
   const shape = new THREE.Shape();
   shape.moveTo(-4, -2);
@@ -509,7 +509,7 @@ const createTrapezoidPrism = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
 };
 
-// 13. åŠåœ†æŸ±
+// 13. °ëÔ²Öù
 const createSemiCylinder = () => {
   const shape = new THREE.Shape();
   shape.absarc(0, 0, 4, 0, Math.PI, false); 
@@ -517,7 +517,7 @@ const createSemiCylinder = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 32 });
 };
 
-// 14. æ‰‡å½¢æŸ±
+// 14. ÉÈĞÎÖù
 const createSectorPrism = () => {
   const shape = new THREE.Shape();
   shape.moveTo(0, 0);
@@ -527,7 +527,7 @@ const createSectorPrism = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 32 });
 };
 
-// 15. åŒå­”ç –
+// 15. Ë«¿××©
 const createTwoHoleBrick = () => {
   const shape = new THREE.Shape();
   shape.moveTo(-4, -2); shape.lineTo(4, -2); shape.lineTo(4, 2); shape.lineTo(-4, 2); shape.lineTo(-4, -2);
@@ -542,41 +542,42 @@ const createTwoHoleBrick = () => {
 
 const EXAM_SHAPES = {
   basic: [
-    { name: 'æ­£æ–¹ä½“', create: () => new THREE.BoxGeometry(6, 6, 6) },
-    { name: 'é•¿æ–¹ä½“(æ‰)', create: () => new THREE.BoxGeometry(4, 8, 2) },
-    { name: 'åœ†æŸ±', create: () => new THREE.CylinderGeometry(4, 4, 8, 32) },
-    { name: 'ä¸‰æ£±æŸ±', create: () => new THREE.CylinderGeometry(4, 4, 8, 3) },
-    { name: 'å…­æ£±æŸ±', create: () => new THREE.CylinderGeometry(4, 4, 8, 6) },
-    { name: 'æ¢¯å½¢æŸ±', create: createTrapezoidPrism },
-    { name: 'åŠåœ†æŸ±', create: createSemiCylinder },
-    { name: 'æ­£å››é¢ä½“', create: () => new THREE.TetrahedronGeometry(6) },
-    { name: 'æ­£å…«é¢ä½“', create: () => new THREE.OctahedronGeometry(5) },
+    { name: 'Õı·½Ìå', create: () => new THREE.BoxGeometry(6, 6, 6) },
+    { name: '³¤·½Ìå(±â)', create: () => new THREE.BoxGeometry(4, 8, 2) },
+    { name: 'Ô²Öù', create: () => new THREE.CylinderGeometry(4, 4, 8, 32) },
+    { name: 'ÈıÀâÖù', create: () => new THREE.CylinderGeometry(4, 4, 8, 3) },
+    { name: 'ÁùÀâÖù', create: () => new THREE.CylinderGeometry(4, 4, 8, 6) },
+    { name: 'ÌİĞÎÖù', create: createTrapezoidPrism },
+    { name: '°ëÔ²Öù', create: createSemiCylinder },
+    { name: 'ÕıËÄÃæÌå', create: () => new THREE.TetrahedronGeometry(6) },
+    { name: 'Õı°ËÃæÌå', create: () => new THREE.OctahedronGeometry(5) },
   ],
   curved: [
-    { name: 'åœ†é”¥', create: () => new THREE.CylinderGeometry(0, 4, 8, 64) },
-    { name: 'åœ†å°', create: () => new THREE.CylinderGeometry(2, 4, 6, 64) },
-    { name: 'çƒä½“', create: () => new THREE.SphereGeometry(4, 64, 64) },
-    { name: 'åŠçƒ', create: () => new THREE.SphereGeometry(4, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2) },
-    { name: 'æ‰‡å½¢æŸ±(1/4åœ†)', create: createSectorPrism },
+    // ĞŞ¸´£ºÊ¹ÓÃ 0.01 ±ÜÃâ 0 °ë¾¶µ¼ÖÂµÄÍØÆËÆæµã
+    { name: 'Ô²×¶', create: () => new THREE.CylinderGeometry(0.01, 4, 8, 64) },
+    { name: 'Ô²Ì¨', create: () => new THREE.CylinderGeometry(2, 4, 6, 64) },
+    { name: 'ÇòÌå', create: () => new THREE.SphereGeometry(4, 64, 64) },
+    { name: '°ëÇò', create: () => new THREE.SphereGeometry(4, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2) },
+    { name: 'ÉÈĞÎÖù(1/4Ô²)', create: createSectorPrism },
   ],
   hollow: [
-    { name: 'ç©ºå¿ƒåœ†æŸ±(åœ†ç®¡)', create: createHollowCylinder },
-    { name: 'ç©ºå¿ƒæ–¹æŸ±(æ–¹ç®¡)', create: createHollowPrism },
-    { name: 'å›å­—å‹(æ¡†ä½“)', create: createFrameShape },
-    { name: 'æ­£æ–¹ä½“æŒ–åœ†å­”', create: createCubeWithHole },
-    { name: 'åœ†æŸ±æŒ–æ–¹å­”', create: createCylinderWithRectHole },
-    { name: 'åŒå­”ç –', create: createTwoHoleBrick },
+    { name: '¿ÕĞÄÔ²Öù(Ô²¹Ü)', create: createHollowCylinder },
+    { name: '¿ÕĞÄ·½Öù(·½¹Ü)', create: createHollowPrism },
+    { name: '»Ø×ÖĞÍ(¿òÌå)', create: createFrameShape },
+    { name: 'Õı·½ÌåÍÚÔ²¿×', create: createCubeWithHole },
+    { name: 'Ô²ÖùÍÚ·½¿×', create: createCylinderWithRectHole },
+    { name: 'Ë«¿××©', create: createTwoHoleBrick },
   ],
   composite: [
-    { name: 'Tå‹ä½“', create: createTShape },
-    { name: 'Lå‹ä½“', create: createLShape },
-    { name: 'åå­—ä½“', create: createCrossShape },
-    { name: 'å‡¹å‹ä½“(Uå‹)', create: createUShape },
-    { name: 'æ‹±é—¨é€ å‹', create: createArchShape },
+    { name: 'TĞÍÌå', create: createTShape },
+    { name: 'LĞÍÌå', create: createLShape },
+    { name: 'Ê®×ÖÌå', create: createCrossShape },
+    { name: '°¼ĞÍÌå(UĞÍ)', create: createUShape },
+    { name: '¹°ÃÅÔìĞÍ', create: createArchShape },
   ],
   special: [
-    { name: 'ç¼ºè§’æ­£æ–¹ä½“', create: createNotchedCube },
-    { name: 'å°é˜¶(é˜¶æ¢¯)', create: () => {
+    { name: 'È±½ÇÕı·½Ìå', create: createNotchedCube },
+    { name: 'Ì¨½×(½×Ìİ)', create: () => {
         const shape = new THREE.Shape();
         shape.moveTo(-3, -3);
         shape.lineTo(3, -3); shape.lineTo(3, -1);
@@ -585,8 +586,9 @@ const EXAM_SHAPES = {
         shape.lineTo(-3, 3);
         return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
     }},
-    { name: 'ä¸‰è§’æ¥”å½¢', create: () => new THREE.CylinderGeometry(0, 4, 6, 3, 1, false, 0, Math.PI) },
-    { name: 'å››æ£±é”¥', create: () => new THREE.CylinderGeometry(0, 5, 6, 4) },
+    // ĞŞ¸´£ºÊ¹ÓÃ 0.01 ±ÜÃâÆæµã
+    { name: 'Èı½ÇĞ¨ĞÎ', create: () => new THREE.CylinderGeometry(0.01, 4, 6, 3, 1, false, 0, Math.PI) },
+    { name: 'ËÄÀâ×¶', create: () => new THREE.CylinderGeometry(0.01, 5, 6, 4) },
   ]
 };
 
@@ -594,23 +596,23 @@ export default {
   data() {
     return {
       viewState: 'home', currentModeKey: 'train', selectedDivisor: 0,
-      pool: [], idx: 0, current: null, input: '', uiHint: 'Ready?', totalText: '0:00.0', progressText: '1/81', qText: 'â€”', leftText: 'è·³è¿‡', 
+      pool: [], idx: 0, current: null, input: '', uiHint: 'Ready?', totalText: '0:00.0', progressText: '1/81', qText: '¡ª', leftText: 'Ìø¹ı', 
       totalStartTs: 0, qStartTs: 0, timer: null, trainWrong: 0, trainSkip: 0, curWrongTries: 0, trainLog: [], results: [], 
       historyList: [], showChart: false, chartInstance: null, chartTab: '', availableModes: [], isHistoryReview: false,
       toast: { show: false, title: '' },
       modeGroups: MODE_GROUPS, divisorList: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],
       
-      // 3D æ¨¡å¼çŠ¶æ€
+      // 3D Ä£Ê½×´Ì¬
       cubicMode: 'block',
       isDeleteMode: false,
       showShapeMenu: false, 
       sliceMenuCollapsed: false, 
-      currentShapeName: 'æ­£æ–¹ä½“',
+      currentShapeName: 'Õı·½Ìå',
       colors: ['#007aff', '#ff9500', '#333333', '#ffffff'], 
       selectedColor: '#007aff',
       examShapes: EXAM_SHAPES,
       
-      // åˆ‡é¢é…ç½®
+      // ÇĞÃæÅäÖÃ
       sliceConfig: {
         constant: 0,
         rotX: 90, 
@@ -622,19 +624,19 @@ export default {
   computed: {
     activeConfig() {
       if(this.currentModeKey === 'firstSpec') {
-        return { name: `å•†é¦–ä½(é™¤${this.selectedDivisor})`, title: `å•†é¦–ä½(é™¤${this.selectedDivisor})å®Œæˆï¼`, hintNote: `é™¤æ•°${this.selectedDivisor}ä¸“é¡¹ï¼šåªå¡«å•†é¦–ä½`, gen: GAME_MODES['firstSpec'].gen };
+        return { name: `ÉÌÊ×Î»(³ı${this.selectedDivisor})`, title: `ÉÌÊ×Î»(³ı${this.selectedDivisor})Íê³É£¡`, hintNote: `³ıÊı${this.selectedDivisor}×¨Ïî£ºÖ»ÌîÉÌÊ×Î»`, gen: GAME_MODES['firstSpec'].gen };
       }
       return GAME_MODES[this.currentModeKey] || {};
     },
-    resultTitle() { return this.activeConfig.title || 'è®­ç»ƒå®Œæˆï¼'; },
+    resultTitle() { return this.activeConfig.title || 'ÑµÁ·Íê³É£¡'; },
     resultMeta() {
        const totalSec = this.totalSec || 0;
        if(this.currentModeKey === 'train') {
-         return `ç”¨æ—¶ï¼š${totalSec.toFixed(1)}sï½œé”™è¯¯ï¼š${this.trainWrong}ï½œè·³è¿‡ï¼š${this.trainSkip}`;
+         return `ÓÃÊ±£º${totalSec.toFixed(1)}s£ü´íÎó£º${this.trainWrong}£üÌø¹ı£º${this.trainSkip}`;
        } else {
          const correctCount = this.results.filter(x=>x.ok).length;
          const totalCount = this.results.length;
-         return `æ­£ç¡®ï¼š${correctCount}/${totalCount}ï½œæ€»ç”¨æ—¶ï¼š${totalSec.toFixed(1)}s`;
+         return `ÕıÈ·£º${correctCount}/${totalCount}£ü×ÜÓÃÊ±£º${totalSec.toFixed(1)}s`;
        }
     },
     isSmallFont() { return this.activeConfig.isSmallFont || (this.currentModeKey === 'fourSum' || this.currentModeKey === 'tripleMix'); }
@@ -674,7 +676,7 @@ export default {
       this.pool = config.gen(10, { divisor: this.selectedDivisor });
       if(this.timer) clearInterval(this.timer);
       const totalStartTs = this.now();
-      this.viewState = 'game'; this.idx = 0; this.input = ''; this.uiHint = 'è¯·è¾“å…¥ç­”æ¡ˆ'; this.leftText = (this.currentModeKey === 'train' ? 'è·³è¿‡' : 'é‡å¼€');
+      this.viewState = 'game'; this.idx = 0; this.input = ''; this.uiHint = 'ÇëÊäÈë´ğ°¸'; this.leftText = (this.currentModeKey === 'train' ? 'Ìø¹ı' : 'ÖØ¿ª');
       this.totalStartTs = totalStartTs; this.qStartTs = 0; this.trainWrong = 0; this.trainSkip = 0; this.curWrongTries = 0; this.trainLog = []; this.results = []; this.isHistoryReview = false;
       this.$nextTick(() => { this._nextQuestion(); this.timer = setInterval(()=> this._tick(), 100); });
     },
@@ -709,7 +711,7 @@ export default {
           this.trainWrong++; 
           this.curWrongTries++; 
           this.input = ''; 
-          this.uiHint = `é”™è¯¯ï¼ç­”æ¡ˆæ˜¯ï¼š${realAnsDisplay}`; 
+          this.uiHint = `´íÎó£¡´ğ°¸ÊÇ£º${realAnsDisplay}`; 
         } 
         return; 
       }
@@ -727,8 +729,8 @@ export default {
       this.results = results; 
       this._nextQuestion();
     },
-    _finish(){ if(this.timer) clearInterval(this.timer); this.totalSec = (this.now() - this.totalStartTs)/1000; let recordSummary = ''; let detailLog = []; if(this.currentModeKey === 'train'){ recordSummary = `é”™${this.trainWrong}/è·³${this.trainSkip}`; detailLog = this.trainLog; } else { const correctCount = this.results.filter(x=>x.ok).length; const totalCount = this.results.length; recordSummary = `æ­£ç¡®ç‡ ${Math.round(correctCount/totalCount*100)}%`; detailLog = this.results; } this.viewState = 'result'; this.isHistoryReview = false; this._saveRecord({ totalSec: this.totalSec }, recordSummary, detailLog); },
-    _saveRecord(meta, summary, detailLog){ const modeName = (this.currentModeKey === 'firstSpec') ? `å•†é¦–ä½(é™¤${this.selectedDivisor})` : (GAME_MODES[this.currentModeKey]?.name || 'æœªçŸ¥æ¨¡å¼'); const record = { ts: this.now(), timeStr: this.formatTime(this.now()), mode: this.currentModeKey, modeName: modeName, duration: meta.totalSec.toFixed(1) + 's', summary: summary, detail: detailLog }; let history = this.historyList; history.unshift(record); if(history.length > 5000) history = history.slice(0, 5000); this.historyList = history; localStorage.setItem('calc_history', JSON.stringify(history)); },
+    _finish(){ if(this.timer) clearInterval(this.timer); this.totalSec = (this.now() - this.totalStartTs)/1000; let recordSummary = ''; let detailLog = []; if(this.currentModeKey === 'train'){ recordSummary = `´í${this.trainWrong}/Ìø${this.trainSkip}`; detailLog = this.trainLog; } else { const correctCount = this.results.filter(x=>x.ok).length; const totalCount = this.results.length; recordSummary = `ÕıÈ·ÂÊ ${Math.round(correctCount/totalCount*100)}%`; detailLog = this.results; } this.viewState = 'result'; this.isHistoryReview = false; this._saveRecord({ totalSec: this.totalSec }, recordSummary, detailLog); },
+    _saveRecord(meta, summary, detailLog){ const modeName = (this.currentModeKey === 'firstSpec') ? `ÉÌÊ×Î»(³ı${this.selectedDivisor})` : (GAME_MODES[this.currentModeKey]?.name || 'Î´ÖªÄ£Ê½'); const record = { ts: this.now(), timeStr: this.formatTime(this.now()), mode: this.currentModeKey, modeName: modeName, duration: meta.totalSec.toFixed(1) + 's', summary: summary, detail: detailLog }; let history = this.historyList; history.unshift(record); if(history.length > 5000) history = history.slice(0, 5000); this.historyList = history; localStorage.setItem('calc_history', JSON.stringify(history)); },
     msToMMSS(ms){ const totalSec = ms / 1000; const m = Math.floor(totalSec / 60); const s = (totalSec % 60).toFixed(1); return `${m}:${s < 10 ? '0' + s : s}`; },
     formatTime(ts) { const date = new Date(ts); const m = date.getMonth() + 1; const d = date.getDate(); const h = date.getHours(); const min = date.getMinutes(); const pad = n => n < 10 ? '0' + n : n; return `${m}/${d} ${pad(h)}:${pad(min)}`; },
     goHome(){ if(this.timer) clearInterval(this.timer); this.viewState = 'home'; },
@@ -736,14 +738,14 @@ export default {
     viewHistoryDetail(index){ const record = this.historyList[index]; if(!record) return; this.currentModeKey = record.mode; this.totalSec = parseFloat(record.duration.replace('s','')); if(record.mode === 'train'){ this.trainLog = record.detail || []; this.results = []; } else { this.results = record.detail || []; this.trainLog = []; } this.viewState = 'result'; this.isHistoryReview = true; },
     backToHistory(){ this.viewState = 'history'; if(this.showChart) this.$nextTick(() => this.renderChart(this.chartTab)); },
     closeHistory(){ this.viewState = 'home'; },
-    clearOldest() { if(confirm(`å½“å‰å…±æœ‰ ${this.historyList.length} æ¡è®°å½•ã€‚\nç¡®å®šè¦æ¸…é™¤ã€æœ€æ—©çš„ 1000 æ¡ã€‘æ•°æ®å—ï¼Ÿ`)){ const keepCount = this.historyList.length - 1000; this.historyList = this.historyList.slice(0, keepCount); localStorage.setItem('calc_history', JSON.stringify(this.historyList)); this.showToast('æ¸…ç†æˆåŠŸ'); if(this.showChart) this.initChart(); } },
-    clearHistory(){ if(confirm('ã€ä¸¥é‡è­¦å‘Šã€‘\nç¡®å®šè¦æ¸…ç©ºã€æ‰€æœ‰ã€‘å†å²è®°å½•å—ï¼Ÿ\næ­¤æ“ä½œä¸å¯æ¢å¤ï¼')){ localStorage.removeItem('calc_history'); this.historyList = []; this.showToast('æ‰€æœ‰è®°å½•å·²æ¸…ç©º'); } },
+    clearOldest() { if(confirm(`µ±Ç°¹²ÓĞ ${this.historyList.length} Ìõ¼ÇÂ¼¡£\nÈ·¶¨ÒªÇå³ı¡¾×îÔçµÄ 1000 Ìõ¡¿Êı¾İÂğ£¿`)){ const keepCount = this.historyList.length - 1000; this.historyList = this.historyList.slice(0, keepCount); localStorage.setItem('calc_history', JSON.stringify(this.historyList)); this.showToast('ÇåÀí³É¹¦'); if(this.showChart) this.initChart(); } },
+    clearHistory(){ if(confirm('¡¾ÑÏÖØ¾¯¸æ¡¿\nÈ·¶¨ÒªÇå¿Õ¡¾ËùÓĞ¡¿ÀúÊ·¼ÇÂ¼Âğ£¿\n´Ë²Ù×÷²»¿É»Ö¸´£¡')){ localStorage.removeItem('calc_history'); this.historyList = []; this.showToast('ËùÓĞ¼ÇÂ¼ÒÑÇå¿Õ'); } },
     initChart() { this.showChart = true; const modeSet = new Set(this.historyList.map(item => item.modeName)); this.availableModes = Array.from(modeSet); if(this.historyList.length > 0 && !this.chartTab) { this.chartTab = this.historyList[0].modeName; } else if (this.availableModes.length > 0 && !this.chartTab) { this.chartTab = this.availableModes[0]; } this.$nextTick(() => { this.renderChart(this.chartTab); }); },
     switchChartTab(modeName) { this.chartTab = modeName; this.renderChart(modeName); },
-    renderChart(targetModeName) { const chartDom = document.getElementById('accChart'); if(!chartDom) return; if(this.chartInstance) this.chartInstance.dispose(); this.chartInstance = echarts.init(chartDom); const allData = JSON.parse(JSON.stringify(this.historyList)).reverse(); const filteredData = allData.filter(item => item.modeName === targetModeName); const dateList = []; const accuracyList = []; const timeList = []; filteredData.forEach(item => { let accuracy = 0; if(item.mode === 'train') { let wrong = 0; if(item.detail && item.detail.length > 0) { wrong = item.detail.filter(x => x.wrong > 0).length; } else { const match = item.summary.match(/é”™(\d+)/); if(match) wrong = parseInt(match[1]); } accuracy = ((81 - wrong) / 81) * 100; } else { if(item.detail && item.detail.length > 0) { const correctCount = item.detail.filter(x => x.ok).length; accuracy = (correctCount / item.detail.length) * 100; } else { const match = item.summary.match(/(\d+)%/); if(match) accuracy = parseInt(match[1]); } } let duration = 0; if(item.duration) { duration = parseFloat(item.duration.replace('s', '')); } dateList.push(item.timeStr); accuracyList.push(accuracy.toFixed(0)); timeList.push(duration.toFixed(1)); }); if(dateList.length === 0) { this.chartInstance.setOption({ title: { text: 'è¯¥æ¨¡å¼æš‚æ— æ•°æ®', left: 'center', top: 'center', textStyle: { color: '#999' } } }); return; } const option = { grid: { top: 30, bottom: 20, left: 30, right: 30, containLabel: true }, tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: dateList, axisLabel: { color: '#333', fontSize: 10, interval: 'auto', hideOverlap: true } }, yAxis: [ { type: 'value', min: 0, max: 100, position: 'left', splitLine: { show:true, lineStyle: { type: 'dashed', opacity: 0.1 } }, axisLabel: {color: '#007aff', formatter: '{value}%'} }, { type: 'value', position: 'right', splitLine: { show: false }, axisLabel: {color: '#ff3b30', formatter: '{value}s'} } ], series: [ { name: 'æ­£ç¡®ç‡', type: 'line', yAxisIndex: 0, smooth: true, lineStyle: { color: '#007aff', width: 3 }, itemStyle: { color: '#007aff' }, data: accuracyList }, { name: 'è€—æ—¶', type: 'line', yAxisIndex: 1, smooth: true, lineStyle: { color: '#ff3b30', width: 2, type: 'dashed' }, itemStyle: { color: '#ff3b30' }, data: timeList } ] }; this.chartInstance.setOption(option); },
+    renderChart(targetModeName) { const chartDom = document.getElementById('accChart'); if(!chartDom) return; if(this.chartInstance) this.chartInstance.dispose(); this.chartInstance = echarts.init(chartDom); const allData = JSON.parse(JSON.stringify(this.historyList)).reverse(); const filteredData = allData.filter(item => item.modeName === targetModeName); const dateList = []; const accuracyList = []; const timeList = []; filteredData.forEach(item => { let accuracy = 0; if(item.mode === 'train') { let wrong = 0; if(item.detail && item.detail.length > 0) { wrong = item.detail.filter(x => x.wrong > 0).length; } else { const match = item.summary.match(/´í(\d+)/); if(match) wrong = parseInt(match[1]); } accuracy = ((81 - wrong) / 81) * 100; } else { if(item.detail && item.detail.length > 0) { const correctCount = item.detail.filter(x => x.ok).length; accuracy = (correctCount / item.detail.length) * 100; } else { const match = item.summary.match(/(\d+)%/); if(match) accuracy = parseInt(match[1]); } } let duration = 0; if(item.duration) { duration = parseFloat(item.duration.replace('s', '')); } dateList.push(item.timeStr); accuracyList.push(accuracy.toFixed(0)); timeList.push(duration.toFixed(1)); }); if(dateList.length === 0) { this.chartInstance.setOption({ title: { text: '¸ÃÄ£Ê½ÔİÎŞÊı¾İ', left: 'center', top: 'center', textStyle: { color: '#999' } } }); return; } const option = { grid: { top: 30, bottom: 20, left: 30, right: 30, containLabel: true }, tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: dateList, axisLabel: { color: '#333', fontSize: 10, interval: 'auto', hideOverlap: true } }, yAxis: [ { type: 'value', min: 0, max: 100, position: 'left', splitLine: { show:true, lineStyle: { type: 'dashed', opacity: 0.1 } }, axisLabel: {color: '#007aff', formatter: '{value}%'} }, { type: 'value', position: 'right', splitLine: { show: false }, axisLabel: {color: '#ff3b30', formatter: '{value}s'} } ], series: [ { name: 'ÕıÈ·ÂÊ', type: 'line', yAxisIndex: 0, smooth: true, lineStyle: { color: '#007aff', width: 3 }, itemStyle: { color: '#007aff' }, data: accuracyList }, { name: 'ºÄÊ±', type: 'line', yAxisIndex: 1, smooth: true, lineStyle: { color: '#ff3b30', width: 2, type: 'dashed' }, itemStyle: { color: '#ff3b30' }, data: timeList } ] }; this.chartInstance.setOption(option); },
     closeChart() { this.showChart = false; if(this.chartInstance) { this.chartInstance.dispose(); this.chartInstance = null; } },
 
-    // 3D æ¨¡å—
+    // 3D Ä£¿é
     startCubicMode(mode = 'block') {
       this.cubicMode = mode;
       this.viewState = 'cubic'; 
@@ -783,7 +785,9 @@ export default {
         THREE.MathUtils.degToRad(rotZ)
       );
       const normal = new THREE.Vector3(0, -1, 0).applyEuler(euler).normalize();
-      const cutterSize = 25; 
+      
+      // ĞŞ¸´£ºÔö´ó cutterSize ÒÔÆ¥Åä·Å´óµÄ cutterGeometry (200x200x200)
+      const cutterSize = 100; // Half of 200
       const offset = normal.clone().multiplyScalar(constant - cutterSize);
       
       cutterBrush.position.copy(offset);
@@ -951,12 +955,20 @@ export default {
            color: 0xFFFFFF,
            metalness: 0.1,
            roughness: 0.75,
-           side: THREE.DoubleSide
+           side: THREE.FrontSide
        });
        
        const baseBrush = new Brush(baseGeometry, baseMaterial);
-       const cutterGeometry = new THREE.BoxGeometry(50, 50, 50); 
-       const cutterMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
+       
+       // ĞŞ¸´£º´ó·ùÔö¼ÓÇĞµ¶³ß´ç (50 -> 200) È·±£¸²¸Ç´óÇã½ÇµÄÇĞÃæ
+       const cutterGeometry = new THREE.BoxGeometry(200, 200, 200); 
+       
+       const cutterMaterial = new THREE.MeshStandardMaterial({ 
+           color: 0xff3b30,
+           metalness: 0.1,
+           roughness: 0.75,
+           side: THREE.FrontSide
+       }); 
        const cutterBrush = new Brush(cutterGeometry, cutterMaterial);
 
        this.threeApp.csg = {
@@ -1060,7 +1072,6 @@ export default {
   pointer-events: auto; 
 }
 
-/* ä¿®æ”¹ï¼šæ·»åŠ åœ†è§’å’Œéšè—æ»šåŠ¨æ¡ */
 .shape-menu {
   width: 260px; 
   padding: 12px;
@@ -1209,7 +1220,6 @@ export default {
   flex-shrink: 0; 
 }
 
-/* ä¿®æ”¹ï¼šå»é™¤ overflow ä»¥ä¿®å¤é˜´å½±é—®é¢˜ï¼Œå¢åŠ  margin-bottom æ‹‰å¤§é—´è· */
 .menu-area-fixed {
   flex: 1;
   overflow: visible; 
