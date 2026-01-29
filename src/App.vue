@@ -11,46 +11,54 @@
     </div>
 
     <div v-if="viewState==='home'" class="wrap homeWrap">
-      <div class="header-area">
-        <div class="title">计算助手</div>
-        <div class="subtitle">专项练习：进位加、退位减、大九九除法</div>
-      </div>
-
-      <div class="card glass-panel">
-        <template v-for="(group, groupKey) in modeGroups" :key="groupKey">
-          <div class="rowLabel" v-if="group.label">{{ group.label }}</div>
-          
-          <div v-if="groupKey === 'divSelect'" style="margin-bottom: 10px;">
-              <button class="btnGhost glass-btn" style="margin-top:0; height:45px; line-height:45px; font-size:16px;" @click="toSelectDivisor">
-              进入除数选择模式
-            </button>
-          </div>
-
-          <div class="modeRow" v-else>
-            <div 
-              v-for="modeKey in group.modes" 
-              :key="modeKey"
-              :class="['modeItem', currentModeKey === modeKey ? 'active' : '']" 
-              @click="setMode(modeKey)"
-            >
-              <span class="modeTitle">{{ getModeConfig(modeKey).name }}</span>
-            </div>
-          </div>
-        </template>
-        
-        <div class="rowLabel">空间思维专项 (公考行测)</div>
-        <div class="modeRow">
-           <div class="modeItem" style="flex: 1 0 45%; background: rgba(0,122,255,0.08); border-color: rgba(0,122,255,0.2);" @click="startCubicMode('block')">
-              <span class="modeTitle" style="color: #007aff;">🧱 立体拼合</span>
-           </div>
-           <div class="modeItem" style="flex: 1 0 45%; background: rgba(88,86,214,0.1); border-color: rgba(88,86,214,0.2);" @click="startCubicMode('section')">
-              <span class="modeTitle" style="color: #5856d6;">🔪 立体截面</span>
-           </div>
+      
+      <div class="scroll-content">
+        <div class="header-area">
+          <div class="title">计算助手</div>
+          <div class="subtitle">专项练习：进位加、退位减、大九九除法</div>
         </div>
 
-        <button class="btnPrimary glass-primary main-action-btn homeStartBtn" @click="startGame">开始练习</button>
-        <button class="btnHistory glass-btn main-action-btn" @click="openHistory">历史记录</button>
+        <div class="card glass-panel menu-card">
+          <template v-for="(group, groupKey) in modeGroups" :key="groupKey">
+            <div class="rowLabel" v-if="group.label">{{ group.label }}</div>
+            
+            <div v-if="groupKey === 'divSelect'" style="margin-bottom: 10px;">
+                <button class="btnGhost glass-btn" style="margin-top:0; height:45px; line-height:45px; font-size:16px;" @click="toSelectDivisor">
+                进入除数选择模式
+              </button>
+            </div>
+
+            <div class="modeRow" v-else>
+              <div 
+                v-for="modeKey in group.modes" 
+                :key="modeKey"
+                :class="['modeItem', currentModeKey === modeKey ? 'active' : '']" 
+                @click="setMode(modeKey)"
+              >
+                <span class="modeTitle">{{ getModeConfig(modeKey).name }}</span>
+              </div>
+            </div>
+          </template>
+          
+          <div class="rowLabel">空间思维专项 (公考行测)</div>
+          <div class="modeRow">
+             <div class="modeItem" style="flex: 1 0 45%; background: rgba(0,122,255,0.08); border-color: rgba(0,122,255,0.2);" @click="startCubicMode('block')">
+                <span class="modeTitle" style="color: #007aff;">🧱 立体拼合</span>
+             </div>
+             <div class="modeItem" style="flex: 1 0 45%; background: rgba(88,86,214,0.1); border-color: rgba(88,86,214,0.2);" @click="startCubicMode('section')">
+                <span class="modeTitle" style="color: #5856d6;">🔪 立体截面</span>
+             </div>
+          </div>
+        </div>
       </div>
+
+      <div class="fixed-bottom">
+        <div class="glass-panel bottom-panel">
+          <button class="btnPrimary glass-primary main-action-btn" @click="startGame">开始练习</button>
+          <button class="btnHistory glass-btn main-action-btn" @click="openHistory">历史记录</button>
+        </div>
+      </div>
+
     </div>
 
     <div v-if="viewState==='selectDivisor'" class="wrap homeWrap">
@@ -663,7 +671,7 @@ export default {
       scene: null, camera: null, renderer: null, controls: null, 
       raycaster: null, pointer: null, objects: [], animationId: null, 
       examGroup: null, gridHelper: null,
-      csg: null // 新增：存储 CSG 计算器状态
+      csg: null, sliceHelper: null // 新增：sliceHelper 用于显示透明切面
     };
   },
   watch: {
@@ -837,6 +845,16 @@ export default {
       
       this.threeApp.examGroup = resultMesh;
       this.threeApp.scene.add(resultMesh);
+
+      // 6. [新增] 更新透明切面显示
+      if (this.threeApp.sliceHelper) {
+         const h = this.threeApp.sliceHelper;
+         h.visible = true;
+         // 辅助平面位置就在切面的位置：法线 * 距离
+         const planePos = normal.clone().multiplyScalar(constant);
+         h.position.copy(planePos);
+         h.lookAt(planePos.clone().add(normal));
+      }
     },
 
     resetSlice() {
@@ -927,6 +945,20 @@ export default {
       const plane = new THREE.Mesh(planeGeometry, planeMaterial); 
       plane.name = 'ground'; 
       scene.add(plane);
+
+      // [新增] 辅助切面 (透明红色)
+      const sliceGeo = new THREE.PlaneGeometry(60, 60);
+      const sliceMat = new THREE.MeshBasicMaterial({
+         color: 0xff3b30, // iOS 红色
+         opacity: 0.1,    // 很淡的透明度
+         transparent: true,
+         side: THREE.DoubleSide,
+         depthWrite: false, // 防止遮挡深度计算
+      });
+      const sliceHelper = new THREE.Mesh(sliceGeo, sliceMat);
+      sliceHelper.visible = false; 
+      scene.add(sliceHelper);
+      this.threeApp.sliceHelper = sliceHelper;
 
       const controls = new OrbitControls(camera, renderer.domElement); 
       controls.enableDamping = true; 
@@ -1061,6 +1093,10 @@ export default {
       if(this.threeApp.examGroup) {
          scene.remove(this.threeApp.examGroup);
          this.threeApp.examGroup = null;
+      }
+      // 隐藏辅助平面
+      if (this.threeApp.sliceHelper) {
+         this.threeApp.sliceHelper.visible = false;
       }
     },
     cleanup3D() { 
@@ -1219,8 +1255,47 @@ export default {
 .toast-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; z-index: 999; pointer-events: none; }
 .toast-content { background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); color: #fff; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
 .wrap { padding: 20px 16px 24px; box-sizing: border-box; position: relative; z-index: 1; }
-.homeWrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: max(60px, env(safe-area-inset-top)); padding-bottom: 40px; scrollbar-width: none; }
-.homeWrap::-webkit-scrollbar { display: none; }
+
+/* 关键修改：Home 页面布局逻辑 */
+.homeWrap { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: flex-start; 
+  overflow: hidden; /* 禁止 wrap 滚动，交给 scroll-content */
+  padding-top: max(60px, env(safe-area-inset-top)); 
+  padding-bottom: 0; /* 底部由 fixed 区域接管 */
+}
+
+/* 滚动内容区 */
+.scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 20px;
+  /* 隐藏滚动条 */
+  scrollbar-width: none; 
+}
+.scroll-content::-webkit-scrollbar { display: none; }
+
+/* 菜单卡片，去掉不必要的下边距 */
+.menu-card {
+  margin-bottom: 10px;
+}
+
+/* 固定底部区域 */
+.fixed-bottom {
+  flex-shrink: 0;
+  padding-top: 10px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 10;
+}
+
+.bottom-panel {
+  padding: 16px;
+}
+
+/* ...原有的其他CSS... */
 .full-height { flex: 1; display: flex; flex-direction: column; height: 100vh; }
 .full-flex { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 20px; }
 .header-area { margin-bottom: 20px; text-align: center; flex-shrink: 0; }
