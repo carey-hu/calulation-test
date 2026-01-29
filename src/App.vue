@@ -480,21 +480,28 @@ const createCylinderWithRectHole = () => {
   return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
 };
 
-// 11. 拱门造型
+// 11. 拱门造型 (修复: 底部面多余问题 - 使用单路径闭合，不使用Hole)
 const createArchShape = () => {
   const shape = new THREE.Shape();
-  shape.moveTo(-3, 0);
-  shape.lineTo(3, 0);
+  // 1. 外轮廓右下角
+  shape.moveTo(3, 0);
+  // 2. 外轮廓右上角 (直到圆弧起点)
   shape.lineTo(3, 4);
-  shape.absarc(0, 4, 3, 0, Math.PI, false); 
-  shape.lineTo(-3, 4);
-  const hole = new THREE.Path();
-  hole.moveTo(-1.5, 0);
-  hole.lineTo(-1.5, 3);
-  hole.absarc(0, 3, 1.5, Math.PI, 0, true);
-  hole.lineTo(1.5, 0);
-  hole.lineTo(-1.5, 0);
-  shape.holes.push(hole);
+  // 3. 外圆弧 (半径3, 0->PI, 逆时针) -> 到达(-3, 4)
+  shape.absarc(0, 4, 3, 0, Math.PI, false);
+  // 4. 外轮廓左下角
+  shape.lineTo(-3, 0);
+  // 5. 内轮廓左脚
+  shape.lineTo(-1.5, 0);
+  // 6. 内轮廓左上 (直到内圆弧起点)
+  shape.lineTo(-1.5, 3);
+  // 7. 内圆弧 (半径1.5, PI->0, 顺时针) -> 到达(1.5, 3)
+  shape.absarc(0, 3, 1.5, Math.PI, 0, true);
+  // 8. 内轮廓右脚
+  shape.lineTo(1.5, 0);
+  // 9. 闭合回外轮廓右下角
+  shape.lineTo(3, 0);
+
   return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false, curveSegments: 32 });
 };
 
@@ -947,16 +954,24 @@ export default {
        baseGeometry.computeBoundingBox();
        baseGeometry.center();
        
+       // 修复：使用 FrontSide 确保 CSG 运算将物体视为实体，解决空心和黑斑问题
        const baseMaterial = new THREE.MeshStandardMaterial({
            color: 0xFFFFFF,
            metalness: 0.1,
            roughness: 0.75,
-           side: THREE.DoubleSide
+           side: THREE.FrontSide
        });
        
        const baseBrush = new Brush(baseGeometry, baseMaterial);
        const cutterGeometry = new THREE.BoxGeometry(50, 50, 50); 
-       const cutterMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
+       
+       // 修复：使用 FrontSide，并保留红色切面
+       const cutterMaterial = new THREE.MeshStandardMaterial({ 
+           color: 0xff3b30,
+           metalness: 0.1,
+           roughness: 0.75,
+           side: THREE.FrontSide
+       }); 
        const cutterBrush = new Brush(cutterGeometry, cutterMaterial);
 
        this.threeApp.csg = {
@@ -1060,7 +1075,6 @@ export default {
   pointer-events: auto; 
 }
 
-/* 修改：添加圆角和隐藏滚动条 */
 .shape-menu {
   width: 260px; 
   padding: 12px;
@@ -1209,7 +1223,6 @@ export default {
   flex-shrink: 0; 
 }
 
-/* 修改：去除 overflow 以修复阴影问题，增加 margin-bottom 拉大间距 */
 .menu-area-fixed {
   flex: 1;
   overflow: visible; 
