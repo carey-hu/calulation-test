@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      </div>
+    </div>
 
     <div v-if="viewState==='selectDivisor'" class="wrap homeWrap">
       <div class="header-area">
@@ -265,8 +265,11 @@
       <div v-if="cubicMode === 'section'" :class="['slice-panel-container', sliceMenuCollapsed ? 'collapsed' : '']">
         <div class="glass-panel slice-panel-content">
             <div class="panel-header" @click="sliceMenuCollapsed = !sliceMenuCollapsed">
-              <span>📐 切面调节</span>
-              <span style="font-size:12px; color:#666;">{{ sliceMenuCollapsed ? '展开' : '收起' }}</span>
+              <div class="sheet-handle"></div>
+              <div class="header-row">
+                <span class="header-title">📐 切面调节</span>
+                <span class="header-toggle-text">{{ sliceMenuCollapsed ? '展开' : '收起' }}</span>
+              </div>
             </div>
             
             <div v-if="!sliceMenuCollapsed" class="controls-body">
@@ -286,8 +289,8 @@
                 <span class="slice-label">Z旋转</span>
                 <input type="range" min="0" max="180" step="1" v-model.number="sliceConfig.rotZ" class="slice-slider">
               </div>
-              <div style="display:flex; gap:10px; margin-top:5px;">
-                  <button class="btnGhost small-btn" style="flex:1; font-size:12px;" @click="resetSlice">重置位置</button>
+              <div style="margin-top: 12px;">
+                  <button class="btnGhost ios-reset-btn" @click="resetSlice">重置位置</button>
               </div>
             </div>
         </div>
@@ -1106,81 +1109,6 @@ export default {
   transform: scale(0.95);
 }
 
-.slice-panel-container {
-  position: absolute;
-  bottom: 20px; 
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 360px;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  opacity: 1;
-  pointer-events: none; 
-}
-.slice-panel-container.collapsed {
-  transform: translateX(-50%) translateY(85%); 
-  opacity: 0.8;
-}
-.slice-panel-content {
-  pointer-events: auto;
-  padding: 0;
-  overflow: hidden;
-  background: rgba(255,255,255,0.85); 
-}
-.panel-header {
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(0,0,0,0.03);
-  cursor: pointer;
-  font-weight: 700;
-  color: #333;
-}
-.controls-body {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.slice-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-}
-.slice-label {
-  width: 50px;
-  text-align: right;
-  flex-shrink: 0;
-}
-.slice-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 20px; 
-  background: transparent;
-  outline: none;
-}
-.slice-slider::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 4px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 2px;
-}
-.slice-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 0.5px solid rgba(0,0,0,0.1);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  margin-top: -8px; 
-  cursor: pointer;
-}
-
 .homeStartBtn{ margin-top: 14px; }
 .page { height: 100vh; height: 100dvh; min-height: 100vh; background: radial-gradient(at 0% 0%, hsla(210,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(260,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(300,100%,94%,1) 0, transparent 50%), radial-gradient(at 0% 100%, hsla(180,100%,94%,1) 0, transparent 50%); background-color: #f2f2f7; color: #1c1c1e; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.08); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; box-sizing: border-box; position: relative; overflow: hidden; }
 .mesh-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
@@ -1353,4 +1281,152 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .view-selector { margin-top: 8px; padding: 6px; display: flex; gap: 6px; border-radius: 20px; flex-wrap: wrap; justify-content: center; }
 .view-btn { background: rgba(255,255,255,0.5); border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #333; }
 .view-btn:active, .view-btn.active-view { background: #007aff; color: white; }
+
+/* ==============================================
+   iOS 16 风格切面面板样式优化
+   ============================================== */
+
+.slice-panel-container {
+  position: absolute;
+  bottom: 24px; /* 稍微离底部远一点，更有悬浮感 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%; /* 宽度稍微加宽 */
+  max-width: 380px;
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1); /* iOS 物理缓动曲线 */
+  z-index: 100;
+}
+
+.slice-panel-container.collapsed {
+  transform: translateX(-50%) translateY(calc(100% - 60px)); /* 只露出头部 */
+}
+
+.slice-panel-content {
+  pointer-events: auto;
+  padding: 0;
+  overflow: hidden;
+  /* 核心：iOS 风格的高级毛玻璃 */
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border-radius: 28px !important; /* 大圆角 */
+}
+
+/* 头部样式重构 */
+.panel-header {
+  padding: 10px 20px 16px; /* 调整内边距 */
+  background: transparent; /* 去掉灰色背景 */
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 那个灰色小横条 (Handle) */
+.sheet-handle {
+  width: 36px;
+  height: 5px;
+  background: rgba(60, 60, 67, 0.3); /* iOS 标准抓手颜色 */
+  border-radius: 3px;
+  margin-bottom: 12px;
+}
+
+.header-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1c1c1e;
+  letter-spacing: -0.4px;
+}
+
+.header-toggle-text {
+  font-size: 13px;
+  color: #007aff;
+  font-weight: 600;
+  background: rgba(0, 122, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+/* 内容区域 */
+.controls-body {
+  padding: 0 20px 24px 20px; /* 左右留白，底部多留一点 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 增加行间距 */
+}
+
+.slice-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slice-label {
+  width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8e8e93; /* 次级文字颜色 */
+}
+
+/* 滑块样式优化 */
+.slice-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 24px;
+  background: transparent;
+  outline: none;
+}
+
+.slice-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px; /* 轨道稍微加粗 */
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 3px;
+}
+
+.slice-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 0 0 0.5px rgba(0,0,0,0.04); /* 增加投影立体感 */
+  margin-top: -9px; /* 居中对齐 */
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.slice-slider::-webkit-slider-thumb:active {
+  transform: scale(0.95);
+}
+
+/* 重置按钮优化 */
+.ios-reset-btn {
+  width: 100%;
+  height: 44px;
+  line-height: 44px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 14px;
+  color: #007aff;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.ios-reset-btn:active {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(0.98);
+}
 </style>
