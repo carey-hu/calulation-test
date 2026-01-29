@@ -12,50 +12,53 @@
 
     <div v-if="viewState==='home'" class="wrap homeWrap">
       
-      <div class="scroll-content">
-        <div class="header-area">
-          <div class="title">计算助手</div>
-          <div class="subtitle">专项练习：进位加、退位减、大九九除法</div>
-        </div>
+      <div class="header-area">
+        <div class="title">计算助手</div>
+        <div class="subtitle">专项练习：进位加、退位减、大九九除法</div>
+      </div>
 
-        <div class="card glass-panel menu-card">
-          <template v-for="(group, groupKey) in modeGroups" :key="groupKey">
-            <div class="rowLabel" v-if="group.label">{{ group.label }}</div>
-            
-            <div v-if="groupKey === 'divSelect'" style="margin-bottom: 10px;">
-                <button class="btnGhost glass-btn" style="margin-top:0; height:45px; line-height:45px; font-size:16px;" @click="toSelectDivisor">
-                进入除数选择模式
-              </button>
-            </div>
-
-            <div class="modeRow" v-else>
-              <div 
-                v-for="modeKey in group.modes" 
-                :key="modeKey"
-                :class="['modeItem', currentModeKey === modeKey ? 'active' : '']" 
-                @click="setMode(modeKey)"
-              >
-                <span class="modeTitle">{{ getModeConfig(modeKey).name }}</span>
+      <div class="menu-area-fixed">
+        <div class="card glass-panel full-menu-card">
+          <div class="menu-scroll-container">
+            <template v-for="(group, groupKey) in modeGroups" :key="groupKey">
+              <div class="rowLabel" v-if="group.label">{{ group.label }}</div>
+              
+              <div v-if="groupKey === 'divSelect'" style="margin-bottom: 10px;">
+                  <button class="btnGhost glass-btn" style="margin-top:0; height:45px; line-height:45px; font-size:16px;" @click="toSelectDivisor">
+                  进入除数选择模式
+                </button>
               </div>
+
+              <div class="modeRow" v-else>
+                <div 
+                  v-for="modeKey in group.modes" 
+                  :key="modeKey"
+                  :class="['modeItem', currentModeKey === modeKey ? 'active' : '']" 
+                  @click="setMode(modeKey)"
+                >
+                  <span class="modeTitle">{{ getModeConfig(modeKey).name }}</span>
+                </div>
+              </div>
+            </template>
+            
+            <div class="rowLabel">空间思维专项 (公考行测)</div>
+            <div class="modeRow">
+               <div class="modeItem" style="flex: 1 0 45%; background: rgba(0,122,255,0.08); border-color: rgba(0,122,255,0.2);" @click="startCubicMode('block')">
+                  <span class="modeTitle" style="color: #007aff;">🧱 立体拼合</span>
+               </div>
+               <div class="modeItem" style="flex: 1 0 45%; background: rgba(88,86,214,0.1); border-color: rgba(88,86,214,0.2);" @click="startCubicMode('section')">
+                  <span class="modeTitle" style="color: #5856d6;">🔪 立体截面</span>
+               </div>
             </div>
-          </template>
-          
-          <div class="rowLabel">空间思维专项 (公考行测)</div>
-          <div class="modeRow">
-             <div class="modeItem" style="flex: 1 0 45%; background: rgba(0,122,255,0.08); border-color: rgba(0,122,255,0.2);" @click="startCubicMode('block')">
-                <span class="modeTitle" style="color: #007aff;">🧱 立体拼合</span>
-             </div>
-             <div class="modeItem" style="flex: 1 0 45%; background: rgba(88,86,214,0.1); border-color: rgba(88,86,214,0.2);" @click="startCubicMode('section')">
-                <span class="modeTitle" style="color: #5856d6;">🔪 立体截面</span>
-             </div>
+            <div style="height: 10px;"></div>
           </div>
         </div>
       </div>
 
       <div class="fixed-bottom">
         <div class="glass-panel bottom-panel">
-          <button class="btnPrimary glass-primary main-action-btn" @click="startGame">开始练习</button>
-          <button class="btnHistory glass-btn main-action-btn" @click="openHistory">历史记录</button>
+          <button class="btnPrimary main-action-btn" @click="startGame">开始练习</button>
+          <button class="btnHistory main-action-btn" @click="openHistory">历史记录</button>
         </div>
       </div>
 
@@ -66,7 +69,7 @@
         <div class="title">选择除数</div>
         <div class="subtitle">点击下方数字开始练习商首位</div>
       </div>
-      <div class="card glass-panel">
+      <div class="card glass-panel" style="flex:1; overflow-y:auto;">
         <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px;">
           <button v-for="item in divisorList" :key="item" class="k glass-key" style="font-size:20px; height:50px; line-height:50px;" @click="selectDivisorAndStart(item)">{{item}}</button>
         </div>
@@ -191,7 +194,6 @@
         </div>
       </div>
     </div>
-
 
     <div v-if="viewState==='cubic'" class="wrap full-height" style="padding:0; overflow:hidden;">
       <div id="three-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
@@ -946,8 +948,8 @@ export default {
       plane.name = 'ground'; 
       scene.add(plane);
 
-      // [新增] 辅助切面 (透明红色)
-      const sliceGeo = new THREE.PlaneGeometry(60, 60);
+      // [新增] 辅助切面 (透明红色) - 大小改为 15x15，更紧凑
+      const sliceGeo = new THREE.PlaneGeometry(15, 15);
       const sliceMat = new THREE.MeshBasicMaterial({
          color: 0xff3b30, // iOS 红色
          opacity: 0.1,    // 很淡的透明度
@@ -1256,7 +1258,7 @@ export default {
 .toast-content { background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); color: #fff; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
 .wrap { padding: 20px 16px 24px; box-sizing: border-box; position: relative; z-index: 1; }
 
-/* 关键修改：Home 页面布局逻辑 */
+/* === 关键布局修改：Home 页面三段式逻辑 === */
 .homeWrap { 
   flex: 1; 
   display: flex; 
@@ -1267,38 +1269,62 @@ export default {
   padding-bottom: 0; /* 底部由 fixed 区域接管 */
 }
 
-/* 滚动内容区 */
-.scroll-content {
+/* 头部区域 */
+.header-area { 
+  margin-bottom: 10px; /* 减小间距 */
+  text-align: center; 
+  flex-shrink: 0; 
+}
+
+/* 中间：固定白框区域 */
+.menu-area-fixed {
+  flex: 1; /* 占据剩余空间 */
+  overflow: hidden;
+  padding: 0 4px; /* 两侧留一点缝隙 */
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 白框卡片本身 */
+.full-menu-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  margin-bottom: 0 !important; /* 去掉原有卡片边距 */
+  padding: 0 !important; /* 清除默认padding，交给内部容器 */
+}
+
+/* 内部滚动容器 */
+.menu-scroll-container {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 20px;
-  /* 隐藏滚动条 */
+  padding: 16px;
   scrollbar-width: none; 
 }
-.scroll-content::-webkit-scrollbar { display: none; }
+.menu-scroll-container::-webkit-scrollbar { display: none; }
 
-/* 菜单卡片，去掉不必要的下边距 */
-.menu-card {
-  margin-bottom: 10px;
-}
-
-/* 固定底部区域 */
+/* 底部：固定操作区域 */
 .fixed-bottom {
   flex-shrink: 0;
-  padding-top: 10px;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  padding: 0 16px 24px 16px; /* 增加左右内边距，确保卡片不贴边 */
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
   z-index: 10;
 }
 
 .bottom-panel {
   padding: 16px;
+  border-radius: 24px !important; /* 强制圆角 */
+  /* 可选：如果你希望底部卡片有明显的悬浮感 */
+  /* margin: 0 10px; */ 
 }
 
 /* ...原有的其他CSS... */
 .full-height { flex: 1; display: flex; flex-direction: column; height: 100vh; }
 .full-flex { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 20px; }
-.header-area { margin-bottom: 20px; text-align: center; flex-shrink: 0; }
 .title { font-size: 34px; font-weight: 900; margin: 0 0 6px; color: #000; letter-spacing: -0.5px; }
 .subtitle { font-size: 15px; color: #8e8e93; font-weight: 500; }
 .glass-panel { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(50px) saturate(200%); -webkit-backdrop-filter: blur(50px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5); }
