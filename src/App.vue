@@ -50,7 +50,7 @@
                   <span class="modeTitle" style="color: #5856d6;">?? 立体截面</span>
                </div>
             </div>
-            <div style="height: 20px;"></div>
+            <div style="height: 10px;"></div>
           </div>
         </div>
       </div>
@@ -186,7 +186,7 @@
           </div>
         </div>
         <div style="margin-top: 15px; display:flex; flex-direction: column; gap:10px;">
-          <button v-if="historyList.length > 1000" class="btnGhost glass-btn" style="margin:0; height: 40px; font-size: 16px; color: #ff3b30; background: rgba(255,59,48,0.08); border-color: rgba(255,59,48,0.2);" @click="clearOldest">?? 清理最早的 1000 条</button>
+          <button v-if="historyList.length > 1000" class="btnGhost glass-btn" style="margin:0; height: 40px; font-size: 16px; color: #ff3b30; background: rgba(255,59,48,0.08); border-color: rgba(255,59,48,0.2);" @click="clearOldest">??? 清理最早的 1000 条</button>
           <div style="display:flex; gap:10px;">
             <button class="btnDanger glass-btn main-action-btn" style="margin:0; flex:1;" @click="clearHistory">清空全部</button>
             <button class="btnPrimary glass-primary main-action-btn" style="margin:0; flex:1;" @click="closeHistory">返回主页</button>
@@ -221,8 +221,8 @@
                 @click="switchColor(c)"></div>
             </div>
             <div class="divider"></div>
-            <button :class="['btnIcon', isDeleteMode ? 'active' : '']" @click="toggleDeleteMode">??</button>
-            <button class="btnIcon" @click="clearCubes">???</button>
+            <button :class="['btnIcon', isDeleteMode ? 'active' : '']" @click="toggleDeleteMode">???</button>
+            <button class="btnIcon" @click="clearCubes">??</button>
           </template>
         </div>
 
@@ -265,7 +265,7 @@
       <div v-if="cubicMode === 'section'" :class="['slice-panel-container', sliceMenuCollapsed ? 'collapsed' : '']">
         <div class="glass-panel slice-panel-content">
             <div class="panel-header" @click="sliceMenuCollapsed = !sliceMenuCollapsed">
-              <span>??? 切面调节</span>
+              <span>?? 切面调节</span>
               <span style="font-size:12px; color:#666;">{{ sliceMenuCollapsed ? '展开' : '收起' }}</span>
             </div>
             
@@ -1204,15 +1204,14 @@ export default {
 .toast-content { background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); color: #fff; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
 .wrap { padding: 20px 16px 24px; box-sizing: border-box; position: relative; z-index: 1; }
 
-/* 首页布局调整 */
 .homeWrap { 
-  height: 100%;
+  flex: 1; 
   display: flex; 
   flex-direction: column; 
   justify-content: flex-start; 
+  overflow: hidden; 
   padding-top: max(60px, env(safe-area-inset-top)); 
-  padding-bottom: 0; /* 清除底部padding，因为按钮已经absolute了 */
-  position: relative; /* 为子元素的absolute定位提供基准 */
+  padding-bottom: 0; 
 }
 
 .header-area { 
@@ -1221,19 +1220,17 @@ export default {
   flex-shrink: 0; 
 }
 
-/* 中间菜单区域：自适应高度，留出底部按钮空间 */
 .menu-area-fixed {
   flex: 1;
-  overflow: hidden; 
+  overflow: visible; 
   padding: 0 16px; 
+  margin-bottom: 24px; 
   display: flex;
   flex-direction: column;
-  margin-bottom: 90px; /* 重要：为固定的底部按钮留出空间，防止遮挡 */
-  min-height: 0; /* Flexbox 嵌套滚动的关键 */
 }
 
 .full-menu-card {
-  height: 100%; /* 卡片高度撑满中间区域 */
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1242,7 +1239,6 @@ export default {
   padding: 0 !important; 
 }
 
-/* 卡片内部滚动容器 */
 .menu-scroll-container {
   flex: 1;
   overflow-y: auto;
@@ -1252,21 +1248,16 @@ export default {
 }
 .menu-scroll-container::-webkit-scrollbar { display: none; }
 
-/* 底部区域：绝对定位固定在底部 */
 .fixed-bottom {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0 16px; 
-  padding-bottom: max(20px, calc(10px + env(safe-area-inset-bottom))); /* 适配 iPhone 底部黑条 */
-  z-index: 20;
+  flex-shrink: 0;
+  padding: 0 16px 24px 16px; 
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 10;
 }
 
 .bottom-panel {
   padding: 16px;
   border-radius: 24px !important; 
-  box-shadow: 0 -10px 30px rgba(0,0,0,0.05); /* 稍微加强一点阴影，体现悬浮感 */
 }
 
 .full-height { flex: 1; display: flex; flex-direction: column; height: 100vh; }
