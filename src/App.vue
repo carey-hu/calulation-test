@@ -1200,7 +1200,7 @@ export default {
   justify-content: flex-start; 
   overflow: hidden; 
   padding-top: max(60px, env(safe-area-inset-top)); 
-  padding-bottom: 0; 
+  padding-bottom: calc(160px + env(safe-area-inset-bottom)); 
 }
 
 .header-area { 
@@ -1214,7 +1214,7 @@ export default {
   flex: 1;
   overflow: visible; 
   padding: 0 16px; 
-  margin-bottom: 24px; 
+  margin-bottom: 32px; 
   display: flex;
   flex-direction: column;
 }
@@ -1234,12 +1234,18 @@ export default {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 16px;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
   scrollbar-width: none; 
 }
 .menu-scroll-container::-webkit-scrollbar { display: none; }
 
 .fixed-bottom {
-  flex-shrink: 0;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;
+  max-width: 480px;
   padding: 0 16px 24px 16px; 
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
   z-index: 10;
@@ -1247,6 +1253,8 @@ export default {
 
 .bottom-panel {
   padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
   border-radius: 24px !important; 
 }
 
