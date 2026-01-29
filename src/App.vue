@@ -1214,7 +1214,7 @@ export default {
   flex: 1;
   overflow: visible; 
   padding: 0 16px; 
-  margin-bottom: 24px; 
+  margin-bottom: 32px; 
   display: flex;
   flex-direction: column;
 }
@@ -1234,7 +1234,7 @@ export default {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 16px;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
   scrollbar-width: none; 
 }
 .menu-scroll-container::-webkit-scrollbar { display: none; }
@@ -1253,6 +1253,8 @@ export default {
 
 .bottom-panel {
   padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
   border-radius: 24px !important; 
 }
 
