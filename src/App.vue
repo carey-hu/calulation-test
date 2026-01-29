@@ -1182,7 +1182,7 @@ export default {
 }
 
 .homeStartBtn{ margin-top: 14px; }
-.page { height: 100vh; min-height: 100vh; background: radial-gradient(at 0% 0%, hsla(210,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(260,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(300,100%,94%,1) 0, transparent 50%), radial-gradient(at 0% 100%, hsla(180,100%,94%,1) 0, transparent 50%); background-color: #f2f2f7; color: #1c1c1e; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.08); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; box-sizing: border-box; position: relative; overflow: hidden; }
+.page { height: 100vh; height: 100dvh; min-height: 100vh; background: radial-gradient(at 0% 0%, hsla(210,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(260,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(300,100%,94%,1) 0, transparent 50%), radial-gradient(at 0% 100%, hsla(180,100%,94%,1) 0, transparent 50%); background-color: #f2f2f7; color: #1c1c1e; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.08); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; box-sizing: border-box; position: relative; overflow: hidden; }
 .mesh-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
 .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.7; animation: float 10s infinite alternate ease-in-out; }
 .orb-1 { width: 350px; height: 350px; background: #a2d2ff; top: -100px; left: -100px; }
@@ -1200,7 +1200,8 @@ export default {
   justify-content: flex-start; 
   overflow: hidden; 
   padding-top: max(60px, env(safe-area-inset-top)); 
-  padding-bottom: 0; 
+  padding-bottom: 0;
+  position: relative; /* 确保子元素的 absolute 基于此容器 */
 }
 
 .header-area { 
@@ -1212,11 +1213,12 @@ export default {
 /* 修改：去除 overflow 以修复阴影问题，增加 margin-bottom 拉大间距 */
 .menu-area-fixed {
   flex: 1;
-  overflow: visible; 
+  overflow: hidden; /* 内部滚动，外部隐藏 */
   padding: 0 16px; 
-  margin-bottom: 24px; 
+  margin-bottom: 0; /* 修改：移除原本为了避让 flex 布局留的 margin */
   display: flex;
   flex-direction: column;
+  z-index: 1; /* 确保在底部按钮层级之下 */
 }
 
 .full-menu-card {
@@ -1234,20 +1236,28 @@ export default {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 16px;
+  /* 核心修改：底部预留足够空间 (按钮区域高度约 160px) */
+  padding-bottom: 180px; 
   scrollbar-width: none; 
 }
 .menu-scroll-container::-webkit-scrollbar { display: none; }
 
 .fixed-bottom {
-  flex-shrink: 0;
-  padding: 0 16px 24px 16px; 
+  position: absolute; /* 修改：从 flex 布局改为绝对定位 */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 16px; 
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
-  z-index: 10;
+  z-index: 20; /* 确保浮在滚动列表之上 */
+  pointer-events: none; /* 让点击穿透容器边缘 */
 }
 
 .bottom-panel {
   padding: 16px;
   border-radius: 24px !important; 
+  pointer-events: auto; /* 恢复按钮区域的点击 */
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.1) !important;
 }
 
 .full-height { flex: 1; display: flex; flex-direction: column; height: 100vh; }
