@@ -915,7 +915,7 @@ export default {
         side: THREE.DoubleSide 
       });
       const capMesh = new THREE.Mesh(capGeom, capMat);
-      capMesh.renderOrder = 2; 
+      capMesh.renderOrder = 1; // <--- 关键修改：从 2 改为 1
       capMesh.visible = false;
       scene.add(capMesh);
       this.threeApp.capMesh = capMesh;
@@ -1009,7 +1009,7 @@ export default {
          stencilWrite: false 
        });
        const meshBase = new THREE.Mesh(geometry, matBase);
-       meshBase.renderOrder = 1; 
+       meshBase.renderOrder = 2; // <--- 关键修改：从 1 改为 2
        group.add(meshBase);
 
        this.threeApp.scene.add(group);
