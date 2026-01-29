@@ -292,7 +292,7 @@ import * as echarts from 'echarts';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-// === 引入 CSG 核心模块 (确保已 npm install three-bvh-csg three-mesh-bvh) ===
+// === 引入 CSG 核心模块 ===
 import { SUBTRACTION, Brush, Evaluator } from 'three-bvh-csg';
 
 // ... (核心逻辑层代码保持不变，省略以聚焦重点) ...
@@ -347,8 +347,7 @@ const MODE_GROUPS = {
 };
 
 // =================================================================
-// 扩展的公务员考试立体图形库 (行测-图形推理-立体截面)
-// 核心修复：ExtrudeGeometry 挖孔，强制 外轮廓CCW, 内孔洞CW
+// 扩展的公务员考试立体图形库
 // =================================================================
 
 // 1. 空心圆柱 (圆管)
