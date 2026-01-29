@@ -230,7 +230,7 @@
           <button class="view-btn" @click="setCameraView('front')">正</button>
           <button class="view-btn" @click="setCameraView('left')">左</button>
           <button class="view-btn" @click="setCameraView('top')">俯</button>
-          <button class="view-btn active-view" @click="setCameraView('iso')">轴</button>
+          <button class="view-btn" @click="setCameraView('iso')">轴</button>
         </div>
         
         <div class="tip-toast" v-if="cubicMode === 'block'">点击地面放置，点击方块叠加</div>
