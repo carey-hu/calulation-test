@@ -1118,7 +1118,6 @@ export default {
   pointer-events: auto; /* 允许点击 */
 }
 
-/* 题库菜单美化 */
 .shape-menu {
   width: 260px; 
   padding: 12px;
@@ -1127,14 +1126,13 @@ export default {
   gap: 8px;
   max-height: 400px;
   overflow-y: auto;
-  
-  /* 美化：圆角 + 毛玻璃 + 浅色背景 */
-  background: rgba(255, 255, 255, 0.85);
+  /* 修复: 菜单背景色增加不透明度 */
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  /* 美化圆角 */
+  border-radius: 20px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px; 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .shape-group-title {
@@ -1313,11 +1311,7 @@ export default {
   z-index: 10;
 }
 
-/* 修复底部白框直角阴影问题：
-   1. 显式设置 border-radius
-   2. 重新定义 glass 样式确保圆角一致
-   3. 设置 overflow: visible 防止阴影被切，但确保背景色遵循圆角
-*/
+/* 修复底部白框直角阴影问题 */
 .bottom-panel {
   padding: 16px;
   border-radius: 32px; 
