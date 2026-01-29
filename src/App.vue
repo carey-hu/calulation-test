@@ -50,19 +50,19 @@
                   <span class="modeTitle" style="color: #5856d6;">🔪 立体截面</span>
                </div>
             </div>
-            <div style="height: 10px;"></div>
+            <div style="height: 20px;"></div>
           </div>
+
+          <div class="card-bottom-actions">
+            <div class="separator-line"></div>
+            <button class="btnPrimary main-action-btn" @click="startGame">开始练习</button>
+            <button class="btnHistory main-action-btn" @click="openHistory">历史记录</button>
+          </div>
+
         </div>
       </div>
 
-      <div class="fixed-bottom">
-        <div class="glass-panel bottom-panel">
-          <button class="btnPrimary main-action-btn" @click="startGame">开始练习</button>
-          <button class="btnHistory main-action-btn" @click="openHistory">历史记录</button>
-        </div>
       </div>
-
-    </div>
 
     <div v-if="viewState==='selectDivisor'" class="wrap homeWrap">
       <div class="header-area">
@@ -1200,8 +1200,8 @@ export default {
   justify-content: flex-start; 
   overflow: hidden; 
   padding-top: max(60px, env(safe-area-inset-top)); 
-  padding-bottom: 0;
-  position: relative; /* 确保子元素的 absolute 基于此容器 */
+  padding-bottom: 0; /* 贴底 */
+  position: relative;
 }
 
 .header-area { 
@@ -1213,34 +1213,54 @@ export default {
 /* 修改：去除 overflow 以修复阴影问题，增加 margin-bottom 拉大间距 */
 .menu-area-fixed {
   flex: 1;
-  overflow: hidden; /* 内部滚动，外部隐藏 */
+  overflow: hidden; 
   padding: 0 16px; 
-  margin-bottom: 0; /* 修改：移除原本为了避让 flex 布局留的 margin */
+  margin-bottom: 0; /* 移除底部间距，让卡片可以延伸到底部 */
   display: flex;
   flex-direction: column;
-  z-index: 1; /* 确保在底部按钮层级之下 */
+  /* 增加底部 padding，确保在非全面屏手机上也不会贴到底边框 */
+  padding-bottom: 12px;
 }
 
 .full-menu-card {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border-radius: 24px;
+  overflow: hidden; /* 防止圆角溢出 */
+  border-radius: 24px; /* 保持大圆角 */
   margin-bottom: 0 !important; 
-  padding: 0 !important; 
+  padding: 0 !important; /* 清除默认 padding，由内部容器控制 */
 }
 
 .menu-scroll-container {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px;
-  /* 核心修改：底部预留足够空间 (按钮区域高度约 160px) */
-  padding-bottom: 180px; 
-  scrollbar-width: none; 
+  padding: 16px 16px 0 16px; /* 顶部左右保留间距，底部由 spacing div 控制 */
+  scrollbar-width: none;
 }
 .menu-scroll-container::-webkit-scrollbar { display: none; }
+
+.card-bottom-actions {
+  flex-shrink: 0; /* 禁止被压缩 */
+  padding: 16px;
+  /* 核心：底部适配 iPhone 安全区，因为现在按钮在卡片里了 */
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.0); /* 透明背景，共用父级毛玻璃 */
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.separator-line {
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.05);
+}
 
 .fixed-bottom {
   position: absolute; /* 修改：从 flex 布局改为绝对定位 */
