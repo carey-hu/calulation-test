@@ -195,7 +195,6 @@
       </div>
     </div>
 
-
     <div v-if="viewState==='cubic'" class="wrap full-height" style="padding:0; overflow:hidden;">
       <div id="three-container" style="width:100%; height:100%; display:block; outline:none; touch-action: none;"></div>
 
@@ -346,6 +345,15 @@ const GAME_MODES = {
   'divSpecA': { name: '反向放缩', title: '反向放缩完成！', hintNote: '除数111-199 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*(199-111+1))+111;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} },
   'divSpecB': { name: '平移法', title: '平移法完成！', hintNote: '商90-111 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; let c=0; while(c<n){ const dr=Math.floor(Math.random()*900)+100;const tq=Math.floor(Math.random()*(111-90+1))+90;const dd=dr*tq+Math.floor(Math.random()*dr); if(dd>=10000&&dd<=99999){ p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'}); c++;} } return p;} },
   'divSpecC': { name: '任意五除三', title: '任意五除三完成！', hintNote: '五位数除以三位数 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*900)+100;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} }
+};
+
+const MODE_GROUPS = {
+  basic: { label: '大九九/除法', modes: ['train', 'speed', 'first'] },
+  divSelect: { label: '商首位专项', modes: [] }, 
+  single: { label: '一位数专项 (仅填尾数)', modes: ['plus', 'minus'] },
+  double: { label: '两位数专项 (完整答案)', modes: ['doublePlus', 'doubleMinus', 'fourSum'] },
+  triple: { label: '三位数专项 (完整答案)', modes: ['triplePlus', 'tripleMinus', 'tripleAnyPlus', 'tripleAnyMinus', 'tripleMix', 'tripleMult', 'tripleDiv'] },
+  spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB', 'divSpecC'] }
 };
 
 // =================================================================
@@ -1129,10 +1137,6 @@ export default {
   /* 修复: 菜单背景色增加不透明度 */
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-  /* 美化圆角 */
-  border-radius: 20px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }
 
 .shape-group-title {
@@ -1277,7 +1281,7 @@ export default {
   flex: 1; /* 占据剩余空间 */
   overflow: hidden;
   padding: 0 4px; /* 两侧留一点缝隙 */
-  margin-bottom: 30px; /* 增加底部间距至 30px，增加呼吸感 */
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
 }
@@ -1311,16 +1315,11 @@ export default {
   z-index: 10;
 }
 
-/* 修复底部白框直角阴影问题 */
 .bottom-panel {
   padding: 16px;
-  border-radius: 32px; 
-  background: rgba(255, 255, 255, 0.65); /* 重新声明背景，确保覆盖 */
-  backdrop-filter: blur(50px) saturate(200%);
-  -webkit-backdrop-filter: blur(50px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5);
-  overflow: visible; /* 关键：防止阴影被切断 */
+  border-radius: 24px !important; /* 强制圆角 */
+  /* 可选：如果你希望底部卡片有明显的悬浮感 */
+  /* margin: 0 10px; */ 
 }
 
 /* ...原有的其他CSS... */
@@ -1328,7 +1327,7 @@ export default {
 .full-flex { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 20px; }
 .title { font-size: 34px; font-weight: 900; margin: 0 0 6px; color: #000; letter-spacing: -0.5px; }
 .subtitle { font-size: 15px; color: #8e8e93; font-weight: 500; }
-.glass-panel { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(50px) saturate(200%); -webkit-backdrop-filter: blur(50px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5); border-radius: 20px; /* 默认增加圆角 */ }
+.glass-panel { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(50px) saturate(200%); -webkit-backdrop-filter: blur(50px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5); }
 .card { border-radius: 28px; padding: 16px; }
 .rowLabel { font-size: 13px; font-weight: 700; color: #007aff; margin: 16px 0 8px 6px; opacity: 0.9; letter-spacing: 0.5px; }
 .modeRow { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
