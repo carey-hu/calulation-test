@@ -89,14 +89,27 @@
         <div class="card qCard glass-panel">
           <div :class="['qText', isSmallFont ? 'qText-small' : '']">{{qText}}</div>
           <div class="qNote">{{activeConfig.hintNote || activeConfig.hint || '精确到整数'}}</div>
-          <div class="ansBox glass-input">答案：{{input ? input : '—'}}</div>
+          
+          <template v-if="currentModeKey === 'divScale'">
+            <div class="ansBox glass-input" style="display: flex; justify-content: center; align-items: center; gap: 12px; padding: 12px;">
+              <div style="flex: 1; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 16px; height: 54px; line-height: 54px; font-size: 36px;">
+                {{ input.slice(0, 3) }}<span v-if="input.length < 3" style="color: #ccc;">_</span>
+              </div>
+              <div style="font-size: 32px; color: #1c1c1e;">÷</div>
+              <div style="width: 70px; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 16px; height: 54px; line-height: 54px; font-size: 36px;">
+                {{ input.slice(3, 4) || '_' }}
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div class="ansBox glass-input">答案：{{input ? input : '—'}}</div>
+          </template>
+
           <div class="hint">{{uiHint}}</div>
         </div>
       </div>
       <div class="keypad card glass-panel">
         <div class="fnRow">
-          <button v-if="currentModeKey === 'divScale'" class="kFn style-op" @click="pressDiv">÷</button>
-
           <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
           <button class="kFn style-clear" @click="clearInput">清空</button>
           <button class="kFn style-del" @click="backspace">退格</button>
@@ -347,20 +360,25 @@ const GAME_MODES = {
   'divSpecA': { name: '反向放缩', title: '反向放缩完成！', hintNote: '除数111-199 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*(199-111+1))+111;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} },
   'divSpecB': { name: '平移法', title: '平移法完成！', hintNote: '商90-111 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; let c=0; while(c<n){ const dr=Math.floor(Math.random()*900)+100;const tq=Math.floor(Math.random()*(111-90+1))+90;const dd=dr*tq+Math.floor(Math.random()*dr); if(dd>=10000&&dd<=99999){ p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'}); c++;} } return p;} },
   'divSpecC': { name: '任意五除三', title: '任意五除三完成！', hintNote: '五位数除以三位数 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*900)+100;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} },
+  
+  // 新增模式：放缩被除数
   'divScale': { 
     name: '放缩被除数', 
     title: '放缩被除数完成！', 
-    hintNote: '估算并输入"三位数÷一位数" (如 125÷9)', 
-    check: (v, t, userExpr) => {
-        if (!userExpr || !userExpr.includes('÷')) {
-            return { ok: false, display: '格式需为 a÷b', exactAns: t.toFixed(2), errorRate: '格式错误' };
+    hintNote: '估算并连续输入三位数和一位数', 
+    check: (v, t, inputStr) => {
+        // 要求输入必须满4位（前3位是被除数，最后1位是除数）
+        if (!inputStr || inputStr.length < 4) {
+            return { ok: false, display: '需填满三位数和一位数', exactAns: t.toFixed(2), errorRate: '格式错' };
         }
-        const parts = userExpr.split('÷');
-        const userVal = parseFloat(parts[0]) / parseFloat(parts[1]);
-        if (isNaN(userVal) || parseFloat(parts[1]) === 0) {
-            return { ok: false, display: '算式无效', exactAns: t.toFixed(2), errorRate: '无效' };
+        const a = parseInt(inputStr.slice(0, 3));
+        const b = parseInt(inputStr.slice(3, 4));
+        
+        if (b === 0) {
+            return { ok: false, display: '除数不能为0', exactAns: t.toFixed(2), errorRate: '无效' };
         }
 
+        const userVal = a / b;
         let ratio = userVal / t;
         let p10 = Math.round(Math.log10(ratio));
         let adjustedExact = t * Math.pow(10, p10);
@@ -724,24 +742,24 @@ export default {
     _setQuestion(q, shownIdx){ this.current = q; this.qStartTs = this.now(); this.input = ''; this.curWrongTries = 0; this.qText = `${q.dividend}${q.symbol}${q.divisor}`; this.progressText = `${shownIdx}/${this.pool.length}`; },
     _nextQuestion(){ const { idx, pool } = this; if(idx >= pool.length){ this._finish(); return; } this._setQuestion(pool[idx], idx + 1); this.idx = idx + 1; },
     
-    // 按键输入相关修改
-    pressDigit(d){ let input = this.input || ''; if(input.length >= 12) return; input += String(d); this.input = input; },
-    pressDot(){ 
+    // 按键交互优化
+    pressDigit(d){ 
         let input = this.input || ''; 
-        if(input.length >= 12) return; 
-        const parts = input.split('÷');
-        const currentPart = parts[parts.length - 1];
-        if(currentPart.includes('.')) return; 
-        if(currentPart === '') input += '0'; 
-        input += '.'; 
+        // 动态长度控制：放缩被除数模式最大长度为4，其它模式保留6
+        const maxLen = this.currentModeKey === 'divScale' ? 4 : 6;
+        if(input.length >= maxLen) return; 
+        input += String(d); 
         this.input = input; 
     },
-    pressDiv(){
-        let input = this.input || '';
-        if(input.length >= 12) return;
-        if(input.includes('÷')) return; 
-        if(input === '' || input.endsWith('.')) return; 
-        this.input = input + '÷';
+    pressDot(){ 
+        // 估算放缩模式固定输入纯数字，屏蔽小数点
+        if (this.currentModeKey === 'divScale') return; 
+        let input = this.input || ''; 
+        if(input.length >= 6) return; 
+        if(input.includes('.')) return; 
+        if(input === '') input += '0'; 
+        input += '.'; 
+        this.input = input; 
     },
 
     clearInput(){ this.input = ''; },
@@ -751,11 +769,22 @@ export default {
     confirmAnswer(){
       const { current: cur, input, currentModeKey: mode, activeConfig } = this; 
       if(!input) return; 
+      
       const n = parseFloat(input); 
       const used = (this.now() - this.qStartTs)/1000;
       let correct = false; 
       let realAnsDisplay = cur.ans;
       let extraInfo = {};
+      let yourAnsStr = input;
+
+      // 特殊处理放缩被除数模式的校验和展示格式
+      if (mode === 'divScale') {
+          if (input.length < 4) {
+              this.uiHint = '请填满三位数和一位数';
+              return; 
+          }
+          yourAnsStr = `${input.slice(0,3)}÷${input.slice(3,4)}`;
+      }
 
       if (activeConfig.check) { 
         const checkResult = activeConfig.check(n, cur.ans, input); 
@@ -791,7 +820,7 @@ export default {
       }
 
       const results = this.results.concat([{ 
-        q: `${cur.dividend}${cur.symbol}${cur.divisor}`, ok: correct, yourAns: input, realAns: realAnsDisplay, usedStr: used.toFixed(1) + 's', ...extraInfo
+        q: `${cur.dividend}${cur.symbol}${cur.divisor}`, ok: correct, yourAns: yourAnsStr, realAns: realAnsDisplay, usedStr: used.toFixed(1) + 's', ...extraInfo
       }]); 
       this.results = results; 
       this._nextQuestion();
@@ -1130,7 +1159,6 @@ export default {
   pointer-events: auto; 
 }
 
-/* 修改：添加圆角和隐藏滚动条 */
 .shape-menu {
   width: 260px; 
   padding: 12px;
@@ -1310,7 +1338,6 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .keypad { border-radius: 28px; overflow: hidden; clip-path: inset(0 0 0 0 round 28px); margin-bottom: calc( 6px + env(safe-area-inset-bottom)); }
 .fnRow { display: flex; gap: 9px; margin-bottom: 9px; }
 .kFn { flex: 1; height: 65px; line-height: 65px; border-radius: 14px; font-size: 20px; font-weight: 900; margin: 0; color: #fff; border: 1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
-.style-op { background: #007aff; border-color: #0056b3; } 
 .style-skip { background: #34c759; border-color: #248a3d; } 
 .style-clear { background: #ff9500; border-color: #e08600; } 
 .style-del { background: #ff3b30; border-color: #d63329; } 
