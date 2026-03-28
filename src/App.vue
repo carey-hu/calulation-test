@@ -90,7 +90,51 @@
           <div :class="['qText', isSmallFont ? 'qText-small' : '']">{{qText}}</div>
           <div class="qNote">{{activeConfig.hintNote || activeConfig.hint || '精确到整数'}}</div>
           
-          <template v-if="currentModeKey === 'divScale'">
+          <!-- 判进位 答题区 -->
+          <template v-if="currentModeKey === 'carryJudge'">
+            <div class="carry-ans-area">
+              <div class="carry-col" v-for="(label, ci) in ['百位','十位','个位']" :key="ci">
+                <div class="carry-label">{{label}}</div>
+                <div :class="['carry-box', carryActiveIdx === ci ? 'carry-box-active' : '', carryInputs[ci] ? 'carry-box-filled' : '']">
+                  {{carryInputs[ci] || '?'}}
+                </div>
+              </div>
+            </div>
+            <div class="hint">{{uiHint}}</div>
+          </template>
+          
+          <!-- 确本位 答题区 -->
+          <template v-else-if="currentModeKey === 'digitResult'">
+            <div class="digit-ans-area">
+              <div class="digit-col">
+                <div class="digit-label">千位</div>
+                <div :class="['digit-box', digitActiveIdx === 0 ? 'digit-box-active' : '', digitInputs[0] !== '' ? 'digit-box-filled' : '']">
+                  {{digitInputs[0] !== '' ? digitInputs[0] : '?'}}
+                </div>
+              </div>
+              <div class="digit-col">
+                <div class="digit-label">百位</div>
+                <div :class="['digit-box', digitActiveIdx === 1 ? 'digit-box-active' : '', digitInputs[1] !== '' ? 'digit-box-filled' : '']">
+                  {{digitInputs[1] !== '' ? digitInputs[1] : '?'}}
+                </div>
+              </div>
+              <div class="digit-col">
+                <div class="digit-label">十位</div>
+                <div :class="['digit-box', digitActiveIdx === 2 ? 'digit-box-active' : '', digitInputs[2] !== '' ? 'digit-box-filled' : '']">
+                  {{digitInputs[2] !== '' ? digitInputs[2] : '?'}}
+                </div>
+              </div>
+              <div class="digit-col">
+                <div class="digit-label">个位</div>
+                <div :class="['digit-box', digitActiveIdx === 3 ? 'digit-box-active' : '', digitInputs[3] !== '' ? 'digit-box-filled' : '']">
+                  {{digitInputs[3] !== '' ? digitInputs[3] : '?'}}
+                </div>
+              </div>
+            </div>
+            <div class="hint">{{uiHint}}</div>
+          </template>
+
+          <template v-else-if="currentModeKey === 'divScale'">
             <div class="ansBox glass-input" style="display: flex; justify-content: center; align-items: center; gap: 12px; padding: 12px;">
               <div style="flex: 1; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 16px; height: 54px; line-height: 54px; font-size: 36px;">
                 {{ input.slice(0, 3) }}<span v-if="input.length < 3" style="color: #ccc;">_</span>
@@ -105,10 +149,43 @@
             <div class="ansBox glass-input">答案：{{input ? input : '—'}}</div>
           </template>
 
-          <div class="hint">{{uiHint}}</div>
+          <div v-if="currentModeKey !== 'carryJudge' && currentModeKey !== 'digitResult'" class="hint">{{uiHint}}</div>
         </div>
       </div>
-      <div class="keypad card glass-panel">
+      
+      <!-- 判进位 键盘: Y/N -->
+      <div v-if="currentModeKey === 'carryJudge'" class="keypad card glass-panel">
+        <div class="fnRow">
+          <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
+          <button class="kFn style-clear" @click="clearCarryInput">清空</button>
+          <button class="kFn style-del" @click="backspaceCarry">退格</button>
+        </div>
+        <div class="carry-key-grid">
+          <button class="k carry-key carry-key-y glass-key" @click="pressCarryKey('Y')">Y<span class="carry-key-sub">进位</span></button>
+          <button class="k carry-key carry-key-n glass-key" @click="pressCarryKey('N')">N<span class="carry-key-sub">不进</span></button>
+        </div>
+        <div style="margin-top: 8px;">
+          <button class="k confirm glass-key-confirm" style="width:100%; height: 60px; line-height: 60px;" @click="confirmCarry">确认</button>
+        </div>
+      </div>
+      
+      <!-- 确本位 键盘: 数字 0-9 -->
+      <div v-else-if="currentModeKey === 'digitResult'" class="keypad card glass-panel">
+        <div class="fnRow">
+          <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
+          <button class="kFn style-clear" @click="clearDigitInput">清空</button>
+          <button class="kFn style-del" @click="backspaceDigit">退格</button>
+        </div>
+        <div class="grid">
+          <button v-for="item in [1,2,3,4,5,6,7,8,9]" :key="item" class="k glass-key" @click="pressDigitResult(item)">{{item}}</button>
+          <button class="k glass-key" style="visibility:hidden;"></button>
+          <button class="k glass-key" @click="pressDigitResult(0)">0</button>
+          <button class="k confirm glass-key-confirm" @click="confirmDigitResult">确认</button>
+        </div>
+      </div>
+
+      <!-- 默认数字键盘 -->
+      <div v-else class="keypad card glass-panel">
         <div class="fnRow">
           <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
           <button class="kFn style-clear" @click="clearInput">清空</button>
@@ -136,6 +213,42 @@
               <span class="rowRight">
                 <span :style="{ color: parseFloat(item.usedStr) > 2 ? '#ff3b30' : 'inherit' }">{{item.usedStr}}</span> / 错{{item.wrong}}{{item.skipped?'(跳)':''}}
               </span>
+            </div>
+          </template>
+          <template v-else-if="currentModeKey==='carryJudge'">
+            <div v-for="(item, index) in results" :key="index" class="row" style="flex-direction: column; align-items: stretch;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="rowLeft">{{index+1}}. {{item.q}} = {{item.realAns}}</span>
+                <span>{{item.ok ? '✅' : '❌'}} <span style="font-size:13px; color:#666;">{{item.usedStr}}</span></span>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:6px; font-size:13px;">
+                <div v-for="(pos, pi) in ['百','十','个']" :key="pi" :style="{
+                  flex:1, textAlign:'center', padding:'4px 0', borderRadius:'8px',
+                  background: item.posResults[pi].ok ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.1)',
+                  color: item.posResults[pi].ok ? '#34c759' : '#ff3b30'
+                }">
+                  {{pos}}:{{item.posResults[pi].yours}}{{item.posResults[pi].ok?'✓':'✗'}} 
+                  <span style="color:#8e8e93;">{{item.posResults[pi].time}}</span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else-if="currentModeKey==='digitResult'">
+            <div v-for="(item, index) in results" :key="index" class="row" style="flex-direction: column; align-items: stretch;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="rowLeft">{{index+1}}. {{item.q}} = {{item.yourAns}}</span>
+                <span>{{item.ok ? '✅' : '❌'}} <span v-if="!item.ok" style="color:#ff3b30; font-size:13px; font-weight:700;">({{item.realAns}})</span> <span style="font-size:13px; color:#666;">{{item.usedStr}}</span></span>
+              </div>
+              <div style="display:flex; gap:6px; margin-top:6px; font-size:13px;">
+                <div v-for="(pos, pi) in ['千','百','十','个']" :key="pi" :style="{
+                  flex:1, textAlign:'center', padding:'4px 0', borderRadius:'8px',
+                  background: item.posResults[pi].ok ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.1)',
+                  color: item.posResults[pi].ok ? '#34c759' : '#ff3b30'
+                }">
+                  {{pos}}:{{item.posResults[pi].yours}}{{item.posResults[pi].ok?'✓':'✗'}}
+                  <span style="color:#8e8e93;">{{item.posResults[pi].time}}</span>
+                </div>
+              </div>
             </div>
           </template>
           <template v-else>
@@ -362,6 +475,55 @@ const GAME_MODES = {
   'divSpecB': { name: '平移法', title: '平移法完成！', hintNote: '商90-111 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; let c=0; while(c<n){ const dr=Math.floor(Math.random()*900)+100;const tq=Math.floor(Math.random()*(111-90+1))+90;const dd=dr*tq+Math.floor(Math.random()*dr); if(dd>=10000&&dd<=99999){ p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'}); c++;} } return p;} },
   'divSpecC': { name: '任意五除三', title: '任意五除三完成！', hintNote: '五位数除以三位数 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*900)+100;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} },
   
+  // 判进位模式
+  'carryJudge': {
+    name: '判进位',
+    title: '判进位完成！',
+    hintNote: '判断每位是否进位：Y=进位 N=不进位',
+    gen: (n) => {
+      const p = [];
+      for (let i = 0; i < n; i++) {
+        const a = Math.floor(Math.random() * 900) + 100;
+        const b = Math.floor(Math.random() * 900) + 100;
+        // 计算每位是否进位
+        const a3 = a % 10, b3 = b % 10;
+        const a2 = Math.floor((a % 100) / 10), b2 = Math.floor((b % 100) / 10);
+        const a1 = Math.floor(a / 100), b1 = Math.floor(b / 100);
+        const carryOnes = (a3 + b3 >= 10) ? 'Y' : 'N';
+        const carryFromOnes = a3 + b3 >= 10 ? 1 : 0;
+        const carryTens = (a2 + b2 + carryFromOnes >= 10) ? 'Y' : 'N';
+        const carryFromTens = (a2 + b2 + carryFromOnes >= 10) ? 1 : 0;
+        const carryHundreds = (a1 + b1 + carryFromTens >= 10) ? 'Y' : 'N';
+        p.push({
+          dividend: a, divisor: b, ans: a + b, symbol: '+',
+          carries: [carryHundreds, carryTens, carryOnes] // 百、十、个
+        });
+      }
+      return p;
+    }
+  },
+  // 确本位模式
+  'digitResult': {
+    name: '确本位',
+    title: '确本位完成！',
+    hintNote: '依次填写结果的每一位数字',
+    gen: (n) => {
+      const p = [];
+      for (let i = 0; i < n; i++) {
+        const a = Math.floor(Math.random() * 900) + 100;
+        const b = Math.floor(Math.random() * 900) + 100;
+        const sum = a + b;
+        // 分解结果为各位数字（最多4位）
+        const digits = String(sum).padStart(4, '0').split('').map(Number);
+        p.push({
+          dividend: a, divisor: b, ans: sum, symbol: '+',
+          resultDigits: digits // [千, 百, 十, 个]
+        });
+      }
+      return p;
+    }
+  },
+
   // 放缩被除数 - 判定逻辑升级
   'divScale': { 
     name: '放缩被除数', 
@@ -416,6 +578,7 @@ const MODE_GROUPS = {
   single: { label: '一位数专项 (仅填尾数)', modes: ['plus', 'minus'] },
   double: { label: '两位数专项 (完整答案)', modes: ['doublePlus', 'doubleMinus', 'fourSum'] },
   triple: { label: '三位数专项 (完整答案)', modes: ['triplePlus', 'tripleMinus', 'tripleAnyPlus', 'tripleAnyMinus', 'tripleMix', 'tripleMult', 'tripleDiv'] },
+  carryDigit: { label: '三位加法拆解', modes: ['carryJudge', 'digitResult'] },
   spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB', 'divSpecC', 'divScale'] }
 };
 
@@ -666,6 +829,14 @@ export default {
       toast: { show: false, title: '' },
       modeGroups: MODE_GROUPS, divisorList: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],
       
+      // 判进位 & 确本位 状态
+      carryInputs: ['', '', ''],        // 百十个 三个框
+      carryActiveIdx: 0,                 // 当前激活框
+      carryTimestamps: [0, 0, 0, 0],     // 4个时间戳: 开始、第1框完成、第2框完成、第3框完成
+      digitInputs: ['', '', '', ''],      // 千百十个 四个框（百位拆成两框：千位=百位进位，百位=百位本位）
+      digitActiveIdx: 0,
+      digitTimestamps: [0, 0, 0, 0, 0],  // 5个时间戳
+      
       // 3D 模式状态
       cubicMode: 'block',
       isDeleteMode: false,
@@ -745,7 +916,25 @@ export default {
       this.$nextTick(() => { this._nextQuestion(); this.timer = setInterval(()=> this._tick(), 100); });
     },
     _tick(){ const diff = this.now() - this.totalStartTs; this.totalText = this.msToMMSS(diff); },
-    _setQuestion(q, shownIdx){ this.current = q; this.qStartTs = this.now(); this.input = ''; this.curWrongTries = 0; this.qText = `${q.dividend}${q.symbol}${q.divisor}`; this.progressText = `${shownIdx}/${this.pool.length}`; },
+    _setQuestion(q, shownIdx){ 
+      this.current = q; this.qStartTs = this.now(); this.input = ''; this.curWrongTries = 0; 
+      this.qText = `${q.dividend}${q.symbol}${q.divisor}`; this.progressText = `${shownIdx}/${this.pool.length}`; 
+      this.uiHint = '请输入答案';
+      // 重置判进位状态
+      if (this.currentModeKey === 'carryJudge') {
+        this.carryInputs = ['', '', ''];
+        this.carryActiveIdx = 0;
+        this.carryTimestamps = [this.now(), 0, 0, 0];
+        this.uiHint = '从百位开始，依次判断是否进位';
+      }
+      // 重置确本位状态
+      if (this.currentModeKey === 'digitResult') {
+        this.digitInputs = ['', '', '', ''];
+        this.digitActiveIdx = 0;
+        this.digitTimestamps = [this.now(), 0, 0, 0, 0];
+        this.uiHint = '从千位开始，依次填写结果每位数字';
+      }
+    },
     _nextQuestion(){ const { idx, pool } = this; if(idx >= pool.length){ this._finish(); return; } this._setQuestion(pool[idx], idx + 1); this.idx = idx + 1; },
     
     pressDigit(d){ 
@@ -767,6 +956,140 @@ export default {
 
     clearInput(){ this.input = ''; },
     backspace(){ this.input = (this.input || '').slice(0, -1); },
+    
+    // === 判进位 方法 ===
+    pressCarryKey(key) {
+      const idx = this.carryActiveIdx;
+      if (idx > 2) return;
+      const inputs = [...this.carryInputs];
+      inputs[idx] = key;
+      this.carryInputs = inputs;
+      // 记录该格完成时间戳
+      this.carryTimestamps[idx + 1] = this.now();
+      // 自动跳到下一格
+      if (idx < 2) {
+        this.carryActiveIdx = idx + 1;
+      }
+    },
+    clearCarryInput() {
+      this.carryInputs = ['', '', ''];
+      this.carryActiveIdx = 0;
+      this.carryTimestamps = [this.carryTimestamps[0], 0, 0, 0];
+    },
+    backspaceCarry() {
+      let idx = this.carryActiveIdx;
+      if (this.carryInputs[idx]) {
+        const inputs = [...this.carryInputs];
+        inputs[idx] = '';
+        this.carryInputs = inputs;
+        this.carryTimestamps[idx + 1] = 0;
+      } else if (idx > 0) {
+        idx--;
+        this.carryActiveIdx = idx;
+        const inputs = [...this.carryInputs];
+        inputs[idx] = '';
+        this.carryInputs = inputs;
+        this.carryTimestamps[idx + 1] = 0;
+      }
+    },
+    confirmCarry() {
+      if (this.carryInputs.some(v => !v)) {
+        this.uiHint = '请填完所有位的进位判断';
+        return;
+      }
+      const now = this.now();
+      const cur = this.current;
+      const correctCarries = cur.carries; // [百, 十, 个]
+      const posResults = [];
+      const allOk = this.carryInputs.every((v, i) => {
+        const ok = v === correctCarries[i];
+        // 每个位的用时
+        const startT = (i === 0) ? this.carryTimestamps[0] : this.carryTimestamps[i];
+        const endT = this.carryTimestamps[i + 1] || now;
+        const usedMs = endT - startT;
+        posResults.push({ yours: v, correct: correctCarries[i], ok, time: (usedMs / 1000).toFixed(1) + 's' });
+        return ok;
+      });
+      const totalUsed = (now - this.qStartTs) / 1000;
+      this.results = this.results.concat([{
+        q: `${cur.dividend}+${cur.divisor}`, ok: allOk, yourAns: this.carryInputs.join(''),
+        realAns: cur.ans, usedStr: totalUsed.toFixed(1) + 's', posResults
+      }]);
+      this._nextQuestion();
+    },
+
+    // === 确本位 方法 ===
+    pressDigitResult(d) {
+      const idx = this.digitActiveIdx;
+      if (idx > 3) return;
+      const inputs = [...this.digitInputs];
+      inputs[idx] = String(d);
+      this.digitInputs = inputs;
+      // 记录完成时间
+      this.digitTimestamps[idx + 1] = this.now();
+      // 自动跳到下一格
+      if (idx < 3) {
+        this.digitActiveIdx = idx + 1;
+      }
+    },
+    clearDigitInput() {
+      this.digitInputs = ['', '', '', ''];
+      this.digitActiveIdx = 0;
+      this.digitTimestamps = [this.digitTimestamps[0], 0, 0, 0, 0];
+    },
+    backspaceDigit() {
+      let idx = this.digitActiveIdx;
+      if (this.digitInputs[idx] !== '') {
+        const inputs = [...this.digitInputs];
+        inputs[idx] = '';
+        this.digitInputs = inputs;
+        this.digitTimestamps[idx + 1] = 0;
+      } else if (idx > 0) {
+        idx--;
+        this.digitActiveIdx = idx;
+        const inputs = [...this.digitInputs];
+        inputs[idx] = '';
+        this.digitInputs = inputs;
+        this.digitTimestamps[idx + 1] = 0;
+      }
+    },
+    confirmDigitResult() {
+      if (this.digitInputs.some(v => v === '')) {
+        this.uiHint = '请填完所有位';
+        return;
+      }
+      const now = this.now();
+      const cur = this.current;
+      const correctDigits = cur.resultDigits; // [千, 百, 十, 个]
+      const sum = cur.ans;
+      const isThreeDigit = sum < 1000;
+      const posResults = [];
+      let allOk = true;
+
+      this.digitInputs.forEach((v, i) => {
+        let ok;
+        if (i === 0 && isThreeDigit) {
+          // 三位数结果，千位填0或任意都算对
+          ok = (v === '0' || v === '');
+        } else {
+          ok = (parseInt(v) === correctDigits[i]);
+        }
+        if (!ok) allOk = false;
+        const startT = (i === 0) ? this.digitTimestamps[0] : this.digitTimestamps[i];
+        const endT = this.digitTimestamps[i + 1] || now;
+        const usedMs = endT - startT;
+        posResults.push({ yours: v, correct: correctDigits[i], ok, time: (usedMs / 1000).toFixed(1) + 's' });
+      });
+
+      const totalUsed = (now - this.qStartTs) / 1000;
+      const yourAnsStr = this.digitInputs.join('');
+      this.results = this.results.concat([{
+        q: `${cur.dividend}+${cur.divisor}`, ok: allOk, yourAns: parseInt(yourAnsStr),
+        realAns: sum, usedStr: totalUsed.toFixed(1) + 's', posResults
+      }]);
+      this._nextQuestion();
+    },
+
     leftAction(){ if(this.currentModeKey !== 'train'){ this.startGame(); return; } const cur = this.current; const used = (this.now() - this.qStartTs)/1000; const log = this.trainLog.concat([{ q: `${cur.dividend}${cur.symbol}${cur.divisor}`, usedStr: used.toFixed(1) + 's', wrong: this.curWrongTries, skipped: true }]); this.trainSkip++; this.trainLog = log; this._nextQuestion(); },
     
     confirmAnswer(){
@@ -1366,6 +1689,70 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .rowLeft { flex: 1; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
 .rowRight { flex-shrink: 0; display: flex; align-items: center; text-align: right; justify-content: flex-end; }
 .qText-small { font-size: 52px !important; letter-spacing: -1px !important; white-space: nowrap; margin-top: 10px; overflow: visible; }
+
+/* 判进位 答题区 */
+.carry-ans-area {
+  display: flex; gap: 12px; justify-content: center; margin-top: 20px;
+}
+.carry-col {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.carry-label {
+  font-size: 14px; font-weight: 700; color: #8e8e93;
+}
+.carry-box {
+  width: 72px; height: 72px; line-height: 72px; border-radius: 18px;
+  background: rgba(255,255,255,0.5); border: 2px solid rgba(0,0,0,0.06);
+  font-size: 36px; font-weight: 800; color: #ccc; text-align: center;
+  transition: all 0.2s;
+}
+.carry-box-active {
+  border-color: #007aff; background: rgba(0,122,255,0.06);
+  box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
+}
+.carry-box-filled {
+  color: #007aff;
+}
+/* 判进位 键盘 */
+.carry-key-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.carry-key {
+  height: 90px !important; line-height: 1 !important; display: flex !important;
+  flex-direction: column; align-items: center; justify-content: center;
+  font-size: 36px !important;
+}
+.carry-key-y { background: rgba(52,199,89,0.12) !important; color: #34c759 !important; border-color: rgba(52,199,89,0.2) !important; }
+.carry-key-y:active { background: rgba(52,199,89,0.25) !important; }
+.carry-key-n { background: rgba(255,59,48,0.1) !important; color: #ff3b30 !important; border-color: rgba(255,59,48,0.2) !important; }
+.carry-key-n:active { background: rgba(255,59,48,0.2) !important; }
+.carry-key-sub {
+  font-size: 14px; font-weight: 600; margin-top: 2px; opacity: 0.8;
+}
+
+/* 确本位 答题区 */
+.digit-ans-area {
+  display: flex; gap: 8px; justify-content: center; margin-top: 20px;
+}
+.digit-col {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.digit-label {
+  font-size: 13px; font-weight: 700; color: #8e8e93;
+}
+.digit-box {
+  width: 62px; height: 68px; line-height: 68px; border-radius: 16px;
+  background: rgba(255,255,255,0.5); border: 2px solid rgba(0,0,0,0.06);
+  font-size: 34px; font-weight: 800; color: #ccc; text-align: center;
+  transition: all 0.2s;
+}
+.digit-box-active {
+  border-color: #5856d6; background: rgba(88,86,214,0.06);
+  box-shadow: 0 0 0 3px rgba(88,86,214,0.15);
+}
+.digit-box-filled {
+  color: #5856d6;
+}
 
 .cubic-ui { position: absolute; top: 0; left: 0; width: 100%; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; padding-top: max(60px, calc(env(safe-area-inset-top) + 10px)); box-sizing: border-box; pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 .cubic-ui > * { pointer-events: auto; }
