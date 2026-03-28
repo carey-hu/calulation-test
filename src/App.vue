@@ -90,51 +90,7 @@
           <div :class="['qText', isSmallFont ? 'qText-small' : '']">{{qText}}</div>
           <div class="qNote">{{activeConfig.hintNote || activeConfig.hint || '精确到整数'}}</div>
           
-          <!-- 判进位 答题区 -->
-          <template v-if="currentModeKey === 'carryJudge'">
-            <div class="carry-ans-area">
-              <div class="carry-col" v-for="(label, ci) in ['百位','十位','个位']" :key="ci">
-                <div class="carry-label">{{label}}</div>
-                <div :class="['carry-box', carryActiveIdx === ci ? 'carry-box-active' : '', carryInputs[ci] ? 'carry-box-filled' : '']">
-                  {{carryInputs[ci] || '?'}}
-                </div>
-              </div>
-            </div>
-            <div class="hint">{{uiHint}}</div>
-          </template>
-          
-          <!-- 确本位 答题区 -->
-          <template v-else-if="currentModeKey === 'digitResult'">
-            <div class="digit-ans-area">
-              <div class="digit-col">
-                <div class="digit-label">千位</div>
-                <div :class="['digit-box', digitActiveIdx === 0 ? 'digit-box-active' : '', digitInputs[0] !== '' ? 'digit-box-filled' : '']">
-                  {{digitInputs[0] !== '' ? digitInputs[0] : '?'}}
-                </div>
-              </div>
-              <div class="digit-col">
-                <div class="digit-label">百位</div>
-                <div :class="['digit-box', digitActiveIdx === 1 ? 'digit-box-active' : '', digitInputs[1] !== '' ? 'digit-box-filled' : '']">
-                  {{digitInputs[1] !== '' ? digitInputs[1] : '?'}}
-                </div>
-              </div>
-              <div class="digit-col">
-                <div class="digit-label">十位</div>
-                <div :class="['digit-box', digitActiveIdx === 2 ? 'digit-box-active' : '', digitInputs[2] !== '' ? 'digit-box-filled' : '']">
-                  {{digitInputs[2] !== '' ? digitInputs[2] : '?'}}
-                </div>
-              </div>
-              <div class="digit-col">
-                <div class="digit-label">个位</div>
-                <div :class="['digit-box', digitActiveIdx === 3 ? 'digit-box-active' : '', digitInputs[3] !== '' ? 'digit-box-filled' : '']">
-                  {{digitInputs[3] !== '' ? digitInputs[3] : '?'}}
-                </div>
-              </div>
-            </div>
-            <div class="hint">{{uiHint}}</div>
-          </template>
-
-          <template v-else-if="currentModeKey === 'divScale'">
+          <template v-if="currentModeKey === 'divScale'">
             <div class="ansBox glass-input" style="display: flex; justify-content: center; align-items: center; gap: 12px; padding: 12px;">
               <div style="flex: 1; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 16px; height: 54px; line-height: 54px; font-size: 36px;">
                 {{ input.slice(0, 3) }}<span v-if="input.length < 3" style="color: #ccc;">_</span>
@@ -145,53 +101,65 @@
               </div>
             </div>
           </template>
+          
+          <template v-else-if="currentModeKey === 'carryJudge'">
+            <div class="ansBox glass-input" style="display: flex; justify-content: center; align-items: center; gap: 15px; padding: 12px; background: transparent; border: none; box-shadow: none;">
+              <div style="text-align:center;">
+                <div style="font-size:14px; color:#8e8e93; margin-bottom:6px;">百位</div>
+                <div style="width: 60px; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 16px; height: 60px; line-height: 60px; font-size: 36px; color: #1c1c1e;">{{ input[0] || '_' }}</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:14px; color:#8e8e93; margin-bottom:6px;">十位</div>
+                <div style="width: 60px; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 16px; height: 60px; line-height: 60px; font-size: 36px; color: #1c1c1e;">{{ input[1] || '_' }}</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:14px; color:#8e8e93; margin-bottom:6px;">个位</div>
+                <div style="width: 60px; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 16px; height: 60px; line-height: 60px; font-size: 36px; color: #1c1c1e;">{{ input[2] || '_' }}</div>
+              </div>
+            </div>
+          </template>
+
+          <template v-else-if="currentModeKey === 'digitDetermine'">
+            <div class="ansBox glass-input" style="display: flex; justify-content: center; align-items: center; gap: 12px; padding: 12px; background: transparent; border: none; box-shadow: none;">
+              <div style="text-align:center;">
+                <div style="font-size:14px; color:#8e8e93; margin-bottom:6px;">千/百位</div>
+                <div style="display:flex; gap: 6px;">
+                  <div style="width: 45px; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 14px; height: 60px; line-height: 60px; font-size: 36px; color: #1c1c1e;">{{ input[0] || '_' }}</div>
+                  <div style="width: 45px; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 14px; height: 60px; line-height: 60px; font-size: 36px; color: #1c1c1e;">{{ input[1] || '_' }}</div>
+                </div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:14px; color:#8e8e93; margin-bottom:6px;">十位</div>
+                <div style="width: 45px; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 14px; height: 60px; line-height: 60px; font-size: 36px; color: #1c1c1e;">{{ input[2] || '_' }}</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:14px; color:#8e8e93; margin-bottom:6px;">个位</div>
+                <div style="width: 45px; background: rgba(0,122,255,0.08); border: 2px solid rgba(0,122,255,0.2); border-radius: 14px; height: 60px; line-height: 60px; font-size: 36px; color: #1c1c1e;">{{ input[3] || '_' }}</div>
+              </div>
+            </div>
+          </template>
+
           <template v-else>
             <div class="ansBox glass-input">答案：{{input ? input : '—'}}</div>
           </template>
 
-          <div v-if="currentModeKey !== 'carryJudge' && currentModeKey !== 'digitResult'" class="hint">{{uiHint}}</div>
+          <div class="hint">{{uiHint}}</div>
         </div>
       </div>
-      
-      <!-- 判进位 键盘: Y/N -->
-      <div v-if="currentModeKey === 'carryJudge'" class="keypad card glass-panel">
-        <div class="fnRow">
-          <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
-          <button class="kFn style-clear" @click="clearCarryInput">清空</button>
-          <button class="kFn style-del" @click="backspaceCarry">退格</button>
-        </div>
-        <div class="carry-key-grid">
-          <button class="k carry-key carry-key-y glass-key" @click="pressCarryKey('Y')">Y<span class="carry-key-sub">进位</span></button>
-          <button class="k carry-key carry-key-n glass-key" @click="pressCarryKey('N')">N<span class="carry-key-sub">不进</span></button>
-        </div>
-        <div style="margin-top: 8px;">
-          <button class="k confirm glass-key-confirm" style="width:100%; height: 60px; line-height: 60px;" @click="confirmCarry">确认</button>
-        </div>
-      </div>
-      
-      <!-- 确本位 键盘: 数字 0-9 -->
-      <div v-else-if="currentModeKey === 'digitResult'" class="keypad card glass-panel">
-        <div class="fnRow">
-          <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
-          <button class="kFn style-clear" @click="clearDigitInput">清空</button>
-          <button class="kFn style-del" @click="backspaceDigit">退格</button>
-        </div>
-        <div class="grid">
-          <button v-for="item in [1,2,3,4,5,6,7,8,9]" :key="item" class="k glass-key" @click="pressDigitResult(item)">{{item}}</button>
-          <button class="k glass-key" style="visibility:hidden;"></button>
-          <button class="k glass-key" @click="pressDigitResult(0)">0</button>
-          <button class="k confirm glass-key-confirm" @click="confirmDigitResult">确认</button>
-        </div>
-      </div>
-
-      <!-- 默认数字键盘 -->
-      <div v-else class="keypad card glass-panel">
+      <div class="keypad card glass-panel">
         <div class="fnRow">
           <button class="kFn style-skip" @click="leftAction">{{leftText}}</button>
           <button class="kFn style-clear" @click="clearInput">清空</button>
           <button class="kFn style-del" @click="backspace">退格</button>
         </div>
-        <div class="grid">
+        
+        <div class="grid" v-if="currentModeKey === 'carryJudge'" style="grid-template-columns: 1fr 1fr;">
+          <button class="k glass-key" style="height: 180px; font-size: 48px; color: #34c759;" @click="pressDigit('Y')">Y<span style="font-size:16px; display:block;">(进位)</span></button>
+          <button class="k glass-key" style="height: 180px; font-size: 48px; color: #ff3b30;" @click="pressDigit('N')">N<span style="font-size:16px; display:block;">(不进)</span></button>
+          <button class="k confirm glass-key-confirm" style="grid-column: 1 / 3;" @click="confirmAnswer">确认</button>
+        </div>
+        
+        <div class="grid" v-else>
           <button v-for="item in [1,2,3,4,5,6,7,8,9]" :key="item" class="k glass-key" @click="pressDigit(item)">{{item}}</button>
           <button class="k glass-key" @click="pressDot">.</button>
           <button class="k glass-key" @click="pressDigit(0)">0</button>
@@ -215,42 +183,6 @@
               </span>
             </div>
           </template>
-          <template v-else-if="currentModeKey==='carryJudge'">
-            <div v-for="(item, index) in results" :key="index" class="row" style="flex-direction: column; align-items: stretch;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="rowLeft">{{index+1}}. {{item.q}} = {{item.realAns}}</span>
-                <span>{{item.ok ? '✅' : '❌'}} <span style="font-size:13px; color:#666;">{{item.usedStr}}</span></span>
-              </div>
-              <div style="display:flex; gap:8px; margin-top:6px; font-size:13px;">
-                <div v-for="(pos, pi) in ['百','十','个']" :key="pi" :style="{
-                  flex:1, textAlign:'center', padding:'4px 0', borderRadius:'8px',
-                  background: item.posResults[pi].ok ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.1)',
-                  color: item.posResults[pi].ok ? '#34c759' : '#ff3b30'
-                }">
-                  {{pos}}:{{item.posResults[pi].yours}}{{item.posResults[pi].ok?'✓':'✗'}} 
-                  <span style="color:#8e8e93;">{{item.posResults[pi].time}}</span>
-                </div>
-              </div>
-            </div>
-          </template>
-          <template v-else-if="currentModeKey==='digitResult'">
-            <div v-for="(item, index) in results" :key="index" class="row" style="flex-direction: column; align-items: stretch;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="rowLeft">{{index+1}}. {{item.q}} = {{item.yourAns}}</span>
-                <span>{{item.ok ? '✅' : '❌'}} <span v-if="!item.ok" style="color:#ff3b30; font-size:13px; font-weight:700;">({{item.realAns}})</span> <span style="font-size:13px; color:#666;">{{item.usedStr}}</span></span>
-              </div>
-              <div style="display:flex; gap:6px; margin-top:6px; font-size:13px;">
-                <div v-for="(pos, pi) in ['千','百','十','个']" :key="pi" :style="{
-                  flex:1, textAlign:'center', padding:'4px 0', borderRadius:'8px',
-                  background: item.posResults[pi].ok ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.1)',
-                  color: item.posResults[pi].ok ? '#34c759' : '#ff3b30'
-                }">
-                  {{pos}}:{{item.posResults[pi].yours}}{{item.posResults[pi].ok?'✓':'✗'}}
-                  <span style="color:#8e8e93;">{{item.posResults[pi].time}}</span>
-                </div>
-              </div>
-            </div>
-          </template>
           <template v-else>
             <div v-for="(item, index) in results" :key="index" class="row">
               <span class="rowLeft">{{index+1}}. {{item.q}} = {{item.yourAns}}</span>
@@ -263,6 +195,9 @@
                   <div v-if="item.exactAns" :style="{ fontSize:'11px', color: item.ok ? '#007aff' : '#ff3b30', marginTop:'2px', fontWeight:500 }">
                       准:{{ item.exactAns }} 误:{{ item.errorRate }}
                       <span v-if="item.exactDividend" style="margin-left:4px;">准被除数:{{ item.exactDividend }}</span>
+                  </div>
+                  <div v-if="item.detailTimes" style="font-size:11px; color:#8e8e93; margin-top:2px;">
+                      分步用时: {{ item.detailTimes }}
                   </div>
               </span>
             </div>
@@ -471,60 +406,55 @@ const GAME_MODES = {
   'tripleMix': { name: '加减混合', title: '三数加减混合完成！', hintNote: '三数加减混合 (结果为正)', isSmallFont:true, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ let a,b,c,op1,op2,ans; do{a=Math.floor(Math.random()*900)+100;b=Math.floor(Math.random()*900)+100;c=Math.floor(Math.random()*900)+100;op1=Math.random()>0.5?'+':'-';op2=Math.random()>0.5?'+':'-';let step1=(op1==='+')?(a+b):(a-b);ans=(op2==='+')?(step1+c):(step1-c);}while(ans<0); p.push({dividend:`${a}${op1}${b}`,divisor:c,ans:ans,symbol:op2});} return p;} },
   'tripleMult': { name: '三乘一', title: '三乘一完成！', hintNote: '计算准确积', gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*8)+2; p.push({dividend:a,divisor:b,ans:a*b,symbol:'×'});} return p;} },
   'tripleDiv': { name: '三除一', title: '三除一完成！', hintNote: '若为小数，填相邻整数均对', check: (v, t) => { if(Number.isInteger(t)){ return {ok:v===t,display:t}; }else{ const f=Math.floor(t),c=Math.ceil(t); return {ok:(v===f||v===c),display:`${f}或${c} (${t.toFixed(2)})`}; } }, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const a=Math.floor(Math.random()*900)+100;const b=Math.floor(Math.random()*8)+2; p.push({dividend:a,divisor:b,ans:a/b,symbol:'÷'});} return p;} },
+  
+  // 新增：判进位
+  'carryJudge': { 
+    name: '判进位', 
+    title: '判进位完成！', 
+    hintNote: '百位、十位、个位是否进位(Y/N)', 
+    check: (v, t, inputStr) => {
+        if (!inputStr || inputStr.length < 3) return { ok: false, display: t };
+        return { ok: inputStr.toUpperCase() === t.toUpperCase(), display: t };
+    },
+    gen: (n) => { 
+        const p = []; 
+        for(let i=0; i<n; i++){ 
+            const a = Math.floor(Math.random()*900)+100; 
+            const b = Math.floor(Math.random()*900)+100; 
+            const c1 = (a%10 + b%10) >= 10;
+            const c10 = (Math.floor((a%100)/10) + Math.floor((b%100)/10) + (c1 ? 1 : 0)) >= 10;
+            const c100 = (Math.floor(a/100) + Math.floor(b/100) + (c10 ? 1 : 0)) >= 10;
+            const ansStr = `${c100 ? 'Y' : 'N'}${c10 ? 'Y' : 'N'}${c1 ? 'Y' : 'N'}`;
+            p.push({dividend: a, divisor: b, ans: ansStr, symbol: '+'});
+        } 
+        return p;
+    } 
+  },
+  
+  // 新增：确本位
+  'digitDetermine': { 
+    name: '确本位', 
+    title: '确本位完成！', 
+    hintNote: '依次输入:千/百位(1~2位), 十位, 个位', 
+    check: (v, t, inputStr) => {
+        if (!inputStr) return { ok: false, display: t.toString() };
+        return { ok: parseInt(inputStr, 10) === t, display: t.toString() };
+    },
+    gen: (n) => { 
+        const p = []; 
+        for(let i=0; i<n; i++){ 
+            const a = Math.floor(Math.random()*900)+100; 
+            const b = Math.floor(Math.random()*900)+100; 
+            p.push({dividend: a, divisor: b, ans: a+b, symbol: '+'});
+        } 
+        return p;
+    } 
+  },
+
   'divSpecA': { name: '反向放缩', title: '反向放缩完成！', hintNote: '除数111-199 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*(199-111+1))+111;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} },
   'divSpecB': { name: '平移法', title: '平移法完成！', hintNote: '商90-111 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; let c=0; while(c<n){ const dr=Math.floor(Math.random()*900)+100;const tq=Math.floor(Math.random()*(111-90+1))+90;const dd=dr*tq+Math.floor(Math.random()*dr); if(dd>=10000&&dd<=99999){ p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'}); c++;} } return p;} },
   'divSpecC': { name: '任意五除三', title: '任意五除三完成！', hintNote: '五位数除以三位数 (误差3%内)', check:(v,t)=>{const r=Math.abs(v-t)/t; return {ok:r<=0.03,display:Math.round(t)};}, gen: (n)=>{ const p=[]; for(let i=0;i<n;i++){ const dr=Math.floor(Math.random()*900)+100;const dd=Math.floor(Math.random()*(99999-10000+1))+10000; p.push({dividend:dd,divisor:dr,ans:dd/dr,symbol:'÷'});} return p;} },
   
-  // 判进位模式
-  'carryJudge': {
-    name: '判进位',
-    title: '判进位完成！',
-    hintNote: '判断每位是否进位：Y=进位 N=不进位',
-    gen: (n) => {
-      const p = [];
-      for (let i = 0; i < n; i++) {
-        const a = Math.floor(Math.random() * 900) + 100;
-        const b = Math.floor(Math.random() * 900) + 100;
-        // 计算每位是否进位
-        const a3 = a % 10, b3 = b % 10;
-        const a2 = Math.floor((a % 100) / 10), b2 = Math.floor((b % 100) / 10);
-        const a1 = Math.floor(a / 100), b1 = Math.floor(b / 100);
-        const carryOnes = (a3 + b3 >= 10) ? 'Y' : 'N';
-        const carryFromOnes = a3 + b3 >= 10 ? 1 : 0;
-        const carryTens = (a2 + b2 + carryFromOnes >= 10) ? 'Y' : 'N';
-        const carryFromTens = (a2 + b2 + carryFromOnes >= 10) ? 1 : 0;
-        const carryHundreds = (a1 + b1 + carryFromTens >= 10) ? 'Y' : 'N';
-        p.push({
-          dividend: a, divisor: b, ans: a + b, symbol: '+',
-          carries: [carryHundreds, carryTens, carryOnes] // 百、十、个
-        });
-      }
-      return p;
-    }
-  },
-  // 确本位模式
-  'digitResult': {
-    name: '确本位',
-    title: '确本位完成！',
-    hintNote: '依次填写结果的每一位数字',
-    gen: (n) => {
-      const p = [];
-      for (let i = 0; i < n; i++) {
-        const a = Math.floor(Math.random() * 900) + 100;
-        const b = Math.floor(Math.random() * 900) + 100;
-        const sum = a + b;
-        // 分解结果为各位数字（最多4位）
-        const digits = String(sum).padStart(4, '0').split('').map(Number);
-        p.push({
-          dividend: a, divisor: b, ans: sum, symbol: '+',
-          resultDigits: digits // [千, 百, 十, 个]
-        });
-      }
-      return p;
-    }
-  },
-
-  // 放缩被除数 - 判定逻辑升级
   'divScale': { 
     name: '放缩被除数', 
     title: '放缩被除数完成！', 
@@ -543,13 +473,11 @@ const GAME_MODES = {
         const userVal = a / b;
         let ratio = userVal / t;
         
-        // 抹平数量级，把实际答案的小数点跟用户的答案对齐
         let p10 = Math.round(Math.log10(ratio));
         let adjustedExact = t * Math.pow(10, p10);
         
         const r = Math.abs(userVal - adjustedExact) / adjustedExact;
 
-        // 根据用户估出的除数b，推算准确的被除数应该是多少 (b * adjustedExact)
         const exactDividend = (b * adjustedExact).toFixed(1);
 
         return { 
@@ -577,197 +505,26 @@ const MODE_GROUPS = {
   divSelect: { label: '商首位专项', modes: [] }, 
   single: { label: '一位数专项 (仅填尾数)', modes: ['plus', 'minus'] },
   double: { label: '两位数专项 (完整答案)', modes: ['doublePlus', 'doubleMinus', 'fourSum'] },
-  triple: { label: '三位数专项 (完整答案)', modes: ['triplePlus', 'tripleMinus', 'tripleAnyPlus', 'tripleAnyMinus', 'tripleMix', 'tripleMult', 'tripleDiv'] },
-  carryDigit: { label: '三位加法拆解', modes: ['carryJudge', 'digitResult'] },
+  triple: { label: '三位数专项 (完整答案)', modes: ['carryJudge', 'digitDetermine', 'triplePlus', 'tripleMinus', 'tripleAnyPlus', 'tripleAnyMinus', 'tripleMix', 'tripleMult', 'tripleDiv'] },
   spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB', 'divSpecC', 'divScale'] }
 };
 
-// 1. 空心圆柱 (圆管)
-const createHollowCylinder = () => {
-  const shape = new THREE.Shape();
-  shape.absarc(0, 0, 4, 0, Math.PI * 2, false);
-  const hole = new THREE.Path();
-  hole.absarc(0, 0, 2, 0, Math.PI * 2, true);
-  shape.holes.push(hole);
-  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
-};
-
-// 2. 空心方柱 (方管)
-const createHollowPrism = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
-  const hole = new THREE.Path();
-  hole.moveTo(-2, -2); hole.lineTo(-2, 2); hole.lineTo(2, 2); hole.lineTo(2, -2); hole.lineTo(-2, -2);
-  shape.holes.push(hole);
-  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
-};
-
-// 3. 回字型 (Frame / 框体)
-const createFrameShape = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4);
-  const hole = new THREE.Path();
-  hole.moveTo(-3, -3); hole.lineTo(-3, 3); hole.lineTo(3, 3); hole.lineTo(3, -3); hole.lineTo(-3, -3);
-  shape.holes.push(hole);
-  return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false });
-};
-
-// 4. 凹型体 (U型槽)
-const createUShape = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(-3, -3);
-  shape.lineTo(3, -3);
-  shape.lineTo(3, 3);
-  shape.lineTo(1, 3);
-  shape.lineTo(1, -1); 
-  shape.lineTo(-1, -1);
-  shape.lineTo(-1, 3);
-  shape.lineTo(-3, 3);
-  shape.lineTo(-3, -3);
-  return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
-};
-
-// 5. L型体
-const createLShape = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0);
-  shape.lineTo(4, 0);
-  shape.lineTo(4, 2);
-  shape.lineTo(2, 2);
-  shape.lineTo(2, 6);
-  shape.lineTo(0, 6);
-  shape.lineTo(0, 0);
-  return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false });
-};
-
-// 6. 十字体
-const createCrossShape = () => {
-  const shape = new THREE.Shape();
-  const w = 2, l = 6;
-  shape.moveTo(-w/2, -l/2);
-  shape.lineTo(w/2, -l/2);
-  shape.lineTo(w/2, -w/2);
-  shape.lineTo(l/2, -w/2);
-  shape.lineTo(l/2, w/2);
-  shape.lineTo(w/2, w/2);
-  shape.lineTo(w/2, l/2);
-  shape.lineTo(-w/2, l/2);
-  shape.lineTo(-w/2, w/2);
-  shape.lineTo(-l/2, w/2);
-  shape.lineTo(-l/2, -w/2);
-  shape.lineTo(-w/2, -w/2);
-  return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false });
-};
-
-// 7. 缺角正方体
-const createNotchedCube = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(-3, -3);
-  shape.lineTo(3, -3);
-  shape.lineTo(3, 1);
-  shape.lineTo(1, 3); 
-  shape.lineTo(-3, 3);
-  return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false });
-};
-
-// 8. T型体
-const createTShape = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(-1.5, -4);
-  shape.lineTo(1.5, -4);
-  shape.lineTo(1.5, 2);
-  shape.lineTo(4, 2);
-  shape.lineTo(4, 4);
-  shape.lineTo(-4, 4);
-  shape.lineTo(-4, 2);
-  shape.lineTo(-1.5, 2);
-  shape.lineTo(-1.5, -4);
-  return new THREE.ExtrudeGeometry(shape, { depth: 3, bevelEnabled: false });
-};
-
-// 9. 正方体挖圆孔
-const createCubeWithHole = () => {
-   const shape = new THREE.Shape();
-   shape.moveTo(-3,-3); shape.lineTo(3,-3); shape.lineTo(3,3); shape.lineTo(-3,3);
-   const hole = new THREE.Path();
-   hole.absarc(0,0,2,0,Math.PI*2,true);
-   shape.holes.push(hole);
-   return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 64 });
-};
-
-// 10. 圆柱挖方孔
-const createCylinderWithRectHole = () => {
-  const shape = new THREE.Shape();
-  shape.absarc(0, 0, 4, 0, Math.PI * 2, false); 
-  const hole = new THREE.Path();
-  hole.moveTo(-1.5, -1.5);
-  hole.lineTo(-1.5, 1.5);
-  hole.lineTo(1.5, 1.5);
-  hole.lineTo(1.5, -1.5);
-  hole.lineTo(-1.5, -1.5);
-  shape.holes.push(hole);
-  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 });
-};
-
-// 11. 拱门造型
-const createArchShape = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(-3, 0);
-  shape.lineTo(3, 0);
-  shape.lineTo(3, 4);
-  shape.absarc(0, 4, 3, 0, Math.PI, false); 
-  shape.lineTo(-3, 4);
-  const hole = new THREE.Path();
-  hole.moveTo(-1.5, 0);
-  hole.lineTo(-1.5, 3);
-  hole.absarc(0, 3, 1.5, Math.PI, 0, true);
-  hole.lineTo(1.5, 0);
-  hole.lineTo(-1.5, 0);
-  shape.holes.push(hole);
-  return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false, curveSegments: 32 });
-};
-
-// 12. 梯形柱
-const createTrapezoidPrism = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(-4, -2);
-  shape.lineTo(4, -2);
-  shape.lineTo(2, 2);
-  shape.lineTo(-2, 2);
-  shape.lineTo(-4, -2);
-  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false });
-};
-
-// 13. 半圆柱
-const createSemiCylinder = () => {
-  const shape = new THREE.Shape();
-  shape.absarc(0, 0, 4, 0, Math.PI, false); 
-  shape.lineTo(-4, 0);
-  return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 32 });
-};
-
-// 14. 扇形柱
-const createSectorPrism = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0);
-  shape.lineTo(4, 0);
-  shape.absarc(0, 0, 4, 0, Math.PI / 2, false); 
-  shape.lineTo(0, 0);
-  return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 32 });
-};
-
-// 15. 双孔砖
-const createTwoHoleBrick = () => {
-  const shape = new THREE.Shape();
-  shape.moveTo(-4, -2); shape.lineTo(4, -2); shape.lineTo(4, 2); shape.lineTo(-4, 2); shape.lineTo(-4, -2);
-  const h1 = new THREE.Path(); // CW
-  h1.absarc(-2, 0, 1, 0, Math.PI*2, true);
-  shape.holes.push(h1);
-  const h2 = new THREE.Path(); // CW
-  h2.absarc(2, 0, 1, 0, Math.PI*2, true);
-  shape.holes.push(h2);
-  return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false, curveSegments: 32 });
-};
+// --- 以下 THREE.JS 造型定义保持不变 ---
+const createHollowCylinder = () => { const shape = new THREE.Shape(); shape.absarc(0, 0, 4, 0, Math.PI * 2, false); const hole = new THREE.Path(); hole.absarc(0, 0, 2, 0, Math.PI * 2, true); shape.holes.push(hole); return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 }); };
+const createHollowPrism = () => { const shape = new THREE.Shape(); shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4); const hole = new THREE.Path(); hole.moveTo(-2, -2); hole.lineTo(-2, 2); hole.lineTo(2, 2); hole.lineTo(2, -2); hole.lineTo(-2, -2); shape.holes.push(hole); return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false }); };
+const createFrameShape = () => { const shape = new THREE.Shape(); shape.moveTo(-4, -4); shape.lineTo(4, -4); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, -4); const hole = new THREE.Path(); hole.moveTo(-3, -3); hole.lineTo(-3, 3); hole.lineTo(3, 3); hole.lineTo(3, -3); hole.lineTo(-3, -3); shape.holes.push(hole); return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false }); };
+const createUShape = () => { const shape = new THREE.Shape(); shape.moveTo(-3, -3); shape.lineTo(3, -3); shape.lineTo(3, 3); shape.lineTo(1, 3); shape.lineTo(1, -1); shape.lineTo(-1, -1); shape.lineTo(-1, 3); shape.lineTo(-3, 3); shape.lineTo(-3, -3); return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false }); };
+const createLShape = () => { const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(4, 0); shape.lineTo(4, 2); shape.lineTo(2, 2); shape.lineTo(2, 6); shape.lineTo(0, 6); shape.lineTo(0, 0); return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false }); };
+const createCrossShape = () => { const shape = new THREE.Shape(); const w = 2, l = 6; shape.moveTo(-w/2, -l/2); shape.lineTo(w/2, -l/2); shape.lineTo(w/2, -w/2); shape.lineTo(l/2, -w/2); shape.lineTo(l/2, w/2); shape.lineTo(w/2, w/2); shape.lineTo(w/2, l/2); shape.lineTo(-w/2, l/2); shape.lineTo(-w/2, w/2); shape.lineTo(-l/2, w/2); shape.lineTo(-l/2, -w/2); shape.lineTo(-w/2, -w/2); return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false }); };
+const createNotchedCube = () => { const shape = new THREE.Shape(); shape.moveTo(-3, -3); shape.lineTo(3, -3); shape.lineTo(3, 1); shape.lineTo(1, 3); shape.lineTo(-3, 3); return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false }); };
+const createTShape = () => { const shape = new THREE.Shape(); shape.moveTo(-1.5, -4); shape.lineTo(1.5, -4); shape.lineTo(1.5, 2); shape.lineTo(4, 2); shape.lineTo(4, 4); shape.lineTo(-4, 4); shape.lineTo(-4, 2); shape.lineTo(-1.5, 2); shape.lineTo(-1.5, -4); return new THREE.ExtrudeGeometry(shape, { depth: 3, bevelEnabled: false }); };
+const createCubeWithHole = () => { const shape = new THREE.Shape(); shape.moveTo(-3,-3); shape.lineTo(3,-3); shape.lineTo(3,3); shape.lineTo(-3,3); const hole = new THREE.Path(); hole.absarc(0,0,2,0,Math.PI*2,true); shape.holes.push(hole); return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 64 }); };
+const createCylinderWithRectHole = () => { const shape = new THREE.Shape(); shape.absarc(0, 0, 4, 0, Math.PI * 2, false); const hole = new THREE.Path(); hole.moveTo(-1.5, -1.5); hole.lineTo(-1.5, 1.5); hole.lineTo(1.5, 1.5); hole.lineTo(1.5, -1.5); hole.lineTo(-1.5, -1.5); shape.holes.push(hole); return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 64 }); };
+const createArchShape = () => { const shape = new THREE.Shape(); shape.moveTo(-3, 0); shape.lineTo(3, 0); shape.lineTo(3, 4); shape.absarc(0, 4, 3, 0, Math.PI, false); shape.lineTo(-3, 4); const hole = new THREE.Path(); hole.moveTo(-1.5, 0); hole.lineTo(-1.5, 3); hole.absarc(0, 3, 1.5, Math.PI, 0, true); hole.lineTo(1.5, 0); hole.lineTo(-1.5, 0); shape.holes.push(hole); return new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: false, curveSegments: 32 }); };
+const createTrapezoidPrism = () => { const shape = new THREE.Shape(); shape.moveTo(-4, -2); shape.lineTo(4, -2); shape.lineTo(2, 2); shape.lineTo(-2, 2); shape.lineTo(-4, -2); return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false }); };
+const createSemiCylinder = () => { const shape = new THREE.Shape(); shape.absarc(0, 0, 4, 0, Math.PI, false); shape.lineTo(-4, 0); return new THREE.ExtrudeGeometry(shape, { depth: 8, bevelEnabled: false, curveSegments: 32 }); };
+const createSectorPrism = () => { const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(4, 0); shape.absarc(0, 0, 4, 0, Math.PI / 2, false); shape.lineTo(0, 0); return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: false, curveSegments: 32 }); };
+const createTwoHoleBrick = () => { const shape = new THREE.Shape(); shape.moveTo(-4, -2); shape.lineTo(4, -2); shape.lineTo(4, 2); shape.lineTo(-4, 2); shape.lineTo(-4, -2); const h1 = new THREE.Path(); h1.absarc(-2, 0, 1, 0, Math.PI*2, true); shape.holes.push(h1); const h2 = new THREE.Path(); h2.absarc(2, 0, 1, 0, Math.PI*2, true); shape.holes.push(h2); return new THREE.ExtrudeGeometry(shape, { depth: 4, bevelEnabled: false, curveSegments: 32 }); };
 
 const EXAM_SHAPES = {
   basic: [
@@ -824,19 +581,15 @@ export default {
     return {
       viewState: 'home', currentModeKey: 'train', selectedDivisor: 0,
       pool: [], idx: 0, current: null, input: '', uiHint: 'Ready?', totalText: '0:00.0', progressText: '1/81', qText: '—', leftText: '跳过', 
-      totalStartTs: 0, qStartTs: 0, timer: null, trainWrong: 0, trainSkip: 0, curWrongTries: 0, trainLog: [], results: [], 
+      totalStartTs: 0, qStartTs: 0, trainWrong: 0, trainSkip: 0, curWrongTries: 0, trainLog: [], results: [], 
       historyList: [], showChart: false, chartInstance: null, chartTab: '', availableModes: [], isHistoryReview: false,
       toast: { show: false, title: '' },
       modeGroups: MODE_GROUPS, divisorList: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],
       
-      // 判进位 & 确本位 状态
-      carryInputs: ['', '', ''],        // 百十个 三个框
-      carryActiveIdx: 0,                 // 当前激活框
-      carryTimestamps: [0, 0, 0, 0],     // 4个时间戳: 开始、第1框完成、第2框完成、第3框完成
-      digitInputs: ['', '', '', ''],      // 千百十个 四个框（百位拆成两框：千位=百位进位，百位=百位本位）
-      digitActiveIdx: 0,
-      digitTimestamps: [0, 0, 0, 0, 0],  // 5个时间戳
-      
+      // 分段计时逻辑状态
+      boxTimes: [],
+      lastInputTs: 0,
+
       // 3D 模式状态
       cubicMode: 'block',
       isDeleteMode: false,
@@ -917,35 +670,37 @@ export default {
     },
     _tick(){ const diff = this.now() - this.totalStartTs; this.totalText = this.msToMMSS(diff); },
     _setQuestion(q, shownIdx){ 
-      this.current = q; this.qStartTs = this.now(); this.input = ''; this.curWrongTries = 0; 
-      this.qText = `${q.dividend}${q.symbol}${q.divisor}`; this.progressText = `${shownIdx}/${this.pool.length}`; 
-      this.uiHint = '请输入答案';
-      // 重置判进位状态
-      if (this.currentModeKey === 'carryJudge') {
-        this.carryInputs = ['', '', ''];
-        this.carryActiveIdx = 0;
-        this.carryTimestamps = [this.now(), 0, 0, 0];
-        this.uiHint = '从百位开始，依次判断是否进位';
-      }
-      // 重置确本位状态
-      if (this.currentModeKey === 'digitResult') {
-        this.digitInputs = ['', '', '', ''];
-        this.digitActiveIdx = 0;
-        this.digitTimestamps = [this.now(), 0, 0, 0, 0];
-        this.uiHint = '从千位开始，依次填写结果每位数字';
-      }
+       this.current = q; 
+       this.qStartTs = this.now(); 
+       this.lastInputTs = this.now(); 
+       this.boxTimes = [];
+       this.input = ''; 
+       this.curWrongTries = 0; 
+       this.qText = `${q.dividend}${q.symbol}${q.divisor}`; 
+       this.progressText = `${shownIdx}/${this.pool.length}`; 
     },
     _nextQuestion(){ const { idx, pool } = this; if(idx >= pool.length){ this._finish(); return; } this._setQuestion(pool[idx], idx + 1); this.idx = idx + 1; },
     
     pressDigit(d){ 
         let input = this.input || ''; 
-        const maxLen = this.currentModeKey === 'divScale' ? 4 : 6;
+        let maxLen = 6;
+        if (this.currentModeKey === 'divScale') maxLen = 4;
+        if (this.currentModeKey === 'carryJudge') maxLen = 3;
+        if (this.currentModeKey === 'digitDetermine') maxLen = 4;
+
         if(input.length >= maxLen) return; 
+        
+        if (['carryJudge', 'digitDetermine'].includes(this.currentModeKey)) {
+            const now = this.now();
+            this.boxTimes.push(now - this.lastInputTs);
+            this.lastInputTs = now;
+        }
+
         input += String(d); 
         this.input = input; 
     },
     pressDot(){ 
-        if (this.currentModeKey === 'divScale') return; 
+        if (['divScale', 'carryJudge', 'digitDetermine'].includes(this.currentModeKey)) return; 
         let input = this.input || ''; 
         if(input.length >= 6) return; 
         if(input.includes('.')) return; 
@@ -954,142 +709,20 @@ export default {
         this.input = input; 
     },
 
-    clearInput(){ this.input = ''; },
-    backspace(){ this.input = (this.input || '').slice(0, -1); },
-    
-    // === 判进位 方法 ===
-    pressCarryKey(key) {
-      const idx = this.carryActiveIdx;
-      if (idx > 2) return;
-      const inputs = [...this.carryInputs];
-      inputs[idx] = key;
-      this.carryInputs = inputs;
-      // 记录该格完成时间戳
-      this.carryTimestamps[idx + 1] = this.now();
-      // 自动跳到下一格
-      if (idx < 2) {
-        this.carryActiveIdx = idx + 1;
-      }
-    },
-    clearCarryInput() {
-      this.carryInputs = ['', '', ''];
-      this.carryActiveIdx = 0;
-      this.carryTimestamps = [this.carryTimestamps[0], 0, 0, 0];
-    },
-    backspaceCarry() {
-      let idx = this.carryActiveIdx;
-      if (this.carryInputs[idx]) {
-        const inputs = [...this.carryInputs];
-        inputs[idx] = '';
-        this.carryInputs = inputs;
-        this.carryTimestamps[idx + 1] = 0;
-      } else if (idx > 0) {
-        idx--;
-        this.carryActiveIdx = idx;
-        const inputs = [...this.carryInputs];
-        inputs[idx] = '';
-        this.carryInputs = inputs;
-        this.carryTimestamps[idx + 1] = 0;
-      }
-    },
-    confirmCarry() {
-      if (this.carryInputs.some(v => !v)) {
-        this.uiHint = '请填完所有位的进位判断';
-        return;
-      }
-      const now = this.now();
-      const cur = this.current;
-      const correctCarries = cur.carries; // [百, 十, 个]
-      const posResults = [];
-      const allOk = this.carryInputs.every((v, i) => {
-        const ok = v === correctCarries[i];
-        // 每个位的用时
-        const startT = (i === 0) ? this.carryTimestamps[0] : this.carryTimestamps[i];
-        const endT = this.carryTimestamps[i + 1] || now;
-        const usedMs = endT - startT;
-        posResults.push({ yours: v, correct: correctCarries[i], ok, time: (usedMs / 1000).toFixed(1) + 's' });
-        return ok;
-      });
-      const totalUsed = (now - this.qStartTs) / 1000;
-      this.results = this.results.concat([{
-        q: `${cur.dividend}+${cur.divisor}`, ok: allOk, yourAns: this.carryInputs.join(''),
-        realAns: cur.ans, usedStr: totalUsed.toFixed(1) + 's', posResults
-      }]);
-      this._nextQuestion();
-    },
-
-    // === 确本位 方法 ===
-    pressDigitResult(d) {
-      const idx = this.digitActiveIdx;
-      if (idx > 3) return;
-      const inputs = [...this.digitInputs];
-      inputs[idx] = String(d);
-      this.digitInputs = inputs;
-      // 记录完成时间
-      this.digitTimestamps[idx + 1] = this.now();
-      // 自动跳到下一格
-      if (idx < 3) {
-        this.digitActiveIdx = idx + 1;
-      }
-    },
-    clearDigitInput() {
-      this.digitInputs = ['', '', '', ''];
-      this.digitActiveIdx = 0;
-      this.digitTimestamps = [this.digitTimestamps[0], 0, 0, 0, 0];
-    },
-    backspaceDigit() {
-      let idx = this.digitActiveIdx;
-      if (this.digitInputs[idx] !== '') {
-        const inputs = [...this.digitInputs];
-        inputs[idx] = '';
-        this.digitInputs = inputs;
-        this.digitTimestamps[idx + 1] = 0;
-      } else if (idx > 0) {
-        idx--;
-        this.digitActiveIdx = idx;
-        const inputs = [...this.digitInputs];
-        inputs[idx] = '';
-        this.digitInputs = inputs;
-        this.digitTimestamps[idx + 1] = 0;
-      }
-    },
-    confirmDigitResult() {
-      if (this.digitInputs.some(v => v === '')) {
-        this.uiHint = '请填完所有位';
-        return;
-      }
-      const now = this.now();
-      const cur = this.current;
-      const correctDigits = cur.resultDigits; // [千, 百, 十, 个]
-      const sum = cur.ans;
-      const isThreeDigit = sum < 1000;
-      const posResults = [];
-      let allOk = true;
-
-      this.digitInputs.forEach((v, i) => {
-        let ok;
-        if (i === 0 && isThreeDigit) {
-          // 三位数结果，千位填0或任意都算对
-          ok = (v === '0' || v === '');
-        } else {
-          ok = (parseInt(v) === correctDigits[i]);
+    clearInput(){ 
+        this.input = ''; 
+        if (['carryJudge', 'digitDetermine'].includes(this.currentModeKey)) {
+            this.boxTimes = [];
+            this.lastInputTs = this.now();
         }
-        if (!ok) allOk = false;
-        const startT = (i === 0) ? this.digitTimestamps[0] : this.digitTimestamps[i];
-        const endT = this.digitTimestamps[i + 1] || now;
-        const usedMs = endT - startT;
-        posResults.push({ yours: v, correct: correctDigits[i], ok, time: (usedMs / 1000).toFixed(1) + 's' });
-      });
-
-      const totalUsed = (now - this.qStartTs) / 1000;
-      const yourAnsStr = this.digitInputs.join('');
-      this.results = this.results.concat([{
-        q: `${cur.dividend}+${cur.divisor}`, ok: allOk, yourAns: parseInt(yourAnsStr),
-        realAns: sum, usedStr: totalUsed.toFixed(1) + 's', posResults
-      }]);
-      this._nextQuestion();
     },
-
+    backspace(){ 
+        if (['carryJudge', 'digitDetermine'].includes(this.currentModeKey) && (this.input || '').length > 0) {
+            this.boxTimes.pop(); 
+            this.lastInputTs = this.now(); 
+        }
+        this.input = (this.input || '').slice(0, -1); 
+    },
     leftAction(){ if(this.currentModeKey !== 'train'){ this.startGame(); return; } const cur = this.current; const used = (this.now() - this.qStartTs)/1000; const log = this.trainLog.concat([{ q: `${cur.dividend}${cur.symbol}${cur.divisor}`, usedStr: used.toFixed(1) + 's', wrong: this.curWrongTries, skipped: true }]); this.trainSkip++; this.trainLog = log; this._nextQuestion(); },
     
     confirmAnswer(){
@@ -1102,6 +735,29 @@ export default {
       let realAnsDisplay = cur.ans;
       let extraInfo = {};
       let yourAnsStr = input;
+
+      // 解析分步耗时并放入 extraInfo
+      let detailTimesStr = '';
+      if (mode === 'carryJudge') {
+          if (input.length < 3) { this.uiHint = '请填满三个选项'; return; }
+          const t1 = (this.boxTimes[0] || 0) / 1000;
+          const t2 = (this.boxTimes[1] || 0) / 1000;
+          const t3 = (this.boxTimes[2] || 0) / 1000;
+          detailTimesStr = `百:${t1.toFixed(1)}s 十:${t2.toFixed(1)}s 个:${t3.toFixed(1)}s`;
+      } else if (mode === 'digitDetermine') {
+          let tH = 0, tT = 0, tO = 0;
+          if (this.input.length === 4) {
+              tH = ((this.boxTimes[0]||0) + (this.boxTimes[1]||0)) / 1000;
+              tT = (this.boxTimes[2]||0) / 1000;
+              tO = (this.boxTimes[3]||0) / 1000;
+          } else {
+              tH = (this.boxTimes[0]||0) / 1000;
+              tT = (this.boxTimes[1]||0) / 1000;
+              tO = (this.boxTimes[2]||0) / 1000;
+          }
+          detailTimesStr = `千百:${tH.toFixed(1)}s 十:${tT.toFixed(1)}s 个:${tO.toFixed(1)}s`;
+      }
+      if (detailTimesStr) extraInfo.detailTimes = detailTimesStr;
 
       if (mode === 'divScale') {
           if (input.length < 4) {
@@ -1116,9 +772,8 @@ export default {
         correct = checkResult.ok; 
         realAnsDisplay = checkResult.display; 
         
-        // 解析所有扩展返回值，包含 exactDividend
         if (checkResult.exactAns !== undefined) {
-            extraInfo = { exactAns: checkResult.exactAns, errorRate: checkResult.errorRate };
+            extraInfo = { ...extraInfo, exactAns: checkResult.exactAns, errorRate: checkResult.errorRate };
             if (checkResult.exactDividend !== undefined) {
                 extraInfo.exactDividend = checkResult.exactDividend;
             }
@@ -1136,6 +791,7 @@ export default {
           this.trainWrong++; 
           this.curWrongTries++; 
           this.input = ''; 
+          if (mode === 'carryJudge') this.boxTimes = [];
           this.uiHint = `错误！答案是：${realAnsDisplay}`; 
         } 
         return; 
@@ -1146,7 +802,7 @@ export default {
           const exact = cur.dividend / cur.divisor;
           const error = Math.abs(n - exact) / exact;
           const exactStr = Number.isInteger(exact) ? String(exact) : exact.toFixed(1);
-          extraInfo = { exactAns: exactStr, errorRate: (error * 100).toFixed(2) + '%' };
+          extraInfo = { ...extraInfo, exactAns: exactStr, errorRate: (error * 100).toFixed(2) + '%' };
       }
 
       const results = this.results.concat([{ 
@@ -1689,70 +1345,6 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .rowLeft { flex: 1; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
 .rowRight { flex-shrink: 0; display: flex; align-items: center; text-align: right; justify-content: flex-end; }
 .qText-small { font-size: 52px !important; letter-spacing: -1px !important; white-space: nowrap; margin-top: 10px; overflow: visible; }
-
-/* 判进位 答题区 */
-.carry-ans-area {
-  display: flex; gap: 12px; justify-content: center; margin-top: 20px;
-}
-.carry-col {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-}
-.carry-label {
-  font-size: 14px; font-weight: 700; color: #8e8e93;
-}
-.carry-box {
-  width: 72px; height: 72px; line-height: 72px; border-radius: 18px;
-  background: rgba(255,255,255,0.5); border: 2px solid rgba(0,0,0,0.06);
-  font-size: 36px; font-weight: 800; color: #ccc; text-align: center;
-  transition: all 0.2s;
-}
-.carry-box-active {
-  border-color: #007aff; background: rgba(0,122,255,0.06);
-  box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
-}
-.carry-box-filled {
-  color: #007aff;
-}
-/* 判进位 键盘 */
-.carry-key-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-}
-.carry-key {
-  height: 90px !important; line-height: 1 !important; display: flex !important;
-  flex-direction: column; align-items: center; justify-content: center;
-  font-size: 36px !important;
-}
-.carry-key-y { background: rgba(52,199,89,0.12) !important; color: #34c759 !important; border-color: rgba(52,199,89,0.2) !important; }
-.carry-key-y:active { background: rgba(52,199,89,0.25) !important; }
-.carry-key-n { background: rgba(255,59,48,0.1) !important; color: #ff3b30 !important; border-color: rgba(255,59,48,0.2) !important; }
-.carry-key-n:active { background: rgba(255,59,48,0.2) !important; }
-.carry-key-sub {
-  font-size: 14px; font-weight: 600; margin-top: 2px; opacity: 0.8;
-}
-
-/* 确本位 答题区 */
-.digit-ans-area {
-  display: flex; gap: 8px; justify-content: center; margin-top: 20px;
-}
-.digit-col {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-}
-.digit-label {
-  font-size: 13px; font-weight: 700; color: #8e8e93;
-}
-.digit-box {
-  width: 62px; height: 68px; line-height: 68px; border-radius: 16px;
-  background: rgba(255,255,255,0.5); border: 2px solid rgba(0,0,0,0.06);
-  font-size: 34px; font-weight: 800; color: #ccc; text-align: center;
-  transition: all 0.2s;
-}
-.digit-box-active {
-  border-color: #5856d6; background: rgba(88,86,214,0.06);
-  box-shadow: 0 0 0 3px rgba(88,86,214,0.15);
-}
-.digit-box-filled {
-  color: #5856d6;
-}
 
 .cubic-ui { position: absolute; top: 0; left: 0; width: 100%; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; padding-top: max(60px, calc(env(safe-area-inset-top) + 10px)); box-sizing: border-box; pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 .cubic-ui > * { pointer-events: auto; }
