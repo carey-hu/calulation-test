@@ -260,6 +260,22 @@
         <div v-else>
            <button class="btnGhost glass-btn" style="height:44px; line-height:44px; font-size:16px; margin-bottom:15px; color:#007aff;" @click="initChart">📊 按模块分析趋势</button>
         </div>
+        <div v-if="showExport" class="chart-container glass-inner">
+           <div style="font-weight:700; color:#1d1d1f; font-size:14px; margin-bottom:10px;">📥 导出区间数据到 Excel</div>
+           <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
+             <input type="date" v-model="exportStart" class="export-date-input" />
+             <span style="font-size:13px; color:#8e8e93;">至</span>
+             <input type="date" v-model="exportEnd" class="export-date-input" />
+           </div>
+           <div style="font-size:12px; color:#8e8e93; margin-bottom:10px;">所选区间共 {{filteredCount}} 条记录</div>
+           <div style="display:flex; gap:8px;">
+             <button class="btnGhost small" style="font-size:13px; flex:1; height:40px; line-height:40px;" @click="closeExport">收起</button>
+             <button class="btnPrimary" style="height:40px; line-height:40px; font-size:14px; flex:2; box-shadow:none;" @click="doExport">导出 .xls</button>
+           </div>
+        </div>
+        <div v-else>
+           <button class="btnGhost glass-btn" style="height:44px; line-height:44px; font-size:16px; margin-bottom:15px; color:#34c759;" @click="openExport">📥 导出区间数据到 Excel</button>
+        </div>
         <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:0 8px; font-weight:700; color:#8e8e93; font-size:13px;">
            <span>时间 / 模式</span><span>成绩 / 耗时</span>
         </div>
@@ -401,6 +417,7 @@ import { useHistory } from './composables/useHistory';
 import { useChart } from './composables/useChart';
 import { useGame } from './composables/useGame';
 import { useThreeScene } from './composables/useThreeScene';
+import { useExport } from './composables/useExport';
 
 const viewState = ref('home');
 
@@ -409,6 +426,7 @@ const history = useHistory();
 const chart = useChart(history.list);
 const game = useGame({ viewState, history });
 const three = useThreeScene({ viewState });
+const exportTool = useExport({ historyListRef: history.list, showToast });
 
 // Game state + actions (exposed to template)
 const {
@@ -429,6 +447,12 @@ const {
   showChart, chartTab, availableModes,
   switchChartTab, closeChart, initChart,
 } = chart;
+
+// Export to Excel
+const {
+  showExport, exportStart, exportEnd, filteredCount,
+  openExport, closeExport, doExport,
+} = exportTool;
 
 // 3D mode
 const {
@@ -840,5 +864,26 @@ button { border: none; outline: none; cursor: pointer; font-family: inherit; }
 .ios-reset-btn:active {
   background: rgba(255, 255, 255, 0.8);
   transform: scale(0.98);
+}
+
+.export-date-input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.6);
+  font-family: inherit;
+  font-size: 14px;
+  color: #1c1c1e;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+}
+.export-date-input:focus {
+  border-color: rgba(0, 122, 255, 0.4);
+  background: rgba(255, 255, 255, 0.85);
 }
 </style>
