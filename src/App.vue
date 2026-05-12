@@ -221,7 +221,7 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped>
+<style>
 .shape-menu-container {
   position: absolute;
   top: 60px;
