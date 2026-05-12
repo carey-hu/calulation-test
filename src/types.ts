@@ -1,7 +1,15 @@
 // ===== Core data types =====
 
-/** A generated question / problem. The `divisor` field is the second operand
- *  regardless of operator (÷, +, −, ×), kept for historical naming. */
+/**
+ * A generated question / problem.
+ *
+ * IMPORTANT: `dividend` and `divisor` are legacy names carried over from the
+ * original division-only calculator. In non-division modes they represent:
+ *   `dividend` → left operand  (a  or the first expression string)
+ *   `divisor`  → right operand (b)
+ * The template renders them as `dividend symbol divisor`, e.g. "38 + 47" or
+ * "72 ÷ 8", so the display is always correct regardless of operator.
+ */
 export interface Question {
   dividend: number | string;
   divisor: number | string;

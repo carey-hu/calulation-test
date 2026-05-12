@@ -23,6 +23,9 @@ export interface ThreeHandle {
   examGroup: THREE.Mesh | null;
   csg: CSGState | null;
   animationId: number | null;
+  contextLost: boolean;
+  onContextLost: ((e: Event) => void) | null;
+  onContextRestored: (() => void) | null;
 }
 
 export type CameraViewType = 'front' | 'back' | 'left' | 'right' | 'top' | 'iso';

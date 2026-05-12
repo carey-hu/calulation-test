@@ -61,7 +61,7 @@ export const createScene = (container: HTMLElement, { showGrid = true }: CreateS
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
 
-  return {
+  const handle: ThreeHandle = {
     scene, camera, renderer, controls,
     gridHelper, sliceHelper, plane,
     raycaster, pointer,
@@ -69,12 +69,39 @@ export const createScene = (container: HTMLElement, { showGrid = true }: CreateS
     examGroup: null,
     csg: null,
     animationId: null,
+    contextLost: false,
+    onContextLost: null,
+    onContextRestored: null,
   };
+
+  const canvas = renderer.domElement;
+
+  handle.onContextLost = (e: Event) => {
+    e.preventDefault();
+    handle.contextLost = true;
+    if (handle.animationId != null) {
+      cancelAnimationFrame(handle.animationId);
+      handle.animationId = null;
+    }
+  };
+
+  handle.onContextRestored = () => {
+    handle.contextLost = false;
+    // Only restart if still mounted (renderer hasn't been disposed).
+    if (handle.renderer) {
+      animateLoop(handle);
+    }
+  };
+
+  canvas.addEventListener('webglcontextlost', handle.onContextLost);
+  canvas.addEventListener('webglcontextrestored', handle.onContextRestored);
+
+  return handle;
 };
 
 export const animateLoop = (handle: ThreeHandle): void => {
   const tick = () => {
-    if (!handle.renderer) return;
+    if (!handle.renderer || handle.contextLost) return;
     handle.animationId = requestAnimationFrame(tick);
     handle.controls.update();
     handle.renderer.render(handle.scene, handle.camera);
@@ -106,6 +133,9 @@ export const disposeScene = (handle: ThreeHandle | null, container: HTMLElement 
   if (!handle) return;
   if (handle.animationId != null) cancelAnimationFrame(handle.animationId);
   if (handle.renderer) {
+    const canvas = handle.renderer.domElement;
+    if (handle.onContextLost) canvas.removeEventListener('webglcontextlost', handle.onContextLost);
+    if (handle.onContextRestored) canvas.removeEventListener('webglcontextrestored', handle.onContextRestored);
     handle.renderer.dispose();
     if (container) container.innerHTML = '';
   }

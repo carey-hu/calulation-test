@@ -1,36 +1,6 @@
 import type { HistoryRecord, DetailItem, ResultItem, TrainLogItem } from '../types';
-
-const UTF8_BOM = '﻿';
-
-const parseDuration = (s: string): number => {
-  const n = parseFloat(String(s || '').replace(/s$/i, ''));
-  return Number.isFinite(n) ? n : 0;
-};
-
-const fullTimeStr = (ts: number): string => {
-  const d = new Date(ts);
-  const pad = (n: number) => (n < 10 ? '0' + n : String(n));
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} `
-    + `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-};
-
-const dateBoundary = (dateStr: string, endOfDay: boolean): number | null => {
-  if (!dateStr) return null;
-  const [y, m, d] = dateStr.split('-').map((x) => parseInt(x, 10));
-  if (!y || !m || !d) return null;
-  return endOfDay
-    ? new Date(y, m - 1, d, 23, 59, 59, 999).getTime()
-    : new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
-};
-
-const recordTsFromRecord = (r: HistoryRecord): number | null => {
-  if (typeof r.ts === 'number' && Number.isFinite(r.ts)) return r.ts;
-  if (typeof r.ts === 'string') {
-    const n = Number(r.ts);
-    if (Number.isFinite(n)) return n;
-  }
-  return null;
-};
+import { parseDuration, recordTs, downloadFile } from './formatters';
+import { fullTimeStr, dateBoundary } from './date-utils';
 
 export const filterByDateRange = (
   records: HistoryRecord[],
@@ -40,7 +10,7 @@ export const filterByDateRange = (
   const startTs = dateBoundary(startDate, false);
   const endTs = dateBoundary(endDate, true);
   return records.filter((r) => {
-    const ts = recordTsFromRecord(r);
+    const ts = recordTs(r);
     if (ts === null) return false;
     if (startTs !== null && ts < startTs) return false;
     if (endTs !== null && ts > endTs) return false;
@@ -120,23 +90,12 @@ export const buildCsv = (records: HistoryRecord[]): string => {
     '',
     ...buildDetailLines(records),
   ];
-  return UTF8_BOM + lines.join('\r\n');
+  // CSV already has BOM from downloadFile; this returns content only.
+  return lines.join('\r\n');
 };
 
 export const downloadCsvFile = (filename: string, csvContent: string): void => {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.rel = 'noopener';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 0);
+  downloadFile(filename, csvContent, 'text/csv');
 };
 
 export const buildExportFilename = (startDate: string, endDate: string): string => {

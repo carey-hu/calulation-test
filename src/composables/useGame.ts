@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, onBeforeUnmount } from 'vue';
 import type { Ref, ComputedRef } from 'vue';
 import type {
   Question, CheckResult, ResultItem, TrainLogItem,
@@ -458,6 +458,13 @@ export function useGame({ viewState, history }: GameContext) {
     viewState.value = 'result';
     isHistoryReview.value = true;
   };
+
+  onBeforeUnmount(() => {
+    if (timerId !== null) {
+      clearInterval(timerId);
+      timerId = null;
+    }
+  });
 
   return {
     // state

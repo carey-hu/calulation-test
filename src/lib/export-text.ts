@@ -1,23 +1,6 @@
 import type { HistoryRecord, ResultItem, TrainLogItem } from '../types';
-
-const UTF8_BOM = '﻿';
-
-const parseDuration = (s: string): number => {
-  const n = parseFloat(String(s || '').replace(/s$/i, ''));
-  return Number.isFinite(n) ? n : 0;
-};
-
-const pad2 = (n: number) => (n < 10 ? '0' + n : String(n));
-
-const ymdKey = (ts: number): string => {
-  const d = new Date(ts);
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-};
-
-const cnDateLabel = (ts: number): string => {
-  const d = new Date(ts);
-  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-};
+import { parseDuration, downloadFile } from './formatters';
+import { ymdKey, cnDateLabel } from './date-utils';
 
 const recordAccuracy = (r: HistoryRecord): number | null => {
   const detail = Array.isArray(r.detail) ? r.detail : [];
@@ -104,17 +87,5 @@ export const buildTextFilename = (startDate: string, endDate: string): string =>
 };
 
 export const downloadTextFile = (filename: string, content: string): void => {
-  const blob = new Blob([UTF8_BOM + content], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.rel = 'noopener';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 0);
+  downloadFile(filename, content, 'text/plain');
 };
