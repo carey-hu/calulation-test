@@ -1,22 +1,20 @@
-// Pure-JS CSV exporter. Writes a UTF-8 BOM so Chinese characters render
-// correctly when opened in Excel on Windows. CSV previews natively in iOS
-// Files, Android, WeChat, Numbers, WPS, and most email/cloud clients.
+import type { HistoryRecord, DetailItem, ResultItem, TrainLogItem } from '../types';
 
 const UTF8_BOM = '﻿';
 
-const parseDuration = (s) => {
+const parseDuration = (s: string): number => {
   const n = parseFloat(String(s || '').replace(/s$/i, ''));
   return Number.isFinite(n) ? n : 0;
 };
 
-const fullTimeStr = (ts) => {
+const fullTimeStr = (ts: number): string => {
   const d = new Date(ts);
-  const pad = (n) => (n < 10 ? '0' + n : '' + n);
+  const pad = (n: number) => (n < 10 ? '0' + n : String(n));
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} `
     + `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
-const dateBoundary = (dateStr, endOfDay) => {
+const dateBoundary = (dateStr: string, endOfDay: boolean): number | null => {
   if (!dateStr) return null;
   const [y, m, d] = dateStr.split('-').map((x) => parseInt(x, 10));
   if (!y || !m || !d) return null;
@@ -25,8 +23,7 @@ const dateBoundary = (dateStr, endOfDay) => {
     : new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
 };
 
-// Tolerate older records that may have stored ts as a numeric string.
-const recordTs = (r) => {
+const recordTsFromRecord = (r: HistoryRecord): number | null => {
   if (typeof r.ts === 'number' && Number.isFinite(r.ts)) return r.ts;
   if (typeof r.ts === 'string') {
     const n = Number(r.ts);
@@ -35,11 +32,15 @@ const recordTs = (r) => {
   return null;
 };
 
-export const filterByDateRange = (records, startDate, endDate) => {
+export const filterByDateRange = (
+  records: HistoryRecord[],
+  startDate: string,
+  endDate: string,
+): HistoryRecord[] => {
   const startTs = dateBoundary(startDate, false);
   const endTs = dateBoundary(endDate, true);
   return records.filter((r) => {
-    const ts = recordTs(r);
+    const ts = recordTsFromRecord(r);
     if (ts === null) return false;
     if (startTs !== null && ts < startTs) return false;
     if (endTs !== null && ts > endTs) return false;
@@ -47,10 +48,7 @@ export const filterByDateRange = (records, startDate, endDate) => {
   });
 };
 
-// RFC 4180: wrap a field in quotes if it contains comma, quote, CR, or LF.
-// Inside quotes, escape " as "". A leading = / + / - / @ gets a leading
-// apostrophe to neutralise Excel formula injection.
-const csvField = (val) => {
+const csvField = (val: unknown): string => {
   if (val === null || val === undefined) return '';
   let s = String(val);
   if (/^[=+\-@]/.test(s)) s = "'" + s;
@@ -60,10 +58,10 @@ const csvField = (val) => {
   return s;
 };
 
-const csvRow = (cells) => cells.map(csvField).join(',');
+const csvRow = (cells: unknown[]): string => cells.map(csvField).join(',');
 
-const buildSummaryLines = (records) => {
-  const lines = [];
+const buildSummaryLines = (records: HistoryRecord[]): string[] => {
+  const lines: string[] = [];
   lines.push(csvRow(['【训练汇总】']));
   lines.push(csvRow(['时间', '模式', '成绩', '用时(秒)', '题目数']));
   records.forEach((r) => {
@@ -79,15 +77,15 @@ const buildSummaryLines = (records) => {
   return lines;
 };
 
-const buildDetailLines = (records) => {
-  const lines = [];
+const buildDetailLines = (records: HistoryRecord[]): string[] => {
+  const lines: string[] = [];
   lines.push(csvRow(['【题目详情】']));
   lines.push(csvRow([
     '时间', '模式', '题号', '题目', '你的答案', '是否正确',
     '正确答案', '单题用时', '错误次数', '是否跳过', '分步用时',
   ]));
   records.forEach((r) => {
-    const details = Array.isArray(r.detail) ? r.detail : [];
+    const details: DetailItem[] = Array.isArray(r.detail) ? r.detail : [];
     if (details.length === 0) {
       lines.push(csvRow([
         fullTimeStr(r.ts), r.modeName || r.mode || '',
@@ -96,24 +94,27 @@ const buildDetailLines = (records) => {
       return;
     }
     details.forEach((d, i) => {
-      const okStr = d.ok === undefined ? '' : (d.ok ? '✓' : '✗');
+      const isResult = 'ok' in d;
+      const isTrain = 'skipped' in d;
       lines.push(csvRow([
-        fullTimeStr(r.ts), r.modeName || r.mode || '',
-        i + 1, d.q || '',
-        d.yourAns !== undefined ? d.yourAns : '',
-        okStr,
-        d.realAns !== undefined ? d.realAns : '',
+        fullTimeStr(r.ts),
+        r.modeName || r.mode || '',
+        i + 1,
+        d.q || '',
+        isResult ? ((d as ResultItem).yourAns ?? '') : '',
+        isResult ? ((d as ResultItem).ok ? '✓' : '✗') : '',
+        isResult ? ((d as ResultItem).realAns ?? '') : '',
         d.usedStr || '',
-        d.wrong !== undefined ? d.wrong : '',
-        d.skipped ? '是' : '',
-        d.detailTimes || '',
+        isTrain ? ((d as TrainLogItem).wrong ?? '') : '',
+        isTrain && (d as TrainLogItem).skipped ? '是' : '',
+        isResult ? ((d as ResultItem).detailTimes || '') : '',
       ]));
     });
   });
   return lines;
 };
 
-export const buildCsv = (records) => {
+export const buildCsv = (records: HistoryRecord[]): string => {
   const lines = [
     ...buildSummaryLines(records),
     '',
@@ -122,7 +123,7 @@ export const buildCsv = (records) => {
   return UTF8_BOM + lines.join('\r\n');
 };
 
-export const downloadCsvFile = (filename, csvContent) => {
+export const downloadCsvFile = (filename: string, csvContent: string): void => {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -138,7 +139,7 @@ export const downloadCsvFile = (filename, csvContent) => {
   }, 0);
 };
 
-export const buildExportFilename = (startDate, endDate) => {
-  const fmt = (s) => (s ? s.replace(/-/g, '') : 'all');
+export const buildExportFilename = (startDate: string, endDate: string): string => {
+  const fmt = (s: string) => (s ? s.replace(/-/g, '') : 'all');
   return `历史记录_${fmt(startDate)}_${fmt(endDate)}.csv`;
 };

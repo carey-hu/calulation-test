@@ -1,57 +1,57 @@
-// Plain-text practice report generator. Produces a human-readable summary
-// of a date range: total minutes/sessions, then per-day breakdown with each
-// mode's total time and accuracy.
+import type { HistoryRecord, ResultItem, TrainLogItem } from '../types';
 
-const parseDuration = (s) => {
+const UTF8_BOM = '﻿';
+
+const parseDuration = (s: string): number => {
   const n = parseFloat(String(s || '').replace(/s$/i, ''));
   return Number.isFinite(n) ? n : 0;
 };
 
-const pad2 = (n) => (n < 10 ? '0' + n : '' + n);
+const pad2 = (n: number) => (n < 10 ? '0' + n : String(n));
 
-const ymdKey = (ts) => {
+const ymdKey = (ts: number): string => {
   const d = new Date(ts);
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 };
 
-const cnDateLabel = (ts) => {
+const cnDateLabel = (ts: number): string => {
   const d = new Date(ts);
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
 };
 
-// Train mode lacks per-question ok flags (every question is eventually
-// answered correctly or skipped), so use (total - skipped) / total. For
-// every other mode, use the share of detail items with ok === true.
-const recordAccuracy = (r) => {
+const recordAccuracy = (r: HistoryRecord): number | null => {
   const detail = Array.isArray(r.detail) ? r.detail : [];
   if (detail.length === 0) return null;
   if (r.mode === 'train') {
-    const skipped = detail.filter((d) => d.skipped).length;
+    const skipped = detail.filter((d) => (d as TrainLogItem).skipped).length;
     return (detail.length - skipped) / detail.length;
   }
-  const hasOk = detail.some((d) => typeof d.ok === 'boolean');
-  if (!hasOk) return null;
-  const correct = detail.filter((d) => d.ok).length;
+  const correct = detail.filter((d) => (d as ResultItem).ok).length;
   return correct / detail.length;
 };
 
-const pctLabel = (rate) => (rate == null ? '—' : Math.round(rate * 100) + '%');
+const pctLabel = (rate: number | null): string =>
+  (rate == null ? '—' : Math.round(rate * 100) + '%');
 
-const formatMinutes = (totalSec) => (totalSec / 60).toFixed(1);
+const formatMinutes = (totalSec: number): string => (totalSec / 60).toFixed(1);
 
-export const buildTextReport = (records, startDate, endDate) => {
+export const buildTextReport = (
+  records: HistoryRecord[],
+  startDate: string,
+  endDate: string,
+): string => {
   const totalSecAll = records.reduce((acc, r) => acc + parseDuration(r.duration), 0);
   const totalMinAll = formatMinutes(totalSecAll);
 
-  const byDay = new Map();
+  const byDay = new Map<string, HistoryRecord[]>();
   records.forEach((r) => {
     const key = ymdKey(r.ts);
     if (!byDay.has(key)) byDay.set(key, []);
-    byDay.get(key).push(r);
+    byDay.get(key)!.push(r);
   });
   const sortedDays = [...byDay.keys()].sort().reverse();
 
-  const lines = [];
+  const lines: string[] = [];
   const rangeLabel = (startDate && endDate)
     ? `${startDate} 至 ${endDate}`
     : '全部记录';
@@ -70,23 +70,23 @@ export const buildTextReport = (records, startDate, endDate) => {
   lines.push('');
 
   sortedDays.forEach((key) => {
-    const dayRecords = byDay.get(key);
+    const dayRecords = byDay.get(key)!;
     const dayTotalSec = dayRecords.reduce((acc, r) => acc + parseDuration(r.duration), 0);
     const dayTotalMin = formatMinutes(dayTotalSec);
     const sampleTs = dayRecords[0].ts;
 
     lines.push(`【${cnDateLabel(sampleTs)}】 总练习 ${dayTotalMin} 分钟 / ${dayRecords.length} 组`);
 
-    const byMode = new Map();
+    const byMode = new Map<string, HistoryRecord[]>();
     dayRecords.forEach((r) => {
       const name = r.modeName || r.mode || '未知模式';
       if (!byMode.has(name)) byMode.set(name, []);
-      byMode.get(name).push(r);
+      byMode.get(name)!.push(r);
     });
 
     [...byMode.entries()].forEach(([name, group]) => {
       const sec = group.reduce((acc, r) => acc + parseDuration(r.duration), 0).toFixed(1);
-      const rates = group.map(recordAccuracy).filter((x) => x != null);
+      const rates = group.map(recordAccuracy).filter((x): x is number => x != null);
       const avgRate = rates.length > 0
         ? rates.reduce((a, b) => a + b, 0) / rates.length
         : null;
@@ -98,14 +98,12 @@ export const buildTextReport = (records, startDate, endDate) => {
   return lines.join('\n');
 };
 
-export const buildTextFilename = (startDate, endDate) => {
-  const fmt = (s) => (s ? s.replace(/-/g, '') : 'all');
+export const buildTextFilename = (startDate: string, endDate: string): string => {
+  const fmt = (s: string) => (s ? s.replace(/-/g, '') : 'all');
   return `练习统计_${fmt(startDate)}_${fmt(endDate)}.txt`;
 };
 
-const UTF8_BOM = '﻿';
-
-export const downloadTextFile = (filename, content) => {
+export const downloadTextFile = (filename: string, content: string): void => {
   const blob = new Blob([UTF8_BOM + content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

@@ -424,8 +424,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onBeforeUnmount } from 'vue';
+import type { Ref } from 'vue';
 import { MODE_GROUPS, DIVISOR_LIST, getModeConfig } from './lib/game-modes';
 import { useToast } from './composables/useToast';
 import { useHistory } from './composables/useHistory';

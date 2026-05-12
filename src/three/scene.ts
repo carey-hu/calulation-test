@@ -1,7 +1,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import type { ThreeHandle, CameraViewType } from './types';
 
-export const createScene = (container, { showGrid = true } = {}) => {
+interface CreateSceneOpts {
+  showGrid?: boolean;
+}
+
+export const createScene = (container: HTMLElement, { showGrid = true }: CreateSceneOpts = {}): ThreeHandle => {
   const width = container.clientWidth;
   const height = container.clientHeight;
 
@@ -67,7 +72,7 @@ export const createScene = (container, { showGrid = true } = {}) => {
   };
 };
 
-export const animateLoop = (handle) => {
+export const animateLoop = (handle: ThreeHandle): void => {
   const tick = () => {
     if (!handle.renderer) return;
     handle.animationId = requestAnimationFrame(tick);
@@ -77,7 +82,8 @@ export const animateLoop = (handle) => {
   tick();
 };
 
-export const setCameraView = (handle, type) => {
+export const setCameraView = (handle: ThreeHandle | null, type: CameraViewType): void => {
+  if (!handle) return;
   const { camera, controls } = handle;
   if (!camera || !controls) return;
   const dist = 20;
@@ -96,24 +102,27 @@ export const setCameraView = (handle, type) => {
   controls.update();
 };
 
-export const disposeScene = (handle, container) => {
-  if (handle.animationId) cancelAnimationFrame(handle.animationId);
+export const disposeScene = (handle: ThreeHandle | null, container: HTMLElement | null): void => {
+  if (!handle) return;
+  if (handle.animationId != null) cancelAnimationFrame(handle.animationId);
   if (handle.renderer) {
     handle.renderer.dispose();
     if (container) container.innerHTML = '';
   }
-  handle.scene = null;
-  handle.camera = null;
-  handle.renderer = null;
-  handle.controls = null;
+  // Null out all references to allow GC.
+  const h = handle as unknown as Record<string, unknown>;
+  h.scene = null;
+  h.camera = null;
+  h.renderer = null;
+  h.controls = null;
   handle.objects = [];
   handle.examGroup = null;
   handle.csg = null;
-  handle.sliceHelper = null;
-  handle.gridHelper = null;
+  handle.sliceHelper = null as unknown as THREE.Mesh;
+  handle.gridHelper = null as unknown as THREE.GridHelper;
 };
 
-export const addCubeAt = (handle, position, color) => {
+export const addCubeAt = (handle: ThreeHandle, position: THREE.Vector3, color: string): void => {
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const material = new THREE.MeshLambertMaterial({ color });
   const cube = new THREE.Mesh(geometry, material);
@@ -128,7 +137,11 @@ export const addCubeAt = (handle, position, color) => {
   handle.objects.push(cube);
 };
 
-export const handleVoxelClick = (handle, event, { isDeleteMode, selectedColor }) => {
+export const handleVoxelClick = (
+  handle: ThreeHandle,
+  event: PointerEvent,
+  { isDeleteMode, selectedColor }: { isDeleteMode: boolean; selectedColor: string },
+): void => {
   const { renderer, raycaster, pointer, scene, camera, objects } = handle;
   if (!renderer) return;
   const rect = renderer.domElement.getBoundingClientRect();
@@ -144,27 +157,39 @@ export const handleVoxelClick = (handle, event, { isDeleteMode, selectedColor })
     scene.remove(intersect.object);
     const idx = objects.indexOf(intersect.object);
     if (idx > -1) objects.splice(idx, 1);
-    intersect.object.geometry.dispose();
-    intersect.object.material.dispose();
+    if (intersect.object instanceof THREE.Mesh) {
+      intersect.object.geometry.dispose();
+      if (Array.isArray(intersect.object.material)) {
+        intersect.object.material.forEach((m) => m.dispose());
+      } else {
+        intersect.object.material.dispose();
+      }
+    }
     return;
   }
 
   const voxelPos = new THREE.Vector3()
     .copy(intersect.point)
-    .addScaledVector(intersect.face.normal, 0.5);
+    .addScaledVector(intersect.face!.normal, 0.5);
   voxelPos.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5);
   if (voxelPos.y < 0) return;
   addCubeAt(handle, voxelPos, selectedColor);
 };
 
-export const clearVoxels = (handle) => {
+export const clearVoxels = (handle: ThreeHandle): void => {
   const { scene, objects } = handle;
   for (let i = objects.length - 1; i >= 0; i--) {
     const obj = objects[i];
     if (obj.name !== 'ground') {
       scene.remove(obj);
-      obj.geometry.dispose();
-      obj.material.dispose();
+      if (obj instanceof THREE.Mesh) {
+        obj.geometry.dispose();
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach((m) => m.dispose());
+        } else {
+          obj.material.dispose();
+        }
+      }
       objects.splice(i, 1);
     }
   }
