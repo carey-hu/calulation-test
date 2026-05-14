@@ -357,6 +357,29 @@ export const GAME_MODES: Record<string, GameModeConfig> = {
     }),
   },
 
+  sumTruncated: {
+    name: '和去尾',
+    title: '三位数和去尾完成！',
+    hintNote: '计算和并去掉个位数 (如 991 -> 99)',
+    gen: (n) => genN(n, (): Question => {
+      const a = randInt(100, 999);
+      const b = randInt(100, 999);
+      return { dividend: a, divisor: b, ans: Math.floor((a + b) / 10), symbol: '+' };
+    }),
+  },
+
+  diffTruncated: {
+    name: '差去尾',
+    title: '三位数差去尾完成！',
+    hintNote: '计算差并去掉个位数 (如 690 -> 69)',
+    gen: (n) => genN(n, (): Question => {
+      let a = randInt(100, 999);
+      let b = randInt(100, 999);
+      if (a < b) [a, b] = [b, a];
+      return { dividend: a, divisor: b, ans: Math.floor((a - b) / 10), symbol: '-' };
+    }),
+  },
+
   divSpecA: {
     name: '反向放缩',
     title: '反向放缩完成！',
@@ -447,6 +470,7 @@ export const MODE_GROUPS: Record<string, ModeGroup> = {
       'carryJudge', 'borrowJudge', 'digitDetermine',
       'triplePlus', 'tripleMinus', 'tripleAnyPlus', 'tripleAnyMinus',
       'tripleMix', 'tripleMult', 'tripleDiv',
+      'sumTruncated', 'diffTruncated',
     ],
   },
   spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB', 'divSpecC', 'divScale'] },
