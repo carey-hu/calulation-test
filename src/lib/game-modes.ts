@@ -360,7 +360,7 @@ export const GAME_MODES: Record<string, GameModeConfig> = {
   sumTruncated: {
     name: '和去尾',
     title: '三位数和去尾完成！',
-    hintNote: '计算和并去掉个位数 (如 991 -> 99)',
+    hintNote: '计算和并去掉个位数',
     gen: (n) => genN(n, (): Question => {
       const a = randInt(100, 999);
       const b = randInt(100, 999);
@@ -371,7 +371,7 @@ export const GAME_MODES: Record<string, GameModeConfig> = {
   diffTruncated: {
     name: '差去尾',
     title: '三位数差去尾完成！',
-    hintNote: '计算差并去掉个位数 (如 690 -> 69)',
+    hintNote: '计算差并去掉个位数',
     gen: (n) => genN(n, (): Question => {
       let a = randInt(100, 999);
       let b = randInt(100, 999);
