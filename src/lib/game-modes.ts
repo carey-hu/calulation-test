@@ -31,6 +31,24 @@ const estimateCheck = (v: number, t: Ans): CheckResult => {
   return { ok: r <= 0.03, display: String(Math.round(num)) };
 };
 
+// ===== 三位数高位口算（从左往右：百位→十位→个位） =====
+
+export const HIGH_POSITION_MODES = ['tripleAddHigh', 'tripleSubHigh', 'tripleMixHigh'];
+
+const highPositionCheck = (fullAns: number, inputStr?: string): CheckResult => {
+  const targetHigh = Math.floor(fullAns / 10);
+  const targetStr = String(targetHigh);
+  const userStr = (inputStr || '').trim();
+  const minLen = targetHigh >= 10 ? 2 : 1;
+  if (!userStr || userStr.length < minLen) {
+    return { ok: false, display: `需至少${minLen}位，完整答案: ${fullAns}，高位: ${targetHigh}` };
+  }
+  if (targetStr.startsWith(userStr)) {
+    return { ok: true, display: String(fullAns) };
+  }
+  return { ok: false, display: `错误！完整答案: ${fullAns} (高位: ${targetHigh})` };
+};
+
 export const GAME_MODES: Record<string, GameModeConfig> = {
   train: {
     name: '训练',
@@ -434,6 +452,51 @@ export const GAME_MODES: Record<string, GameModeConfig> = {
       return { dividend, divisor, ans: dividend / divisor, symbol: '÷' };
     }),
   },
+
+  tripleAddHigh: {
+    name: '高位加法',
+    title: '高位加法完成！',
+    hintNote: '只输入和去掉个位的高位(百/千)',
+    check: (v, t, inputStr): CheckResult => highPositionCheck(t as number, inputStr),
+    gen: (n) => genN(n, (): Question => {
+      const a = randInt(100, 999);
+      const b = randInt(100, 999);
+      return { dividend: a, divisor: b, ans: a + b, symbol: '+' };
+    }),
+  },
+
+  tripleSubHigh: {
+    name: '高位减法',
+    title: '高位减法完成！',
+    hintNote: '只输入差去掉个位的高位(百位)',
+    check: (v, t, inputStr): CheckResult => highPositionCheck(t as number, inputStr),
+    gen: (n) => genN(n, (): Question => {
+      let a = randInt(100, 999);
+      let b = randInt(100, 999);
+      if (a < b) [a, b] = [b, a];
+      return { dividend: a, divisor: b, ans: a - b, symbol: '-' };
+    }),
+  },
+
+  tripleMixHigh: {
+    name: '高位混合',
+    title: '高位混合完成！',
+    hintNote: '只输入结果去掉个位的高位',
+    check: (v, t, inputStr): CheckResult => highPositionCheck(t as number, inputStr),
+    gen: (n) => genN(n, (): Question => {
+      const isAdd = Math.random() > 0.5;
+      if (isAdd) {
+        const a = randInt(100, 999);
+        const b = randInt(100, 999);
+        return { dividend: a, divisor: b, ans: a + b, symbol: '+' };
+      } else {
+        let a = randInt(100, 999);
+        let b = randInt(100, 999);
+        if (a < b) [a, b] = [b, a];
+        return { dividend: a, divisor: b, ans: a - b, symbol: '-' };
+      }
+    }),
+  },
 };
 
 export const MODE_GROUPS: Record<string, ModeGroup> = {
@@ -450,6 +513,10 @@ export const MODE_GROUPS: Record<string, ModeGroup> = {
     ],
   },
   spec: { label: '五除三专项 (允许3%误差)', modes: ['divSpecA', 'divSpecB', 'divSpecC', 'divScale'] },
+  highPosition: {
+    label: '三位数高位口算 (从左往右)',
+    modes: ['tripleAddHigh', 'tripleSubHigh', 'tripleMixHigh'],
+  },
 };
 
 export const DIVISOR_LIST = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];

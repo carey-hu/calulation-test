@@ -6,7 +6,7 @@ import type {
 } from '../types';
 import {
   resolveActiveConfig, getModeName,
-  GAME_MODES, ESTIMATE_MODES,
+  GAME_MODES, ESTIMATE_MODES, HIGH_POSITION_MODES,
 } from '../lib/game-modes';
 import { msToMMSS } from '../lib/formatters';
 
@@ -164,6 +164,7 @@ export function useGame({ viewState, history }: GameContext) {
     let cur = input.value || '';
     let maxLen = 6;
     if (mode === 'divScale' || mode === 'digitDetermine') maxLen = 4;
+    if (HIGH_POSITION_MODES.includes(mode)) maxLen = 3;
     if (cur.length >= maxLen) return;
 
     if (STAGE_TIMED_MODES.includes(mode)) {
@@ -373,6 +374,23 @@ export function useGame({ viewState, history }: GameContext) {
         curWrongTries.value += 1;
         _resetCurrentInput(mode);
         uiHint.value = `错误！答案是：${realAnsDisplay}`;
+      }
+      return;
+    }
+
+    if (HIGH_POSITION_MODES.includes(mode)) {
+      if (correct) {
+        results.value = results.value.concat([{
+          q: `${cur.dividend}${cur.symbol}${cur.divisor}`,
+          ok: true,
+          yourAns: yourAnsStr,
+          realAns: realAnsDisplay,
+          usedStr: used.toFixed(1) + 's',
+        }]);
+        _nextQuestion();
+      } else {
+        _resetCurrentInput(mode);
+        uiHint.value = `${realAnsDisplay}`;
       }
       return;
     }
