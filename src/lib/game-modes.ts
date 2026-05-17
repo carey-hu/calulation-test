@@ -1,4 +1,4 @@
-import type { Question, CheckResult, DecompAddAnswer, GameModeConfig, ModeGroup } from '../types';
+import type { Question, CheckResult, DecompAddAnswer, PairAnswer, GameModeConfig, ModeGroup } from '../types';
 import { shuffle, randInt, rejectSample, genN } from './random';
 
 type Ans = Question['ans'];
@@ -14,17 +14,6 @@ const buildBasePool = (): Question[] => {
   for (let d = 11; d <= 19; d++) {
     for (let q = 1; q <= 9; q++) {
       pool.push({ dividend: d * q, divisor: d, ans: q, symbol: '÷' });
-    }
-  }
-  return pool;
-};
-
-const buildPairPool = (): Question[] => {
-  const pool: Question[] = [];
-  for (let x = 2; x <= 9; x++) {
-    for (let y = 2; y <= 9; y++) {
-      if (x === y) continue;
-      pool.push({ dividend: 10 + x, divisor: y, ans: (10 + x) * y, symbol: '×' });
     }
   }
   return pool;
@@ -60,8 +49,37 @@ export const GAME_MODES: Record<string, GameModeConfig> = {
   pairMult: {
     name: '大九九对子',
     title: '大九九对子完成！',
-    hintNote: '准确回忆乘积',
-    gen: () => shuffle(buildPairPool()),
+    hintNote: '先左后右，依次输入两个乘积',
+    isSmallFont: true,
+    check: (v, t, inputStr, inputArray): CheckResult => {
+      const target = t as PairAnswer;
+      if (!inputArray || inputArray.length < 2) {
+        return { ok: false, display: `${target.ans1}, ${target.ans2}` };
+      }
+      const ok = parseInt(inputArray[0], 10) === target.ans1
+        && parseInt(inputArray[1], 10) === target.ans2;
+      return { ok, display: `${target.ans1}, ${target.ans2}` };
+    },
+    gen: (n) => {
+      const pairs: [number, number][] = [];
+      for (let x = 2; x <= 9; x++) {
+        for (let y = x + 1; y <= 9; y++) {
+          pairs.push([x, y]);
+        }
+      }
+      const selected = shuffle(pairs).slice(0, n);
+      return selected.map(([x, y]) => {
+        const flip = Math.random() > 0.5;
+        const a = flip ? x : y;
+        const b = flip ? y : x;
+        return {
+          dividend: `${10 + a}×${b}`,
+          divisor: `${10 + b}×${a}`,
+          ans: { ans1: (10 + a) * b, ans2: (10 + b) * a } as PairAnswer,
+          symbol: '  |  ',
+        };
+      });
+    },
   },
 
   first: {
