@@ -19,6 +19,17 @@ const buildBasePool = (): Question[] => {
   return pool;
 };
 
+const buildPairPool = (): Question[] => {
+  const pool: Question[] = [];
+  for (let x = 2; x <= 9; x++) {
+    for (let y = 2; y <= 9; y++) {
+      if (x === y) continue;
+      pool.push({ dividend: 10 + x, divisor: y, ans: (10 + x) * y, symbol: '×' });
+    }
+  }
+  return pool;
+};
+
 const digits3 = (n: number): Digits3 => ({
   hundreds: Math.floor(n / 100),
   tens: Math.floor((n % 100) / 10),
@@ -44,6 +55,13 @@ export const GAME_MODES: Record<string, GameModeConfig> = {
     title: '竞速完成！',
     hintNote: '精确到整数',
     gen: () => shuffle(buildBasePool()).slice(0, 10),
+  },
+
+  pairMult: {
+    name: '大九九对子',
+    title: '大九九对子完成！',
+    hintNote: '准确回忆乘积',
+    gen: () => shuffle(buildPairPool()),
   },
 
   first: {
@@ -460,7 +478,7 @@ export const GAME_MODES: Record<string, GameModeConfig> = {
 };
 
 export const MODE_GROUPS: Record<string, ModeGroup> = {
-  basic: { label: '大九九/除法', modes: ['train', 'speed', 'first'] },
+  basic: { label: '大九九/除法', modes: ['train', 'speed', 'first', 'pairMult'] },
   divSelect: { label: '商首位专项', modes: [] },
   single: { label: '一位数专项', modes: ['plus', 'minus', 'fourSingleSum'] },
   double: { label: '两位数专项 (完整答案)', modes: ['doublePlus', 'doubleMinus', 'fourSum', 'decompAdd'] },
